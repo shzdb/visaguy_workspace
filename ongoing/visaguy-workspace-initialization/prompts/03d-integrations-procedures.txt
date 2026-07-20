@@ -1,0 +1,36 @@
+SYNTHESIS ONLY. Do not use SSH, network, application repositories, or new extraction. Read only the accepted local phase reports listed below and write only the requested output.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+
+TASKS:
+- IP1. Produce an end-to-end system topology across the three frontends, FastAPI/OpenAI companion, Frappe site, 18 maintained apps, 9 installed external apps, 2 bench-only external apps, Redis/workers/scheduler, and external providers.
+- IP2. Reconcile workflow claims across reports. Mark a join confirmed only where both sides are evidenced. In particular, do not claim the consumer website invokes `visaguy_business.create_process_file`; the evidence currently only proves separate interfaces. Label unproven order→process/payment joins as unresolved.
+- IP3. Build an integration matrix with four levels: present, source-wired, configured (not verified unless evidence), runtime-verified (none unless explicit). Cover OpenAI, Frappe REST/RPC, OAuth/OTP, WhatsApp, Raven, FCM, Meta/Google conversions, MyFatoorah/TotalPay, upstream Payments gateways, Zoho references, Twilio/Exotel, Insights, backups, GST/India Compliance.
+- IP4. Build a customization/precedence matrix for Frappe/ERPNext, CRM, Helpdesk, HRMS, Raven, Payments, FileFlo/ProcessFlo, including base app, custom layer, hook/override type, migration/upgrade risk, and validation gate.
+- IP5. Produce operational runbooks grounded in evidence: safe reconnaissance, local frontend setup/build/lint/test, bench install/migrate/build, scheduler/workers, deployment/update sequence, backup/rollback preparation, validation, and dirty-tree handling. Clearly label commands that are documented but were not executed.
+- IP6. Produce security/privacy architecture: credentials and tokens, CORS/guest access, PII/lead/application data, browser storage, provider secrets, uploads, database/config/log exclusions, and recommended controls as follow-up decisions (not claims of implementation).
+- IP7. Consolidate risks/open questions and identify which are runtime-unverified versus statically verified.
+
+POLICIES:
+- Do not turn inferred joins into implementation facts.
+- Do not copy malformed normalized paths from raw recon; cite stable app/file/symbol evidence already in reports.
+- Settings DocType presence is `present`, hooks/imports/calls are `source-wired`, environment/config values were not inspected, live provider traffic was not tested.
+- Commands in procedures must have preconditions, backup/rollback checkpoints, and a statement that this audit did not execute production mutations.
+- Do not include secrets, config values, dirty filenames/diffs, production data, or raw logs.
+
+GATES:
+- Topology, reconciliation, integrations, customization precedence, operations, security/privacy, risks/open questions all present.
+- Verification levels used consistently.
+- No new files besides the output.
+
+OUTPUT:
+- Write /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
+
+REPLY ONLY WITH:
+`<topology complete>, <integration count>, <runbook count>, <risk count>, <verdict>`

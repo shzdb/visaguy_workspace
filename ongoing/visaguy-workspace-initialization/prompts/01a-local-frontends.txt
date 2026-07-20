@@ -1,0 +1,45 @@
+GROUND FACTS (already verified — do not re-derive):
+- Project workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- This workspace is the only location you may edit.
+- Read-only frontend repositories:
+  1. /home/shzd/Projects/tridz/visa_eligibility_checker (origin tvgglobal/visa_eligibility_checker)
+  2. /home/shzd/Projects/tridz/visaguy_business_client (origin tridz-dev/visaguy_business_client)
+  3. /home/shzd/Projects/tridz/visaguy-website-client (origin tvgglobal/visaguy-website-client)
+- All three working trees were clean on branch main at the start of this phase.
+- Organizations tridz-dev and tvgglobal are internally maintained.
+- Do not read or reproduce secrets, credentials, personal data, .env values, generated build artifacts, or dependency vendor trees.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+
+TASKS:
+- LF1. Inventory each frontend's framework, package manager, main entry points, route/page structure, state/data layer, build/deployment configuration, and test/lint commands using manifests and source evidence.
+- LF2. Identify user-facing capabilities and workflows. Distinguish implemented behavior from labels, TODOs, dead code, examples, or assumptions.
+- LF3. Identify backend/API integrations, authentication/session mechanisms, payment/analytics/communications/third-party SDKs, and environment variable NAMES only. Never record values.
+- LF4. Identify important customizations, shared patterns, cross-frontend relationships, and any coupling to Frappe apps or site endpoints.
+- LF5. Record operational procedures evidenced by scripts/config/docs: local setup, build, deployment, migrations, generated clients, and validation.
+- LF6. Capture repository origin, current HEAD SHA, branch, and last commit date as implementation evidence.
+- LF7. List unresolved questions and risks where source evidence is insufficient.
+
+POLICIES:
+- Cite evidence as absolute repository path plus line number or symbol whenever practical.
+- Treat package manifests, lockfiles, source, and checked-in config as evidence; label inferences explicitly.
+- Do not infer production behavior from unused code or examples.
+- Do not classify an integration as active unless imports/config/calls or deployment wiring support it.
+- Do not modify any frontend repository.
+
+GATES:
+- `git -C <each-repo> status --short` must remain empty.
+- Output must cover all three repositories separately and include a comparison summary.
+- Output must contain no secret values or personal/production data.
+
+SCOPE GUARDS:
+- Work ONLY by reading the three frontend repositories listed above.
+- Write ONLY /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
+- DO NOT modify application code, install dependencies, run dev servers, access the network, commit, or push.
+
+OUTPUT:
+- Write a detailed evidence-backed report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
+
+REPLY ONLY WITH:
+`<three HEAD SHAs>, <repo/file counts inspected>, <dirty repo count>, <verdict>`

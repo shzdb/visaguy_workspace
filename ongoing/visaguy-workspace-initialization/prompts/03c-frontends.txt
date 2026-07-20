@@ -1,0 +1,43 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Read-only clean repositories:
+  - /home/shzd/Projects/tridz/visa_eligibility_checker at 2d46af4ebb4f5bcd26cc40b535b3233a643ff9fc
+  - /home/shzd/Projects/tridz/visaguy_business_client at 6c3d365a48518008b2769fe4361278dbd0744b74
+  - /home/shzd/Projects/tridz/visaguy-website-client at 3b066f6baa7291fa3f778e8d7c1d70e236f0db80
+- The accepted reconnaissance is in 01a-local-frontends.md.
+- Never read or reproduce .env values, secrets, credentials, user data, generated builds, or dependency trees.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+
+TASKS:
+- FE1. Convert the raw frontend recon into a reader-focused architecture report covering each product surface, actors, route/page map, state/data flow, authentication, API contracts, environment variable names, builds/tests/deployment evidence, and repository-specific procedures.
+- FE2. Map exact Frappe/custom method and resource dependencies to the maintained backend apps where source evidence supports it. Flag unresolved method ownership rather than guessing.
+- FE3. Document end-to-end workflows for eligibility assessment/lead capture, B2B login/order/payment, and consumer OTP/login/application/order/payment.
+- FE4. Produce safe local development, build, lint/test, and deployment checklists from checked-in scripts/docs/config. Do not install or execute builds.
+- FE5. Document security/trust boundaries: browser credential/token storage, CORS/guest calls, OpenAI server-side key boundary, fallback URLs, PII/lead data, and placeholder/simulated behavior.
+- FE6. List cross-frontend duplication, coupling, missing shared contracts, and open questions.
+
+POLICIES:
+- Cite repository-relative files plus line/symbol.
+- Separate implemented, configured, inferred, and placeholder behavior.
+- Never include credential values or sample production data.
+- Keep source repositories read-only.
+
+GATES:
+- All three frontends covered.
+- Three end-to-end workflow maps present.
+- API/auth/security and operating procedure sections present.
+- All three repository git statuses remain clean.
+
+SCOPE GUARDS:
+- Read only the three repositories above and accepted workspace reports.
+- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+- Do not modify repos, install, build, serve, call APIs, commit, push, or access the network.
+
+OUTPUT:
+- Write the synthesized report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+
+REPLY ONLY WITH:
+`<3/3 coverage>, <workflow count>, <API contract count>, <security risk count>, <verdict>`

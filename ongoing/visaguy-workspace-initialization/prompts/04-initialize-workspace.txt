@@ -1,0 +1,89 @@
+INITIALIZE CANONICAL WORKSPACE DOCUMENTATION. Use only local accepted evidence and supplied initializer assets. No SSH, network, application-repository reads, helper files, raw extraction, commits, or pushes.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
+- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/workspace-structure.md
+- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/initialization-checklist.md
+- Templates under /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/assets/
+
+AUTHORITY / CONTENT RULES:
+- Workspace is authoritative for intent, architecture understanding, decisions, procedures, risks, open questions, and status.
+- Application repositories are authoritative for implementation, tests, generated schemas, builds, and releases.
+- No application code, secrets, config values, production data, raw logs, dirty filenames/diffs, or generated artifacts.
+- Maintained ownership: Git repository owner `tridz-dev` or `tvgglobal`. `crm` and `helpdesk` are maintained forks. All other owners are external.
+- Bench availability: 29 app repos. Site installation: 27 apps. Bench-only: employee_self_service, mansico_meta_integration.
+- Use verification labels consistently: present, source-wired/statically verified, configured-unverified, runtime-verified. This audit runtime-verified SSH access, installed apps, versions, and CLI help; it did not verify provider traffic or production workflows.
+- Do not claim the consumer website calls `visaguy_business.create_process_file`; that join is unresolved.
+- Operational commands must match corrected phase 3d, including `bench doctor --site visaguy`, `bench --site visaguy backup --with-files`, and explicit restore archive flags.
+
+CREATE EXACTLY THESE CANONICAL FILES:
+- README.md
+- AGENTS.md (adapt supplied AGENTS.md template; include Context7 requirement for library/framework/API/CLI docs and point to `.agents/`)
+- .agents/README.md
+- .agents/rules/project-rules.md (adapt supplied project-rules template with VisaGuy boundaries, remote read-only default, verification labels, no secrets/data)
+- .agents/skills/implementation-audit.md
+- .agents/templates/feature.md (copy supplied template)
+- .agents/templates/task.md (copy supplied template)
+- .agents/templates/decision.md (copy supplied template)
+- .agents/templates/completion-report.md (copy supplied template)
+- docs/index.md
+- docs/product/overview.md
+- docs/product/capabilities.md
+- docs/architecture/system-overview.md
+- docs/architecture/repository-catalog.md (all 32 repositories: 29 bench apps + 3 frontends; owner/class/install status/version-or-HEAD/role)
+- docs/architecture/frappe-apps.md (18 maintained app responsibilities and 11 external roles; link to catalog)
+- docs/architecture/frontends.md
+- docs/architecture/customizations.md
+- docs/architecture/integrations.md
+- docs/operations/local-development.md
+- docs/operations/bench-operations.md
+- docs/operations/deployment.md
+- docs/security-and-privacy.md
+- docs/risks-and-open-questions.md
+- decisions/ADR-001-workspace-and-repository-authority.md (Accepted)
+- decisions/ADR-002-app-ownership-classification.md (Accepted)
+- features/README.md
+- features/planned/.gitkeep
+- features/ongoing/.gitkeep
+- features/completed/.gitkeep
+- features/parked/.gitkeep
+- tasks/README.md
+- tasks/ready/.gitkeep
+- tasks/in-progress/.gitkeep
+- tasks/blocked/.gitkeep
+- tasks/completed/.gitkeep
+- research/README.md
+- archive/README.md
+- ongoing/visaguy-workspace-initialization/04-initialization.md
+
+DOCUMENT ROUTING:
+- README: purpose, repository role, current implementation snapshot, start-here links.
+- docs/index: canonical map and reading paths for product, architecture, operations, security.
+- product overview/capabilities: users/surfaces/capability status without inventing product decisions.
+- system overview: topology/trust boundaries/verified vs unresolved joins.
+- repository catalog: concise single source of repository ownership/install metadata.
+- frappe-apps: capability groupings, maintained fork/wrapper relationships, dependencies, interface pointers.
+- frontends: adapt 03c into reader-facing concise architecture; link to operations/security.
+- customizations: precedence matrix, hooks/overrides/fixtures/schedulers/patches and upgrade gates.
+- integrations: use four-level verification model, no activation overclaims.
+- operations docs: split local development, bench operations, deployment/rollback; repeat safety disclaimer and correct CLI syntax.
+- security: auth storage, CORS/guest access, PII/uploads, provider secrets, recommended follow-up decisions.
+- risks/open questions: evidence-backed register; do not mark questions settled.
+- 04-initialization.md: list every created file, assumptions, unresolved questions, and next actions.
+
+GATES:
+- All listed files exist; template copies preserve template fields/headings.
+- Links are relative and valid by inspection.
+- Repository counts are exactly 32 total, 29 bench, 18 maintained, 11 external, 27 site-installed, 2 bench-only, 3 frontends.
+- No feature/task document is invented; lifecycle folders exist and READMEs explain entry criteria.
+- No extra files are created.
+
+WRITE SCOPE:
+- Write only the exact files listed above inside /home/shzd/Projects/workspaces/visaguy_workspace.
+
+REPLY ONLY WITH:
+`<created file count>, <repository count check>, <link count>, <verdict>`

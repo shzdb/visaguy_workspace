@@ -1,0 +1,42 @@
+GROUND FACTS (already verified — do not re-derive):
+- This is a corrective continuation of phase 3a after the previous executor was stopped for proposing a remote /tmp helper write.
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Remote bench must remain strictly read-only: ssh -p 2257 shahzad@erpcode.tridz.in, /home/shahzad/bench
+- Maintained apps (18): crm, fileflo, frappe_conversions_api, frappe_notifier, helpdesk, otp_authentication, payment_integrations, processflo, quick_kanban, the_visaguy, visaguy_business, visaguy_crm, visaguy_frappe_crm, visaguy_helpdesk, visaguy_hrms, visaguy_raven, visaguy_website, waflo.
+- Existing local extraction: /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/maintained_raw.json. It contains checked-in source metadata and may be used as scut-work input.
+- Do not read or reproduce dirty diffs, secrets, config values, databases, logs, uploads, private files, or production records.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/maintained_raw.json
+
+TASKS:
+- Complete tasks MA1 through MA7 from prompts/03a-maintained-apps.txt using the existing extraction and only narrowly targeted SSH reads if evidence is missing.
+- Synthesize reader-focused responsibilities/interfaces; do not create more raw extraction or group files.
+- Include the three-layer CRM responsibility/precedence section and evidenced end-to-end workflow maps.
+
+HARD CORRECTIVE POLICIES:
+- NEVER use scp, sftp, rsync, redirection, heredocs, or helper-file creation on the remote host, including /tmp.
+- Any optional remote script must be piped through SSH stdin and execute read-only in memory; prefer simple bounded commands.
+- Do not use git status output that exposes dirty filenames; only the accepted dirty counts/names of repositories may be stated.
+- Settings presence is not runtime activation.
+- Cite /home/shahzad/bench/<path>:<line> or precise symbols.
+
+GATES:
+- All 18 apps covered exactly once.
+- CRM layer and workflow maps present.
+- Only the final report is created during this corrective run.
+- No remote writes, secret values, production data, raw logs, dirty filenames, or dirty diffs.
+
+SCOPE GUARDS:
+- Remote read-only; local workspace report write only.
+- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- Do not modify/install/build/migrate/restart/commit/push/query databases/call providers.
+
+OUTPUT:
+- Write /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+
+REPLY ONLY WITH:
+`<18/18 coverage>, <workflow count>, <interface count>, <risk count>, <verdict>`

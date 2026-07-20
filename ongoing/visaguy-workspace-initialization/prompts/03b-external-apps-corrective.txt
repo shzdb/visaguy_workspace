@@ -1,0 +1,39 @@
+GROUND FACTS (already verified — do not re-derive):
+- Corrective continuation: prior executor was stopped because it wrote remote /tmp reference files and exposed dirty filenames in console.
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Remote host/bench must now remain strictly read-only.
+- External apps (11): employee_self_service, erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, mansico_meta_integration, non_profit, payments, raven.
+- Site-installed: 9; bench-only: employee_self_service and mansico_meta_integration.
+- Dirty repositories: insights and mansico_meta_integration. State counts only; do not state dirty filenames or inspect diffs.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/prompts/03b-external-apps.txt
+
+TASKS:
+- Complete EA1 through EA5 from 03b-external-apps.txt.
+- Use accepted reconnaissance as primary evidence. Use only narrow SSH stdout reads if a specific missing fact is essential.
+
+HARD CORRECTIVE POLICIES:
+- NEVER write anything on the remote host, including /tmp. Do not use scp/sftp/rsync/redirection/heredocs/helper files remotely.
+- Do not run recursive cross-app scans. Do not print git status paths; accepted dirty repository names/counts are enough.
+- Do not include any filenames learned from dirty status/diffs in the report.
+- Do not create raw/local helper artifacts; write only the final report.
+- Keep upstream descriptions concise and VisaGuy-specific.
+
+GATES:
+- All 11 covered; 9 installed and 2 bench-only.
+- Compatibility/upgrade table present.
+- No remote writes, dirty filenames/diffs, secret values, production data, or raw logs.
+
+SCOPE GUARDS:
+- Remote read-only; local final report write only.
+- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+
+OUTPUT:
+- Write /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+
+REPLY ONLY WITH:
+`<11/11 coverage>, <9 installed/2 bench-only>, <compatibility risk count>, <verdict>`

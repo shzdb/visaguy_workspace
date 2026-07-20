@@ -1,0 +1,23 @@
+VERIFY ONLY. Do not modify canonical files, use SSH/network, create helpers, commit, or push.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/initialization-checklist.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/04-initialization.md
+- All canonical files listed in 04-initialization.md.
+
+TASKS:
+- V1. Verify every initialization checklist item with file evidence.
+- V2. Verify the exact 38-file canonical creation list and template copies against initializer assets.
+- V3. Verify relative markdown links resolve.
+- V4. Verify repository catalog counts: 32 total, 29 bench, 18 maintained (including 2 maintained forks), 11 external, 27 installed, 2 bench-only, 3 frontends.
+- V5. Verify key consistency across docs: versions, app counts, ownership, installed status, dirty repo names/count, unresolved consumer process/payment join, verification labels.
+- V6. Verify Bench commands match corrected evidence: doctor, backup, restore, tests, get-app, migrate, build, restart.
+- V7. Scan for secrets/config values/production data/raw dirty filenames and overclaims of provider/runtime verification.
+- V8. Confirm lifecycle folder/status rules and that no invented feature/task docs exist.
+- V9. Record defects and severity. Do not fix them.
+
+OUTPUT:
+- Write the verification report only to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/05-verification.md.
+- Reply only with:
+`<checklist pass count>/<total>, <broken link count>, <consistency defect count>, <secret finding count>, <verdict>`

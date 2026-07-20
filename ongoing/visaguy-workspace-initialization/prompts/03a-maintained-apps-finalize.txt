@@ -1,0 +1,21 @@
+FINAL SYNTHESIS ONLY. Do not perform any SSH, repository scans, extraction, grouping, helper-file creation, or additional reconnaissance.
+
+READ ONLY these accepted local evidence files:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/maintained_raw.json
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/prompts/03a-maintained-apps.txt
+
+Using only those files, complete MA1-MA7. Synthesize; do not reproduce exhaustive raw lists. Cover all 18 maintained apps exactly once, CRM three-layer responsibility/precedence, at least three evidenced end-to-end workflows, reusable interface tables, procedures, per-app risks, and verification labels.
+
+Evidence cautions:
+- `maintained_raw.json` is static extraction and may omit nested DocTypes; do not claim absence from an empty extracted list.
+- Do not include filenames from dirty status/diffs, secrets, production data, or raw logs.
+- Settings/configuration surface is not runtime activation.
+- Cite accepted source paths/symbols already present in evidence.
+
+WRITE ONLY:
+/home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+
+REPLY ONLY WITH:
+`<18/18 coverage>, <workflow count>, <interface count>, <risk count>, <verdict>`

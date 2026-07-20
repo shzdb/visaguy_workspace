@@ -1,0 +1,46 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Read-only remote bench: ssh -p 2257 shahzad@erpcode.tridz.in, /home/shahzad/bench
+- Organizations tridz-dev and tvgglobal are internally maintained.
+- Maintained apps (18): crm, fileflo, frappe_conversions_api, frappe_notifier, helpdesk, otp_authentication, payment_integrations, processflo, quick_kanban, the_visaguy, visaguy_business, visaguy_crm, visaguy_frappe_crm, visaguy_helpdesk, visaguy_hrms, visaguy_raven, visaguy_website, waflo.
+- All maintained apps are installed on site visaguy.
+- Five bench repositories are pre-existing dirty trees: insights, mansico_meta_integration, processflo, visaguy_frappe_crm, visaguy_raven. Do not read or reproduce dirty diffs.
+- Do not read secrets, config values, databases, logs, uploads, private files, or production records.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+
+TASKS:
+- MA1. For every maintained app, establish its primary responsibility, users/actors, domain entities/DocTypes, public/whitelisted interfaces, hooks/events/permissions/overrides, fixtures/workflows/roles, scheduled jobs, patches/install hooks, frontend assets, tests, and explicit dependencies. Cite exact remote files/symbols.
+- MA2. Classify each as original domain app, maintained fork, adapter/wrapper/customization layer, or integration app. For forks, identify the upstream project relationship. For adapters, name the base app/interface being customized.
+- MA3. Map cross-maintained-app workflows with evidence, especially lead → CRM → business/website order → process/file collection → payment → communications; distinguish confirmed paths from inference.
+- MA4. Resolve the responsibilities and precedence of crm vs visaguy_crm vs visaguy_frappe_crm from hooks/imports/APIs/DocTypes. Document both legacy and Frappe CRM layers without assuming one is unused.
+- MA5. Document business, consumer website, document/process, HRMS, Helpdesk, Raven, WhatsApp/notification/OTP, payment, and conversion-tracking interfaces in reusable tables.
+- MA6. Extract operational procedures specific to maintained apps: install prerequisites, fixtures, patches, migrate/build steps, scheduled jobs, and relevant validation/tests. Do not execute mutating commands.
+- MA7. Record risks and unresolved questions per app: dirty tree, non-standard branch, missing tests/docs, duplicated responsibility, security-sensitive APIs, or runtime assumptions.
+
+POLICIES:
+- Use AST or source-aware parsing for hooks.py so commented template examples are excluded.
+- Treat source/manifests as statically verified; label runtime activation/configuration as unverified unless proven by the installed-app list or static wiring.
+- Settings DocType presence proves a configuration surface, not that the provider is configured.
+- Keep exhaustive raw inventories out of the report; synthesize responsibilities and interfaces for readers.
+- Cite evidence as /home/shahzad/bench/<path>:<line> or a precise symbol.
+
+GATES:
+- All 18 maintained apps covered exactly once in the responsibility catalog.
+- CRM three-layer section and end-to-end workflow map present.
+- No secret values, production data, raw logs, or dirty diffs.
+- Remote git dirty counts unchanged; no remote writes.
+
+SCOPE GUARDS:
+- Read only checked-in source/config/docs for the 18 maintained app directories.
+- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- Do not modify, install, build, migrate, restart, commit, push, query databases, or call external provider APIs.
+
+OUTPUT:
+- Write the detailed synthesized report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+
+REPLY ONLY WITH:
+`<18/18 coverage>, <workflow count>, <interface count>, <risk count>, <verdict>`

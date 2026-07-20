@@ -1,0 +1,43 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Read-only remote bench: ssh -p 2257 shahzad@erpcode.tridz.in, /home/shahzad/bench
+- External/upstream apps (11): employee_self_service, erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, mansico_meta_integration, non_profit, payments, raven.
+- Site-installed external apps (9): erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, non_profit, payments, raven.
+- Bench-only external apps (2): employee_self_service, mansico_meta_integration.
+- Dirty external repositories: insights and mansico_meta_integration. Do not inspect or reproduce their dirty diffs.
+- Do not read secrets, config values, databases, logs, uploads, private files, or production records.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+
+TASKS:
+- EA1. Produce a concise catalog for all 11 external apps: owner/origin, version/branch/SHA, site-installed status, role in VisaGuy, direct maintained-app dependencies/integration points, and verification level.
+- EA2. For each installed external app, document only the surfaces materially used or overridden by VisaGuy; do not restate upstream product documentation.
+- EA3. Identify maintained forks versus true upstream checkouts and explain that crm/helpdesk are cataloged as maintained apps even though based on upstream projects.
+- EA4. Record branch/version drift, dirty status, local static hook overrides, and risks. Do not read dirty diffs.
+- EA5. Produce a dependency/version compatibility table and safe upgrade impact checklist for Frappe v15, ERPNext, HRMS, Payments, CRM/Helpdesk/Raven integrations.
+
+POLICIES:
+- Cite checked-in source/manifests/hooks or accepted recon sections.
+- Presence on bench is not installation; use the verified site-installed status above.
+- Separate upstream capability, VisaGuy wiring, and runtime activation.
+- Do not browse or fetch; this phase documents the checked-out implementation.
+
+GATES:
+- All 11 external apps covered exactly once.
+- Installed versus bench-only count is 9/2.
+- No secret values, production data, raw logs, or dirty diffs.
+- No remote writes; dirty counts unchanged.
+
+SCOPE GUARDS:
+- Read only checked-in source/config/docs for the 11 external app directories.
+- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- Do not modify, install, build, migrate, restart, commit, push, query databases, or call external provider APIs.
+
+OUTPUT:
+- Write the synthesized report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+
+REPLY ONLY WITH:
+`<11/11 coverage>, <9 installed/2 bench-only>, <compatibility risk count>, <verdict>`
