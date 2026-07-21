@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "frappe-app-dev": {
+      "source": "frappe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frappe-app-dev/SKILL.md",
+      "computedHash": "37aa49399ae6b78cabaf71e799eb9b4780eaaa8494330ef571af012e198acc2a"
+    },
+    "frappe-app-development": {
+      "source": "lubusin/agent-skills",
+      "sourceType": "github",
+      "skillPath": "frappe-app-development/SKILL.md",
+      "computedHash": "8e0f63305112b02fd5b1adfe2e37132098c631aea9475651437f56b44eeb0df5"
+    },
+    "frappe-doctype-development": {
+      "source": "lubusin/agent-skills",
+      "sourceType": "github",
+      "skillPath": "frappe-doctype-development/SKILL.md",
+      "computedHash": "c5e4cb5274d1f7dd62ba1e8d31c2656dfc1ce82fbc9ac6e53577d76702497ed7"
+    },
+    "frappe-reports": {
+      "source": "lubusin/agent-skills",
+      "sourceType": "github",
+      "skillPath": "frappe-reports/SKILL.md",
+      "computedHash": "b9a27bd91fd886e27386355931a02790108ae2953206d5a5b01d8d669a58db0a"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "ca7b0c0c6e5f2750043f7f0cd72d16ac4e2abc48f9b5500d047a4b77a2506212"
+    }
+  }
+}
