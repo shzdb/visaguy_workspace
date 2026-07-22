@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines repository ownership, data ownership, record relationships, lifecycle rules, queues, and idempotency for FEAT-001. It is authoritative for implementation intent. Application repositories remain authoritative for code and generated DocType schemas.
+This document defines repository ownership, data ownership, record relationships, lifecycle rules, queues, and idempotency for ongoing FEAT-001 implementation. It is authoritative for implementation intent. Application repositories remain authoritative for code and generated DocType schemas.
 
 ## System boundary
 

@@ -1,0 +1,46 @@
+ROLE: Implement TASK-006 tracking lifecycle and status synchronization after TASK-004 is complete.
+
+READ FIRST:
+- README.md and .agents/rules/project-rules.md
+- tasks/ready/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md in full
+- decisions/ADR-003-feat-001-repository-ownership-and-dependency-direction.md
+- decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- feature architecture and TASK-001, TASK-004, TASK-005 implementation reports
+- Current committed code in the the_visaguy feature worktree; inspect hooks and service seams before editing.
+
+ENTRY GATE:
+- Require TASK-004's report and committed FileFlo/the_visaguy SHAs. Refuse to begin if the_visaguy contains unresolved uncommitted TASK-004 work.
+- Work only in `/home/shahzad/visa-tracker-worktrees/the_visaguy` on `feat/visa-tracker`. `processflo`, original app checkouts, passport_extractor, fileflo, and active site `visaguy` are read-only.
+- Record starting HEAD/status. Preserve unexpected changes and stop rather than cleaning them.
+
+IMPLEMENT EVERY TASK-006 REQUIREMENT, INCLUDING:
+- Verified-extraction links to ERPNext Lead, CRM Lead, and Customer through source-evidenced joins.
+- Idempotent tracking application creation using verified identity hash, settings gates, and explicit conflict/review handling. Never silently select or merge competing active applications.
+- One canonical status service: validate configured active status records, atomically save current status/message/time, append exactly one immutable status-log record, and return a stable changed/no-change result.
+- Public timeline query honoring configured history limits.
+- Bidirectional Visa Tracking Application <-> PF Process File status synchronization that converges without recursion and creates exactly one log per effective change.
+- Direct corrections require a reason and manager/system-manager authorization; correction reason remains internal.
+- Customer and verified-extraction handlers are idempotent.
+- Report-only reconciliation for missing extraction and status mismatches; it must not auto-heal or enqueue work.
+- Merge new `doc_events`, scheduler events, and fixtures with existing hooks; never replace existing hook mappings.
+
+NONNEGOTIABLE DESIGN RULES:
+- `processflo` remains unmodified. PF custom fields are owned by the_visaguy fixtures.
+- Support both `Lead` and `CRM Lead`; use `FF File Collection.reference_type/reference_name` and `PF Process File.custom_reference_type/custom_reference_name` as evidenced.
+- Never hardcode human status labels where configured Link/status records exist.
+- Only `Verified` extraction may drive business linking/application creation.
+- Use normal document validation/save for status changes. If a narrowly scoped low-level write is required solely to break recursive PF synchronization, isolate it, document it, avoid `update_modified`, and test the guard.
+- No OCR, FileFlo persistence implementation, public API, frontend, real PII, logging of passport/DOB/raw extraction, push, deploy, or active-site writes.
+
+TESTS AND GATES:
+- Add focused synthetic pure/unit tests and Frappe integration tests for all required behavior, role checks, idempotency, conflicts, both Lead types, status convergence, correction logs, and report-only reconciliation.
+- Run all tests that are safe without a site. Defer Frappe integration tests to TASK-010 when no dedicated site exists; do not weaken tests to avoid runtime needs.
+- Run compile/import checks with worktree-first `PYTHONPATH`, hook-resolution checks, schema/fixture validation, `git diff --check`, dependency scans, PII/secret scans, and full diff review.
+- Verify no processflo change and no unrelated changes.
+- Commit intentional app changes as `feat: add visa tracking lifecycle sync` with environment-default identity. No push. End clean.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/08b-task-006-implementation.md` containing start/final SHA, changed files, behavior matrix, tests/static gates, deferred runtime checks, and evidence labels. Do not move lifecycle files; leave that to the coordinator.
+
+REPLY ONLY:
+`<the_visaguy sha>, <pure/static verdict>, <runtime verdict>, <TASK-006 verdict>`

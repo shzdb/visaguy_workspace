@@ -1,0 +1,40 @@
+ROLE: Implement TASK-007 public tracking API and security controls after TASK-006 is committed.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md in full
+- ADR-003, ADR-005, FEAT-001 security/API specifications
+- TASK-005 and TASK-006 reports and current the_visaguy code
+- Current Frappe 15 official documentation for whitelisted methods, Guest access, Redis/cache, rate limiting, database transactions, permissions, and testing. Use Context7 first when available; otherwise official primary docs.
+
+ENTRY GATE:
+- Require TASK-006 report and clean committed SHA.
+- Work only in `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`. Record start HEAD/status; preserve and stop on unexpected work.
+- Do not edit passport_extractor, fileflo, processflo, frontend, original checkouts, or site `visaguy`.
+
+IMPLEMENT THE TASK CONTRACT:
+- Canonicalize normalized passport number + ISO DOB and derive a versioned HMAC-SHA256 lookup using a server-only `frappe.conf` secret. Support key/version rotation as specified; never persist or log raw lookup inputs.
+- Implement the exact TASK-007 whitelisted verification/status/logout APIs and response schemas. Guest verification failures must be generic and non-enumerating.
+- On successful verification, create a cryptographically opaque, short-lived Redis session containing only the minimum internal reference. Do not expose predictable IDs or raw identity data.
+- Enforce configured expiry, rate limits, failed-attempt lockout, CORS allowlist, and safe Retry-After behavior. Rate-limit/lockout keys must not contain raw passport/DOB/token.
+- Return only the strict public allowlist: masked identity, public status/message, and bounded visible timeline. Never expose internal names, Lead/Customer/PF IDs, raw OCR/MRZ, hashes, private notes, correction reasons, or hidden logs.
+- Implement redacted audit events and safe operational errors. Keep transaction boundaries explicit and avoid timing/content differences that make identity enumeration easy.
+- Keep business lifecycle in TASK-006 services; API code is an authorization/validation/serialization boundary, not a second status engine.
+
+SECURITY HARD GATES:
+- No secret values in code, fixtures, reports, commits, test output, or environment examples; configuration key names only.
+- No raw passport, DOB, token, OCR, or MRZ in logs, cache key names, URLs, exceptions, analytics, or tests beyond obviously fake in-memory values needed for assertions.
+- No Guest DocType resource access and no permission bypass that broadens internal record access.
+- No production traffic, deployment, push, or write/test against `visaguy`.
+
+TESTS AND REVIEW:
+- Add synthetic tests for valid verification, generic mismatch/not-found/disabled behavior, malformed input, HMAC versioning, opaque tokens, expiry/logout, Redis TTL, 401/410 semantics as specified, rate limiting, lockout/recovery, CORS allow/deny, response allowlist, masking, timeline visibility/limit, role/Guest denial, audit redaction, and absence of sensitive logs/cache keys.
+- Include concurrency/idempotency tests where practical. Use deterministic clocks/randomness through injectable seams.
+- Run safe pure tests, compilation/import/hook/API-resolution checks with worktree-first `PYTHONPATH`, static dependency scan, secret/PII scan, response-schema review, `git diff --check`, and full diff review. Defer site-bound tests only.
+- Commit as `feat: add secure public tracking APIs` using default Git identity. No push. End clean.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/08c-task-007-implementation.md` with SHA, endpoints and exact schemas, security-control matrix, configuration key names (never values), tests/gates, runtime deferrals, and evidence labels. Do not move lifecycle documents.
+
+REPLY ONLY:
+`<the_visaguy sha>, <API/security static verdict>, <runtime verdict>, <TASK-007 verdict>`

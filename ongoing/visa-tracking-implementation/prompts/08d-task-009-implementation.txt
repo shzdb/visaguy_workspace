@@ -1,0 +1,44 @@
+ROLE: Implement TASK-009 public tracking SPA flow against the committed TASK-007 contract.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md in full
+- ADR-005 and FEAT-001 frontend/security specifications
+- TASK-007 report/API schemas and TASK-008 report
+- `/home/shzd/Projects/tridz/visa_tracker` current source/package metadata
+- `/home/shzd/Projects/tridz/visaguy-website-client` only for read-only visual reference
+- Fetch current docs through Context7 before using React, React Router, React Hook Form, Zod, Axios, Vitest, Testing Library, MSW, Vite, or Tailwind APIs. Follow React performance guidance: derive state, avoid unnecessary effects, keep stable component/import boundaries.
+
+ENTRY GATE:
+- Require TASK-007's final endpoint names and schemas. Do not guess or implement against stale mocks.
+- Local repo is `/home/shzd/Projects/tridz/visa_tracker`, expected prior TASK-008 HEAD `a21bbd5083a4c2c9bf9b462697d0965e543423f0` plus no TASK-009 commit. Record actual branch/HEAD/status. Preserve unexpected changes; do not clean/reset.
+- No remote/push. Do not set Git identity.
+
+IMPLEMENT EVERY TASK-009 REQUIREMENT:
+- Typed API client for TASK-007 verification, status, and logout/session lifecycle with normalized inputs and safe `ApiError` mapping.
+- Passport + DOB form using React Hook Form and Zod with accessible field errors, uppercase normalization, valid date constraints, pending/disabled states, and generic server failures.
+- Keep the opaque session token in React memory only. Clear it on reload, expiry, logout, 401/410, and relevant terminal errors.
+- Status view displays only server-provided masked name/passport, current public status/message, update time, and bounded visible timeline.
+- Handle loading, empty, generic failure, lockout/429 with safe retry guidance, expired session, offline/retry, and successful logout.
+- Preserve TASK-008 design, responsive behavior, keyboard navigation, focus handling, labels, semantic headings, contrast, and mobile layout.
+- `.env.example` contains only `VITE_API_BASE_URL`; no real URL/secrets.
+- Replace development mocks in production flow. Test mocks may remain isolated to test files/setup.
+
+PRIVACY HARD GATES:
+- Never place passport, DOB, token, or identity response in localStorage, sessionStorage, cookies, IndexedDB, Cache API, URL/query/hash/history state, analytics, console logs, error tracking, or persistent Redux/query caches.
+- Never call `/api/resource/*` for internal DocTypes. Use only TASK-007 methods.
+- Do not modify or copy runtime architecture from `visaguy-website-client`; it is visual reference only.
+- Tailwind v4 remains CSS-first with Vite plugin and `@theme`; do not add legacy `tailwind.config.js`.
+
+TESTS AND GATES:
+- Add/configure Vitest, React Testing Library, user-event, jsdom, and MSW (or an equally isolated HTTP mock) if absent.
+- Test API success/error/expiry/lockout; normalized submission; form validation; in-memory token set/clear/reload behavior; status/timeline rendering; logout; accessibility-critical behavior; and direct assertions that no sensitive persistence/logging/URL writes occur.
+- Use obviously fake values only. No snapshots containing full sensitive values.
+- Run `npm run lint`, TypeScript no-emit check, unit/component tests, and production build. Inspect `dist/` and source maps/config for secrets, full passport-like fixtures, or internal endpoints.
+- Review bundle and full diff, correct issues, commit as `feat: add public visa tracking flow` using environment default identity. No push. End clean.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/08d-task-009-implementation.md` with SHA, API contract mapping, privacy controls, changed files, command results/test counts, build scan, and runtime/E2E deferrals. Do not move lifecycle documents.
+
+REPLY ONLY:
+`<visa_tracker sha>, <lint/type/test/build verdict>, <privacy verdict>, <TASK-009 verdict>`

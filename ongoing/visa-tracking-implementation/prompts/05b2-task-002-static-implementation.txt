@@ -1,0 +1,51 @@
+GROUND FACTS (already verified — do not re-derive):
+- Prior 05b run was interrupted before edits; remote worktree remains clean at base SHA 07b8cab40cd4054b39a78f23a271d7201e71baa0.
+- Remote worktree: /home/shahzad/visa-tracker-worktrees/passport_extractor on feat/visa-tracker.
+- Remote bench: /home/shahzad/bench; SSH shahzad@erpcode.tridz.in port 2257.
+- `bench new-doctype` is unavailable on this bench.
+- `root_password` is not configured in common_site_config.json, so dedicated test-site creation and all migration/integration-test execution are blocked.
+- Do not run migration/tests on visaguy. Do not request or expose credentials.
+- Active task and all implementation requirements remain in tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md.
+- No push is authorized.
+- Do not run `git config`, pass `--author`, or set `GIT_AUTHOR_*` / `GIT_COMMITTER_*`; commit using the environment's existing default Git identity.
+
+READ FIRST:
+- tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md
+- ongoing/visa-tracking-implementation/prompts/05b-task-002-implementation.txt
+
+EXECUTION DISCIPLINE:
+- Reconnaissance and design are already complete. Begin patch construction immediately after reading the two required files; do not restate or redesign the specification.
+- Reject any `retry_count` change outside `Failed -> Queued`; on that transition set it deterministically to the previous value plus one and enforce the maximum.
+- Reject self-references in `duplicate_of` and `superseded_by`; set `requested_by` and `requested_on` server-side; use the Frappe File document's `get_full_path()` before chunked hashing.
+
+PATCH-ONLY EDIT METHOD (mandatory):
+- Do not use `mkdir`, `cat >`, shell redirection, heredocs, Python file-writing scripts, sed -i, or tee to create/edit application files.
+- Use your local file-write/edit capability to create one unified Git patch under `/tmp/passport-extractor-task002.patch`.
+- The patch must use repository-relative paths and create all new directories/files as Git patch entries.
+- Copy the patch to remote `/tmp/passport-extractor-task002.patch` with scp.
+- In the remote worktree run `git apply --check /tmp/passport-extractor-task002.patch`, then `git apply /tmp/passport-extractor-task002.patch` only if the check passes.
+- Remove only those two temporary patch files after successful application. Do not remove application files.
+
+TASKS:
+- C1. Implement the complete TASK-002 DocType JSON, role JSON, controller, generic utilities, and tests via the mandatory patch-only method.
+- C2. Ensure exactly 47 accepted data fields (excluding layout fields), exact status options, audit-preserving transitions, private File validation before byte access, chunked SHA-256, generic provenance, and no forbidden app dependencies.
+- C3. Use `Passport Extractor User` with level-0 and level-1 permissions; raw OCR/MRZ/error fields are permlevel 1; Guest has no rule.
+- C4. Write dynamic synthetic tests only. Include pure UnitTestCase tests that can run without a site where practical and IntegrationTestCase tests for the dedicated test site once available.
+- C5. Run static validation remotely: `git diff --check`, JSON parse and field-count assertions, Python compile for every changed Python file, import checks with worktree-first PYTHONPATH, and forbidden dependency scans. Run ruff if already available; do not install tools.
+- C6. Do not perform site migration or integration tests because isolated test-site creation is blocked. Clearly label those checks unverified; do not claim TASK-002 complete.
+- C7. Review the full diff for PII leakage, permission errors, state-transition bypasses, SQL/database misuse, and unsupported Frappe schema keys. Correct through another patch-only cycle if needed.
+- C8. Commit the statically validated implementation locally on feat/visa-tracker with message `feat: add passport extraction data model` and leave the worktree clean.
+- C9. Write a detailed report to ongoing/visa-tracking-implementation/05b-task-002-implementation.md, including commit SHA, changed files, static gates, unrun runtime gates, and exact blocker.
+
+HARD GATES:
+- No app edits occur outside the feature worktree.
+- No original checkout changes, no visaguy migration/tests, no asset build, no secrets/PII, no push.
+- Patch passes git apply --check before application.
+- Static validation passes before commit.
+- TASK-002 verdict must be `runtime-blocked`, not complete, because dedicated-site migration/tests cannot run.
+
+OUTPUT:
+- Write only the workspace report at ongoing/visa-tracking-implementation/05b-task-002-implementation.md.
+
+REPLY ONLY WITH:
+<commit SHA>, <47-field gate>, <static validation>, <runtime validation>, <TASK-002 verdict>

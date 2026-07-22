@@ -33,4 +33,11 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 - Local frontends: `/home/shzd/Projects/tridz/visa_eligibility_checker`, `/home/shzd/Projects/tridz/visaguy_business_client`, `/home/shzd/Projects/tridz/visaguy-website-client`
 - Remote bench: `/home/shahzad/bench` on `erpcode.tridz.in:2257`
 
+## Development paths
+
+- Frappe app work happens on the remote bench: `/home/shahzad/bench` on `erpcode.tridz.in:2257`.
+- Existing frontend repositories live under `/home/shzd/Projects/tridz/`.
+- New public tracker repository should be initialized locally at `/home/shzd/Projects/tridz/visa_tracker`.
+- `visaguy-website-client` remains the read-only visual reference for tracker parity.
+
 Do not write application code, secrets, or production data into this workspace.

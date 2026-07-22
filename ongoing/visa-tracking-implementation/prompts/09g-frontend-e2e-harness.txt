@@ -1,0 +1,55 @@
+ROLE: Build the frontend end-to-end (E2E) harness for FEAT-001 public visa tracking and prove the frontend implements the TASK-007 wire contract exactly. This is frontend test/harness work in the LOCAL repository only. You may write and modify frontend TEST/harness code and commit locally. You may NOT change backend application logic, and you may NOT touch the remote bench or the dedicated test site — another executor is running the backend suite there concurrently.
+
+GROUND FACTS (coordinator-verified — do not re-derive):
+- Workspace (authoritative for intent/status): /home/shzd/Projects/workspaces/visaguy_workspace
+- Frontend repository: /home/shzd/Projects/tridz/visa_tracker, HEAD `717c62d4` ("feat: add public visa tracking flow"), clean. Vite 8 + React 19 + TypeScript + Tailwind v4 + shadcn/ui. Existing tests: Vitest + RTL + MSW, 16 tests, all passing.
+- The backend public API contract is TASK-007, implemented and committed in `the_visaguy` at `d20cc6d4`. Three Guest POST-only whitelisted endpoints: verify-identity (returns an opaque session token), masked status read, non-enumerating logout. Failures are CONSTANT-200 generic responses; timeline items are `{status, message, effective_on, icon}`; status fields are masked. There is NO distinguishable mid-flow session-expiry signal under this contract.
+- The remote bench and site `visa-tracker-test.localhost` are OFF LIMITS for this phase. Work fully offline against mocks.
+- SYNTHETIC DATA ONLY: no real passport numbers, names, DOBs, MRZ or IPs. Use documentation ranges (`P0000000`, `1990-01-01`, `203.0.113.x`).
+- Do not push, do not add git remotes, do not set git identity or pass `--author`.
+
+READ FIRST (in the workspace unless noted):
+- README.md and .agents/rules/project-rules.md
+- tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md (the wire contract you must conform to — this is the source of truth, NOT the stale TASK-009 §2.1 sketch)
+- tasks/completed/visa-tracking/TASK-009-frontend-tracking-flow.md and TASK-008-frontend-scaffold-and-design-parity.md
+- ongoing/visa-tracking-implementation/08c-task-007-implementation.md (final API shapes and deviations) and 08d-task-009-implementation.md (what the frontend already does)
+- ongoing/visa-tracking-implementation/11-task-010-evidence.md section 7 (the E2E matrix these tests must feed)
+- In the frontend repo: the existing API client, the verification form, the status/timeline views, and the existing Vitest/MSW setup — mirror their established style.
+
+TASKS (stable IDs):
+F1. Extract the TASK-007 wire contract into a single typed, shared contract fixture module in the frontend test tree (request/response shapes for all three endpoints, including the generic-failure shape). Every mock in the suite must derive from this module so contract drift breaks the build in one place.
+F2. Contract-conformance tests: assert the frontend's typed API client sends exactly the documented method (POST), path, headers, and body for each of the three endpoints, and parses each documented response shape. Include the constant-200 generic-failure path.
+F3. Full-journey E2E tests through the real UI (RTL, user-event, MSW — no mocking of the components under test): (a) happy path verify → masked status + timeline rendered; (b) invalid identity → generic failure message, no enumeration leak; (c) rate-limit/lockout response → correct lockout UI state; (d) session expiry mid-flow — assert the CURRENT observable behavior (indistinguishable from generic failure) and mark it explicitly in the report as a known contract limitation, do not invent a signal the backend does not send; (e) logout → session token cleared from memory.
+F4. Privacy assertions: prove no unmasked identifiers, no session token, and no PII ever reach `localStorage`, `sessionStorage`, cookies, or the URL; the session token must live in memory only. Assert against the actual rendered DOM and storage APIs, not by inspecting source.
+F5. Accessibility gates on the tracking flow: form labels/`aria-describedby` wiring, error announcement via a live region, keyboard-only completion of the journey, and focus management on state transitions.
+F6. Add an npm script that runs the whole frontend verification tier in one command, and document it in the report.
+
+POLICIES for foreseeable judgment calls:
+- If the frontend's actual behavior disagrees with TASK-007, TASK-007 wins: write the test to the contract, mark it failing, STOP, and report exact evidence (file, line, observed vs expected). Do NOT quietly change frontend logic to make a test pass, and do NOT weaken a test to match a defect.
+- If a documented behavior cannot be observed from the UI at all, record it as an E2E matrix item that requires the live-site phase rather than faking it.
+- Prefer strengthening existing tests over duplicating them; do not leave two tests asserting the same thing.
+- No vacuous assertions (`assertTrue(true)`, snapshot-only tests, or tests that pass when the feature is removed). Every test must fail if its behavior contract is broken.
+- Keep all 16 existing tests passing; if one is genuinely wrong, report it rather than deleting it.
+
+HARD GATES (all must pass before committing; record exact output counts):
+- `npm run lint` — clean
+- `npx tsc --noEmit` — clean
+- `npm test` (Vitest, full suite) — all pass, zero skips or each skip individually justified
+- `npm run build` — production build succeeds
+- Bundle scan: no secrets, no PII, no hardcoded real hostnames in `dist/`
+- Run the full test suite TWICE back-to-back; the second run must be identically green (no cross-run pollution).
+
+SCOPE GUARDS:
+- Work ONLY in /home/shzd/Projects/tridz/visa_tracker. Commit there only.
+- Do NOT modify the workspace repository except to write your report file.
+- Do NOT ssh anywhere, do NOT touch /home/shahzad/bench, the dedicated site, or site `visaguy`.
+- Do NOT push. Keep commits local.
+- Do NOT move task lifecycle files and do NOT edit 10-task-010-planning.md or 11-task-010-evidence.md — the coordinator owns those.
+
+OUTPUT: write a detailed report to
+ongoing/visa-tracking-implementation/09g-frontend-e2e-harness.md
+covering: the contract fixture module and how drift is caught, per-task (F1–F6) summary, exact gate output counts before/after and both runs, which E2E matrix items each test closes, which matrix items still require the live site, any contract/behavior mismatches found with exact evidence, commit SHA(s), and an evidence label for every claim using: runtime-verified > statically-verified > unverifiable.
+
+REPLY ONLY with:
+`<F1-F6 verdict>, <test counts run1/run2>, <lint/tsc/build status>, <contract mismatches found>, <commit SHA>`
+Do not paste file contents or diffs into your reply.

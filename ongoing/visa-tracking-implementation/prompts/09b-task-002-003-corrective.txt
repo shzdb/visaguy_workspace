@@ -1,0 +1,41 @@
+ROLE: Corrective implementation for the runtime defects found by phase 09a in `passport_extractor`. Fix the genuine controller defect, repair the mismatched TASK-003 test fixtures, resolve OCR model availability as far as the environment allows, and re-run the full runtime suite on the dedicated site until honestly green. You may edit app/test code and commit in the feature worktree only.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md and tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md
+- ongoing/visa-tracking-implementation/09a-task-002-runtime-closure.md (the failure evidence — exact failing tests and traces)
+- ongoing/visa-tracking-implementation/05b-task-002-implementation.md and 07a-task-003-implementation.md
+
+GROUND FACTS (coordinator-verified):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad` only). Bench: `/home/shahzad/bench`; bare `bench` with explicit `--site visa-tracker-test.localhost` for every site operation. Never probe with `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/passport_extractor`, branch `feat/visa-tracker`, HEAD `034f1c17bc872fe8ebcd8f55df797b6c401e7eb1` (clean). All edits and commits happen here with environment-default Git identity; no push, no `--author`.
+- Dedicated test site `visa-tracker-test.localhost` already exists, is migrated, has `allow_tests true`, and `passport_extractor` installed worktree-first. Redis services (ports 13008/11008/12008) were started by 09a and left running. Full failing-test log: `/tmp/vt_tests_full.log` on the bench host (synthetic data only).
+- pymupdf 1.28.0, paddle 3.2.0, paddleocr 3.7.0 are importable in `/home/shahzad/bench/env`. `~/.paddlex` exists but has no official models downloaded.
+- Site `visaguy`, original app checkouts, and `processflo` are read-only. Never run anything against `visaguy`.
+- Always run tests with `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/passport_extractor bench --site visa-tracker-test.localhost run-tests ...` so the worktree code is exercised.
+
+DEFECT 1 (controller, genuine — 12 integration errors): `_validate_request_audit` in `passport_extraction.py` compares `self.requested_on != old.requested_on` (and `_preserve_verification_audit` compares `verified_on` the same way). `before_insert`/`_validate_verified_state` assign `frappe.utils.now()` (a string with microseconds), while `get_doc_before_save()` returns the database value (datetime object, possibly truncated). String-vs-datetime or precision mismatch makes every legitimate multi-save lifecycle transition raise `Request audit fields cannot be changed.` — this blocks valid transitions from TASK-002 §3.2 and must be fixed without weakening the immutability invariant:
+- Normalize BOTH sides (e.g. `frappe.utils.get_datetime`) before comparing, in `_validate_request_audit` and `_preserve_verification_audit`.
+- The audit fields must remain effectively immutable after insert/verification — re-verify with the lifecycle tests that tampering still raises.
+- Check for the same comparison pattern anywhere else in the controller/utils and fix consistently.
+- Consider whether `verified_on` should be set only when transitioning INTO Verified (not re-stamped on later saves) — preserve existing intended behavior per the passing tests; do not redesign.
+
+DEFECT 2 (test fixture mismatch — 3 errors): `test_retry_extraction_transitions_failed_to_queued`, `test_retry_extraction_enforces_limit`, `test_worker_is_idempotent_for_non_queued_record` insert records directly in `Failed`/non-Queued status, violating the mandated invariant "new records begin Queued". The invariant stays. Repair the fixtures to reach `Failed` through the legitimate path (insert Queued → save transitions, or `db_set` for fixture state where a controller bypass is the documented test-setup pattern), keeping each test's assertion intent unchanged.
+
+DEFECT 3 (test assertion bug — 1 error): `test_public_file_rejected_before_byte_access` lets `ValidationError: Passport file must be private.` escape from its record-creation helper instead of asserting it. The validation fired as designed; fix the test to assert the rejection (and keep asserting no byte access occurs).
+
+DEFECT 4 (OCR pipeline runtime — 7 failures): every synthetic OCR case lands in `Failed`/`OCR_ENGINE_ERROR` because no PaddleOCR official models are downloaded (`~/.paddlex` empty of models). Investigate and resolve as far as the environment allows:
+- Attempt a minimal model preload on the bench host (PaddleOCR 3.x downloads on first use; warm the exact model configuration the pipeline uses, via the bench env python). Do not print or exfiltrate anything; downloads stay on the bench host under the `shahzad` user's own cache.
+- If the host has no working network path for model download, record that as an environmental blocker with the exact error, and mark the 7 pipeline tests `blocked (environment)` — do NOT fake a pass, and do NOT weaken assertions or mock the OCR engine in integration tests to force green.
+- If models download and tests still fail, a genuine pipeline defect exists: report exact failures and stop; do not redesign the pipeline in this task beyond what the tests evidence.
+
+VERIFICATION (all on `visa-tracker-test.localhost`, worktree-first PYTHONPATH):
+1. Pure/unit tiers still pass (no site bound): the three TASK-003 unit classes and TASK-002 unit class.
+2. Full runtime suite: `run-tests --app passport_extractor` — target 61/61 pass (or 54 pass + 7 explicitly environmental-blocked documented if models cannot download). Record exact counts both before and after your changes.
+3. Idempotency/immutability spot checks from TASK-002 §3: audit-field tampering still raises; retry bounds still enforced; duplicate/supersession rules intact.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09b-task-002-003-corrective.md` with: exact diffs summarized per defect, before/after test counts, model-download outcome, remaining blockers, commit SHA(s), and evidence labels. Keep synthetic-data and no-secrets discipline. Do not move task files.
+
+REPLY ONLY:
+`<defect-1 fix verdict>, <defect-2/3 fixture verdict>, <defect-4 OCR verdict>, <final suite counts>, <commit SHA(s)>`

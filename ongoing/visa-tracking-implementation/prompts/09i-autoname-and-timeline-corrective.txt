@@ -1,0 +1,51 @@
+ROLE: Fix two genuine, coordinator-verified application defects (D3, D4) in `the_visaguy`, then implement the 5 remaining placeholder integration test bodies that those defects were blocking, and prove everything with runtime evidence. You ARE authorized to change application logic for D3 and D4 ONLY, plus the test code needed to close out the 5 bodies.
+
+GROUND FACTS (coordinator-verified — do NOT re-derive):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in`. Bench `/home/shahzad/bench`; bare `bench`, explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `088430f486d82eafcc11cadb19c8310afb46421f`, CLEAN. Environment-default Git identity; no `--author`; NO PUSH.
+- Site `visaguy`, original checkouts, `processflo`: READ-ONLY. Only `visa-tracker-test.localhost`.
+- Worktree-first PYTHONPATH for every bench command: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor`
+- Suite quirks: always `--app`-scoped; `--skip-test-records` for the_visaguy.
+- Baseline at `088430f4`: on-site `--app the_visaguy --skip-test-records` = 248 ran / 243 pass / 5 skipped / 0 errors; fileflo 6/6; standalone 199 ran / 187 pass / 12 skipped / 0 errors. 22 of 27 integration bodies are implemented and passing; the 5 still skipping are blocked by D3/D4 below.
+- This feature has NEVER been deployed to a production site. `visaguy` does not have these DocTypes. There is therefore NO production data to migrate — you only need to handle rows on the disposable test site.
+- Already-fixed, do NOT re-report: the settings-loader Single guard and the `enqueue_passport_extraction` job-id issue (both fixed at `ccbd6324`; `enqueue_passport_extraction` now returns a job-id STRING).
+- SYNTHETIC DATA ONLY: no real passport numbers, names, DOBs, MRZ or IPs. Use documentation ranges (`P0000000`, `1990-01-01`, `203.0.113.x`).
+
+THE TWO DEFECTS (both independently confirmed by the coordinator — real, do not re-litigate):
+
+D3 — Unbraced `format:` autonames mean only ONE row can ever exist per DocType per site.
+- Files: `the_visaguy/the_visa_guy/doctype/visa_tracking_application/visa_tracking_application.json` (`"autoname": "format:VTA-.YYYY.-.#####"`), `.../visa_tracking_status_log/visa_tracking_status_log.json` (`format:VTL-.YYYY.-.#####`), `.../visa_tracker_audit_log/visa_tracker_audit_log.json` (`format:VTAL-.YYYY.-.#####`).
+- Frappe `frappe/model/naming.py::_format_autoname` substitutes only BRACED params — its own docstring says "replacing all instances of braced params" with example `format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}`, and it applies `BRACED_PARAMS_PATTERN`. The dotted `.YYYY.-.#####` form is naming-series syntax, which is used WITHOUT the `format:` prefix. As written, nothing substitutes: every record is named the literal string `VTA-.YYYY.-.#####`, so the second insert raises `DuplicateEntryError` (1062). Reproduced on-site.
+- Aggravating factor to NOTE (do not change): the audit path swallows this via `_safe_insert_event`, so audit rows are silently dropped rather than erroring.
+- REQUIRED FIX POLICY: pick ONE correct convention and apply it consistently to all three DocTypes — either braced format (`format:VTA-{YYYY}-{#####}`) or naming-series style with the `format:` prefix REMOVED (`VTA-.YYYY.-.#####`). Do not invent a third scheme. Then PROVE on-site that inserting at least THREE consecutive records of each DocType yields three distinct, correctly-patterned, incrementing names. Clean up any rows on the test site that are already stuck with the literal placeholder name so the fix can be observed.
+
+D4 — `NameError` breaks the public status endpoint for every real application.
+- File: `the_visaguy/visa_tracking/services/status_service.py`, line 254, inside `get_public_display_timeline`.
+- Code: `"effective_on": _iso_or_empty(effective_on),` — but the loop variable is `row`, and the coordinator confirmed by AST analysis that `get_public_display_timeline` neither takes nor binds `effective_on` anywhere. (The `effective_on` bindings at lines 81/154 are in OTHER functions.) Any application with >=1 status-log row therefore raises `NameError`, and the public status endpoint degrades to generic failure — i.e. it fails for every real application.
+- REQUIRED FIX POLICY: one-line fix to `row.get("effective_on")`, matching how the sibling keys already read from `row`. Change nothing else in the function.
+
+WORK:
+1. Fix D3 and D4 per the policies above. Minimal, surgical diffs. No other application logic.
+2. Run `bench --site visa-tracker-test.localhost migrate` so the autoname changes take effect, and confirm rc=0.
+3. Implement the 5 remaining placeholder integration test bodies (the 2 audit bodies, the timeline-limit body, the verification→status round-trip, and the API-level masked-payload body) as REAL integration tests against the dedicated site and bench redis. The fixtures from phase 09f are already in place — reuse them. Same standards as before: assert the real behavior contract, no vacuous assertions, no mocking of the system under test (redis, db, settings), synthetic data only.
+4. Target ZERO skips on-site. Any skip that remains must be individually justified in the report.
+5. If a THIRD genuine application defect surfaces: STOP and report it with exact evidence (file, line, observed vs expected, how confirmed). Do NOT fix it under this dispatch and do NOT paper over it in a test.
+
+VERIFICATION (dedicated site, worktree-first PYTHONPATH, `--app`-scoped) — record exact counts:
+V1. `migrate` rc=0.
+V2. D3 proven at runtime: >=3 consecutive inserts per affected DocType produce distinct, correctly-patterned, incrementing names. Show the actual generated names.
+V3. D4 proven at runtime: `get_public_display_timeline` returns correct `effective_on` values for an application with multiple log rows, and the public status endpoint returns a real masked payload instead of a generic failure. Show before/after.
+V4. `run-tests --app the_visaguy --skip-test-records` — all 27 bodies now passing; zero errors; zero skips or each justified.
+V5. `run-tests --app fileflo` — stays 6/6.
+V6. Standalone pure tier — must not regress from 199 ran / 187 pass / 12 skipped / 0 errors.
+V7. Run the on-site suite TWICE back-to-back; the second run must be identically green (no cross-run pollution from redis keys, audit rows, or fixture residue).
+
+HARD GATES before committing: V1 rc=0; V2 and V3 demonstrated with real runtime output; V5 6/6; zero errors in V4; no conflict markers; no secrets or PII in the diff.
+
+SCOPE GUARDS: work ONLY in the `the_visaguy` worktree. Do not touch fileflo/passport_extractor source, site `visaguy`, original checkouts, or `processflo`. No push, no remotes, no deployment. Do not move task lifecycle files and do not edit `10-task-010-planning.md` or `11-task-010-evidence.md` — the coordinator owns those.
+
+OUTPUT: write `ongoing/visa-tracking-implementation/09i-autoname-and-timeline-corrective.md` covering: D3/D4 root causes and the exact fixes (with rationale for the naming convention chosen), the 5 newly implemented bodies, before/after runtime evidence for V2 and V3, all suite counts (both runs), which E2E matrix items are now runtime-closed, any newly surfaced genuine defect with full evidence, commit SHA, and an evidence label for every claim using: runtime-verified > statically-verified > unverifiable.
+
+REPLY ONLY with:
+`<D3 verdict>, <D4 verdict>, <27/27 bodies verdict>, <on-site counts run1/run2>, <fileflo>, <standalone counts>, <new defects>, <commit SHA>`
+Do not paste file contents or diffs into your reply.

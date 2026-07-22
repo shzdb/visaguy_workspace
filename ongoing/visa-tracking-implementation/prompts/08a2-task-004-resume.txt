@@ -1,0 +1,53 @@
+ROLE: You are resuming an interrupted TASK-004 implementation. Preserve and finish the existing work; do not restart destructively.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/README.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/.agents/rules/project-rules.md
+- tasks/in-progress/visa-tracking/TASK-004-fileflo-queued-passport-detection.md
+- decisions/ADR-003-feat-001-repository-ownership-and-dependency-direction.md
+- decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md
+- ongoing/visa-tracking-implementation/07a-task-003-implementation.md
+- ongoing/visa-tracking-implementation/07b-task-005-implementation.md
+- ongoing/visa-tracking-implementation/prompts/08a-task-004-implementation.txt
+
+GROUND FACTS:
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in`.
+- FileFlo worktree: `/home/shahzad/visa-tracker-worktrees/fileflo`, branch `feat/visa-tracker`, pre-task HEAD `6683010e89d9209363e6ba3881f4a90a47420bd2`.
+- the_visaguy worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, pre-task HEAD `f7ad8c0518a6442cbb33136b84dba524f2909ecd`.
+- passport_extractor is read-only at `034f1c17bc872fe8ebcd8f55df797b6c401e7eb1`; worker path is `passport_extractor.passport_extractor.jobs.run_passport_extraction`.
+- A previous executor applied partial uncommitted changes in FileFlo and the_visaguy and was repairing pure-test failures. Those changes belong to this task.
+- Likely partial files include FileFlo `data_collection.py`, `events.py`, `hooks.py`, tests; and the_visaguy `hooks.py`, `visa_tracking/jobs.py`, inspection/orchestrator services, idempotency/provenance utilities, and tests.
+- Known unfinished defects included safe access to `frappe.session.user` when no site/session is initialized and test doubles for Frappe DB/provenance behavior. Verify current evidence; do not assume these are the only defects.
+
+RECOVERY GATE:
+1. Connect and capture, for both worktrees: branch, HEAD, `git status --short`, `git diff --stat`, full tracked diff, and untracked file list. If DNS/SSH is temporarily unavailable, stop and report connectivity; do not manufacture a replacement implementation locally.
+2. Do not run reset, clean, stash, checkout-over, restore, or delete anything. Do not blindly reapply old staging patches. Treat the remote diffs as authoritative interrupted work.
+3. Inspect any local `.staging` or patch artifacts only as recovery evidence. Never let them overwrite newer remote changes.
+4. Confirm no unrelated changes are mixed in. If overlap cannot be separated safely, stop with exact paths and evidence.
+
+IMPLEMENTATION CONTRACT:
+- FileFlo may only emit a generic reusable after-commit extension event with stable identifiers. It must contain no passport, VisaGuy, extractor, settings, tracking-DocType, or business-status dependency/terminology.
+- The synchronous persistence path only schedules generic after-commit work; all inspection/OCR orchestration is queued outside the transaction.
+- the_visaguy subscribes through hooks, checks the exact configured FileFlo `field_id`, resolves `FF Document` and a private Frappe File, captures stable provenance, creates/reuses one deterministic `Passport Extraction`, and enqueues the long worker once.
+- Respect TASK-002 insertion invariants: a new extraction starts `Queued`. Missing/public File references create no extraction and enqueue no OCR. File format/size processing failures belong to TASK-003, not the synchronous inspection seam.
+- Use document saves for lifecycle state. A narrowly scoped trace write for `last_job_id` is allowed only after enqueue succeeds.
+- Retries must be bounded, redacted, and idempotent. Repeated generic events must not duplicate records or jobs.
+- Do not mutate Lead, CRM Lead, Customer, PF Process File, or processflo in this task.
+- Make no migration/test-site attempt. Never use `visaguy` for tests.
+
+VALIDATION AND REVIEW:
+- Repair pure tests rather than broadly skipping them. Frappe session access must be safe outside initialized request/site contexts.
+- Run focused pure tests for both apps, Python compilation, import/hook resolution with worktree-first `PYTHONPATH`, `git diff --check`, dependency-boundary scans, passport/PII/log scans, and a complete diff review.
+- Integration tests may be written but remain deferred until the dedicated site exists.
+- Confirm FileFlo's tests cover generic payload shape and `enqueue_after_commit=True`; the_visaguy tests cover configured/nonconfigured fields, private/public/missing files, provenance, deduplication, retry behavior, and worker enqueue.
+- Correct all findings, rerun gates, then commit separately using default environment identity:
+  - FileFlo: `feat: add generic post-persistence extension event`
+  - the_visaguy: `feat: queue passport extraction from FileFlo`
+- Do not push. Both worktrees must finish clean.
+
+REPORT:
+Write `/home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/08a-task-004-implementation.md` with recovery evidence, both SHAs, changed files, validation commands/results, deferred runtime gates, dependency scans, and any deviations. Do not move task/feature lifecycle files; the coordinator will reconcile them.
+
+REPLY ONLY:
+`<fileflo sha>, <the_visaguy sha>, <pure/static verdict>, <runtime verdict>, <TASK-004 verdict>`

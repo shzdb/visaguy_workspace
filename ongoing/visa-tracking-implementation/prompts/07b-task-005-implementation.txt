@@ -1,0 +1,28 @@
+GROUND FACTS (already verified — do not re-derive):
+- Work only in remote worktree `/home/shahzad/visa-tracker-worktrees/the_visaguy` over SSH `shahzad@erpcode.tridz.in:2257`, branch `feat/visa-tracker`, clean HEAD `e690b5b`.
+- Source evidence for ERPNext Lead, CRM Lead, FileFlo, and PF Process File is recorded in TASK-001 evidence.
+- `processflo` is read-only. Custom fields on PF Process File must be shipped by `the_visaguy`.
+- No dedicated test site exists. Do not migrate/test `visaguy`, create a site, request credentials, push, or change Git identity.
+
+READ FIRST:
+- `tasks/in-progress/visa-tracking/TASK-005-tracking-data-model-and-settings.md`
+- `tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md`
+- `ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md`
+- `ongoing/visa-tracking-implementation/04b-task-001-finish-setup.md`
+- `ongoing/visa-tracking-implementation/06-task-003-010-planning.md`
+
+TASKS:
+- B1. Inspect existing app/module/fixture conventions and implement the complete TASK-005 schema, controllers, app-owned roles/permissions, initial status records, settings validation, and custom-field fixtures.
+- B2. Do not invent schema beyond the accepted architecture. Include ERPNext Lead and CRM Lead only as source-evidenced; keep all PF Process File source edits out of `processflo`.
+- B3. Keep status labels as records/configuration, never lifecycle constants. HMAC secret values must not be fields or fixtures.
+- B4. Use a local staging clone and unified patch copied to the remote; require `git apply --check` before application. Do not use `mkdir` or direct shell file-writing on the remote.
+- B5. Add synthetic tests for schema/controller validation and permissions. Do not run integration tests without the isolated site.
+- B6. Run static gates: JSON parse/schema field assertions, fixture parse and duplicate checks, compile changed Python, worktree-first imports, hook-path resolution, forbidden secrets/PII/processflo-edit scan, and `git diff --check`.
+- B7. Review and correct the full diff. Commit `feat: add visa tracking data model and settings` with default Git identity, leave clean, no push.
+- B8. Write `ongoing/visa-tracking-implementation/07b-task-005-implementation.md` with SHA, changed files, static gates, and deferred runtime gates.
+
+HARD GATES:
+- No migration/tests on `visaguy`; no direct `processflo` changes; no secrets or real PII; no OCR, FileFlo event, lifecycle sync, or public API implementation.
+- Do not claim DocTypes/custom fields are installed until a dedicated-site migration verifies them.
+
+REPLY ONLY: `<sha>, <schema verdict>, <static verdict>, <runtime verdict>, <TASK-005 verdict>`.

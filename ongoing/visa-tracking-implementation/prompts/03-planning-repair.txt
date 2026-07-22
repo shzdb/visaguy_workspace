@@ -1,0 +1,58 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace.
+- FEAT-001 is accepted planning intent in features/planned/visa-tracking/README.md and 01-architecture-and-data-model.md.
+- TASK-001..TASK-010, ADR-003..ADR-005, and supporting specs 02-06 were referenced but never created.
+- The single implementation gate is that tasks/ready/ has no task.
+- Existing user edits in README.md and features/planned/visa-tracking/README.md add development paths; preserve them.
+- No application repository may be touched in this phase.
+
+READ FIRST:
+- README.md
+- .agents/rules/project-rules.md
+- .agents/templates/decision.md
+- .agents/templates/task.md
+- tasks/README.md
+- features/planned/visa-tracking/README.md
+- features/planned/visa-tracking/01-architecture-and-data-model.md
+- decisions/ADR-001-workspace-and-repository-authority.md
+- decisions/ADR-002-app-ownership-classification.md
+- ongoing/visa-tracking-implementation/01-readiness-recon.md
+- ongoing/visa-tracking-implementation/02-triage.md
+- ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- P1. Create ADR-003 documenting the already-accepted repository/component ownership and dependency direction for FEAT-001.
+- P2. Create ADR-004 documenting the already-accepted reusable passport extraction app, asynchronous processing boundary, private audit history, and verified-data ownership model.
+- P3. Create ADR-005 documenting the already-accepted public tracking security/privacy model: HMAC lookup, opaque short-lived Redis session, generic failures, abuse controls, CORS restriction, masking, and minimal response boundary.
+- P4. Create tasks/ready/visa-tracking/TASK-001-preflight-and-branch-setup.md using the canonical task template. Scope it to exact source/runtime reconnaissance, clean-state checks, safe feature branch or dedicated-worktree setup for the_visaguy and fileflo, planning/scaffold preparation for passport_extractor, and local initialization of /home/shzd/Projects/tridz/visa_tracker. It may authorize the SSH and local setup operations needed for those outcomes, but it must prohibit feature implementation, dirty-tree cleanup, pushing, production data access, and secret copying.
+- P5. Update only FEAT-001 metadata/links if needed so ADR-003..ADR-005 and TASK-001 resolve correctly. Keep references to future TASK-002..TASK-010 and specs 02-06 visibly planned; do not fabricate their files in this phase.
+- P6. Write a detailed phase log describing authored files, decisions preserved, and validation results.
+
+RESOLUTION POLICIES:
+- Extract decisions from accepted FEAT-001 text; do not invent new product behavior or architecture.
+- Use Accepted status for ADRs because they materialize decisions already merged in FEAT-001.
+- TASK-001 status and folder must both be ready.
+- TASK-001 must include explicit stop conditions for dirty trees, unexpected branches, missing repositories, contradictory integration evidence, or unsafe remote state.
+- Prefer dedicated git worktrees for application changes. Do not prescribe destructive cleanup.
+- No Git remote is required for visa_tracker.
+
+GATES:
+- Validate that all new Markdown files have complete metadata and required template sections.
+- Confirm every path linked for ADR-003..ADR-005 and TASK-001 exists.
+- Confirm TASK-001 references FEAT-001 and has status ready.
+- Confirm no application-code path was modified.
+- Run: git diff --check
+- Run: rg -n "ADR-003|ADR-004|ADR-005|TASK-001" features/planned/visa-tracking/README.md decisions tasks/ready
+- Do not commit or push.
+
+SCOPE GUARDS:
+- Work ONLY in /home/shzd/Projects/workspaces/visaguy_workspace.
+- Do not touch /home/shzd/Projects/tridz or connect over SSH.
+- Preserve all unrelated and pre-existing changes.
+- Modify only decisions/ADR-003*.md, decisions/ADR-004*.md, decisions/ADR-005*.md, tasks/ready/visa-tracking/TASK-001-preflight-and-branch-setup.md, directly necessary FEAT-001 link/metadata lines, and ongoing/visa-tracking-implementation/03-planning-repair.md.
+
+OUTPUT:
+- Write the detailed log to ongoing/visa-tracking-implementation/03-planning-repair.md.
+
+REPLY ONLY WITH:
+<created file count>, <modified file count>, <validation verdict>, <ready-task verdict>

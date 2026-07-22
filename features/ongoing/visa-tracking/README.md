@@ -1,7 +1,7 @@
 ---
 id: FEAT-001
 title: Visa application tracking and passport extraction
-status: planned
+status: ongoing
 priority: high
 repositories:
   - the_visaguy
@@ -14,7 +14,7 @@ depends_on:
   - ADR-004
   - ADR-005
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-07-21
 ---
 
 # Visa application tracking and passport extraction
@@ -148,6 +148,13 @@ Public API returns approved, minimal status information
 | `visa_tracker` | New public SPA | New local repository | Initialize locally with Vite, initialize Git, commit scaffold and feature work; no remote required and no `feat/visa-tracker` branch required |
 | `visaguy-website-client` | Design/component reference | No | Read-only; never commit tracker changes here |
 
+## Development paths
+
+- Frappe app changes are made on the remote bench at `/home/shahzad/bench` over `erpcode.tridz.in:2257`.
+- Frontend development uses the local workspace root `/home/shzd/Projects/tridz/`.
+- The new public tracker repository should be created at `/home/shzd/Projects/tridz/visa_tracker`.
+- `visaguy-website-client` remains the design reference repo in the same local workspace tree.
+
 The developer must not modify any application repository from its current default/non-feature branch.
 
 ## Required status model
@@ -275,14 +282,14 @@ It must not include DOB, full passport number, passport files, extracted MRZ, in
 
 Implementation must follow this order. A junior developer must not skip ahead when a dependency is incomplete.
 
-1. [TASK-001](../../../tasks/ready/visa-tracking/TASK-001-preflight-and-branch-setup.md) — preflight, local repository setup, and exact integration evidence.
-2. [TASK-002](../../../tasks/ready/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — new app and extraction-history model.
-3. [TASK-003](../../../tasks/ready/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — PaddleOCR/MRZ pipeline.
-4. [TASK-004](../../../tasks/ready/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — FileFlo event and queued matching.
-5. [TASK-005](../../../tasks/ready/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — settings, tracking DocTypes, custom fields, fixtures.
+1. [TASK-001](../../../tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md) — completed preflight, local repository setup, and exact integration evidence.
+2. [TASK-002](../../../tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — in-progress extraction-history model in the new app.
+3. [TASK-003](../../../tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — completed PaddleOCR/MRZ pipeline; runtime OCR verification is deferred to TASK-010.
+4. [TASK-004](../../../tasks/in-progress/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — in-progress FileFlo event and queued matching.
+5. [TASK-005](../../../tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — completed settings, tracking DocTypes, custom fields, and fixtures; runtime migration is deferred to TASK-010.
 6. [TASK-006](../../../tasks/ready/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md) — Lead, Customer, and Process File lifecycle.
 7. [TASK-007](../../../tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md) — secure public APIs.
-8. [TASK-008](../../../tasks/ready/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — local Vite repo and shared visual design.
+8. [TASK-008](../../../tasks/completed/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — completed local Vite design system and shared visual shell.
 9. [TASK-009](../../../tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md) — form, verification, status, timeline, errors.
 10. [TASK-010](../../../tasks/ready/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
 
@@ -360,4 +367,4 @@ If evidence contradicts this plan, stop the affected task, document the mismatch
 
 ## Completion notes
 
-Not implemented. Move this feature to `ongoing/` only when TASK-001 is assigned and implementation work actually begins. Move to `completed/` only after TASK-010 records implementation and validation evidence.
+Implementation started with TASK-001 preflight and repository setup. Move to `completed/` only after TASK-010 records implementation and validation evidence.

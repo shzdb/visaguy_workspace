@@ -1,0 +1,38 @@
+ROLE: Implement the 27 placeholder integration test bodies in `the_visaguy` (explicitly deferred to the TASK-010 runtime phase by their own comments) and bring the on-site suite fully green. This is test-code work only: you may write/modify TEST code and commit in the feature worktree. You may NOT change application logic — if a test you write surfaces a genuine app defect, stop and report exact evidence.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/completed/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md and TASK-007-public-api-and-security-controls.md (the behavior contracts these tests assert)
+- ongoing/visa-tracking-implementation/09e-task-005-007-corrective.md (placeholder discovery, suite quirks) and 11-task-010-evidence.md §7 (E2E matrix these tests feed)
+- The pure-tier test suites in `the_visaguy/visa_tracking/tests/` for the established test style (mocking patterns, synthetic fixtures, PII discipline)
+
+GROUND FACTS (coordinator-verified):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad`). Bench `/home/shahzad/bench`; bare `bench`, explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `ccbd63240d952979a62ceb408e987ff9e3c4c0cd` (clean — verify).
+- PRIOR BLOCKERS NOW CLEARED (phase 09h, commit `ccbd6324`, coordinator runtime-verified): the settings loader no longer returns `None` on a real site (the Single guard now checks DocType existence; `get_visa_tracker_settings()` returns the enabled Single and `is_tracking_enabled()` is True on the test site), and `enqueue_passport_extraction` no longer raises (it generates its own `job_id`, keeps `enqueue_after_commit=True`, returns the id string, and its one production call site in `fileflo_inspection_service.py` was updated). Do NOT re-report these two as defects. Note the return type is now a job-id STRING, not a Job object.
+- Test-site prerequisites are ALREADY configured (synthetic, disposable): `visa_tracker_lookup_hmac_key` and `visa_tracker_audit_hmac_key` set via `set-config`; `Visa Tracker Settings` saved (enabled, public tracking on, `frontend_base_url=https://tracker-test.example.com`, `default_lead_status=APPLICATION_RECEIVED`). Re-verify rather than assume, but do not redo needlessly.
+- FIXTURE FACTS discovered in an earlier attempt (save yourself the rediscovery): Passport Extraction status transitions are controller-enforced `Queued -> Processing -> Extracted -> Verified`; `File` fixtures need a REAL image (a fake PDF fails `pypdf`); `PF Process File` lacks `custom_reference_type`/`custom_reference_name` (`.get()` paths tolerate this); whatsapp handlers early-return for our field changes.
+- Baseline at `ccbd6324`: on-site `--app the_visaguy --skip-test-records` = 248 ran / 221 pass / 27 skipped / 0 errors; fileflo 6/6; standalone 199 ran / 187 pass / 10 skipped / 2 errors (the 2 errors are the pre-existing `TestLookupService`/`TestSettings` unguarded-class baseline that your task 4 fixes). Commit with environment-default Git identity; no push, no `--author`.
+- Dedicated site `visa-tracker-test.localhost`: fully migrated, all feature DocTypes, 6 status records, custom fields/docperms, no Guest rules. Bench redis running (sessions/rate limits work). ERPNext `Lead`, CRM `CRM Lead`, `Customer`, `PF Process File`, `FF File Collection` all present.
+- On-site baseline: `run-tests --app the_visaguy --skip-test-records` = 248 ran / 221 pass / 27 skipped / 0 errors; fileflo 6/6. Suite quirks: always `--app`-scoped; `--skip-test-records` required; worktree-first PYTHONPATH for every command: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor`.
+- The 27 placeholders live in 12 files: `visa_tracking/tests/test_{audit_service,fileflo_inspection,lifecycle_service,security_utils,response_service,session_service,status_service,reconciliation_service,rate_limit_service,public_api}.py` and `the_visa_guy/doctype/visa_tracker_settings/test_visa_tracker_settings.py`, `the_visa_guy/doctype/visa_tracking_application/test_visa_tracking_application.py`. Each method currently self-skips with "Placeholder: integration test body deferred to TASK-010."
+- Site `visaguy`, original checkouts, `processflo`: read-only. SYNTHETIC DATA ONLY — no real passport numbers, DOBs, names, MRZ, or IPs anywhere (use documentation ranges e.g. `P0000000`, `1990-01-01`, `203.0.113.x`).
+
+WORK:
+1. Site config prerequisites (dedicated site only, synthetic values): set a random throwaway `visa_tracker_lookup_hmac_key` in the TEST site's `site_config.json`, and configure `Visa Tracker Settings` (enabled, public tracking enabled, `frontend_base_url` to a synthetic https origin, default statuses per TASK-005/006) as the tests require. Record in the report that these are synthetic test values, never production secrets.
+2. Implement all 27 placeholder bodies as REAL integration tests against the dedicated site and bench redis: FileFlo→extraction creation and idempotency; verified-extraction→application linking; PF client-status→exactly-one-log-row; recursion-safe correction; session round-trip + max-lifetime bounds against real Redis; rate-limit/lockout against real Redis; CORS against live settings; HMAC verification round-trips; allowlisted/masked status payloads; audit rows written/append-only/no-PII; Guest denial of `/api/resource`-style access; reconciliation reports matching synthetic data and not mutating; settings validation (max session lifetime, frontend_base_url required/wildcard rejected, blank generic message rejected).
+3. Style: mirror the existing pure-tier suites' patterns; build synthetic fixtures in `setUp`/`setUpClass`, clean up or rely on `FrappeTestCase` rollback; each test must assert the real behavior contract (not vacuous `assertTrue(True)`); no mocking of the system under test (redis, db, settings) — mocking only true externals if any.
+4. Also add the trivial site guard to the two unguarded standalone-erroring classes (`TestLookupService`, `TestSettings` — same `getattr(frappe.local, "db", None) is None → SkipTest` pattern from 09e) so the standalone tier is fully green too.
+5. Keep every skip that remains individually justified; target zero skips on-site.
+
+VERIFICATION (dedicated site, worktree-first PYTHONPATH, `--app`-scoped):
+1. `run-tests --app the_visaguy --skip-test-records` — all 27 new bodies pass; zero errors; zero skips (or each justified); record exact counts.
+2. `run-tests --app fileflo` — stays 6/6.
+3. Pure standalone tier (`visa_tracking/tests`, no site) — fully green now (previously 2 errors; report exact counts).
+4. Run the on-site suite TWICE back-to-back to prove no cross-run pollution (redis keys, audit rows, fixture residue); second run must be identically green.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09f-task-010-integration-tests.md` with: per-file test bodies summary, site-config prerequisites (synthetic), exact suite counts (before/after, both runs), the E2E matrix items each test closes, commit SHA(s), remaining issues, evidence labels. Do not move task files, do not edit `10-task-010-planning.md`/`11-task-010-evidence.md` (coordinator's closure pass owns those).
+
+REPLY ONLY:
+`<27 bodies verdict>, <on-site counts run1/run2>, <fileflo>, <standalone counts>, <commit SHA(s)>`

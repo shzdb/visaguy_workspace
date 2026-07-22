@@ -1,0 +1,37 @@
+ROLE: Corrective implementation for the two genuine TASK-005 structural defects found by the TASK-010 runtime phase in `the_visaguy`. Fix them minimally, re-migrate the dedicated site, run the on-site suites, and commit in the feature worktree only.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md
+- ongoing/visa-tracking-implementation/11-task-010-evidence.md §4.6 (the defect evidence) and 07b-task-005-implementation.md
+- The existing fixture files in the worktree for the correct format reference
+
+GROUND FACTS (coordinator-verified):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad` only). Bench `/home/shahzad/bench`; bare `bench` with explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `d20cc6d49cfae6c47749f8b5a94df0fa38546979` (clean — verify). Commit here with environment-default Git identity; no push, no `--author`.
+- Dedicated site `visa-tracker-test.localhost` exists and is proven dedicated: `frappe`, `passport_extractor` (61/61 green), `erpnext`, `crm`, `insights`, `processflo`, `fileflo` all installed and migrated; `the_visaguy` is registered in `tabInstalled Application` but its migration FAILED — zero `Visa Track%` DocTypes/tables synced; 8 custom fields + 8 custom docperms persisted (DDL implicit commit) and must converge idempotently on re-migration. Redis running. Full failure log: `/tmp/vt_migrate_full.log` on the bench.
+- Worktree-first PYTHONPATH for every bench command: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor bench --site visa-tracker-test.localhost ...`
+- Site `visaguy`, original app checkouts, `processflo`: read-only. Synthetic data only.
+
+DEFECT A (structural — migration cannot discover the tracking DocTypes):
+The five tracking DocType folders (`visa_tracker_audit_log`, `visa_tracker_settings`, `visa_tracking_application`, `visa_tracking_status`, `visa_tracking_status_log`) live at `the_visaguy/the_visaguy/doctype/` — top level of the Python package. `modules.txt` lists module `The Visa Guy` whose folder is `the_visaguy/the_visaguy/the_visa_guy/`, which has no `doctype/` subfolder. Frappe `sync_for` only scans module folders from `modules.txt`, so the DocTypes are never discovered. Every other module in this app keeps its doctypes under its module folder (`utility/doctype`, `tvg_crm/doctype`, ...).
+Fix:
+- Check each of the five DocType JSON files' `module` field; move each folder (use `git mv`) into the matching module folder's `doctype/` directory (expected: `the_visaguy/the_visaguy/the_visa_guy/doctype/`). Preserve each folder's full contents (`__init__.py`, controller `.py`, `.json`, `.js`, test files).
+- Sweep every dotted-path reference to the old locations: test-module paths (`the_visaguy.doctype.visa_tracking_*` → `the_visaguy.the_visa_guy.doctype.visa_tracking_*`), any import strings, patches, hooks, documentation inside the app. Coordinator grep found zero `the_visaguy.doctype` references in `.py` files, but re-verify yourself including non-Python files and the test modules' own imports.
+- The Python package layout must stay importable (module-folder `__init__.py` conventions of this app).
+
+DEFECT B (fixture format — migration aborts with `KeyError: 'name'`):
+All 6 records in `the_visaguy/fixtures/visa_tracking_status.json` lack `name` and `modified`; `frappe/modules/import_file.py` reads `doc["name"]` unconditionally. Every other fixture file in this app has both.
+Fix: add `name` (matching the DocType's autoname rule — check the `Visa Tracking Status` DocType JSON `autoname`; if it is `field:status_code`, `name` must equal `status_code`) and `modified` (any reasonable static timestamp, matching the format of the app's other fixtures) to all 6 records. Do not change any business values.
+
+VERIFICATION (dedicated site only, worktree-first PYTHONPATH):
+1. `bench --site visa-tracker-test.localhost migrate` — must complete rc=0. Verify via read-only SQL: the five `Visa Track%`/`Visa Tracker%` DocTypes and tables exist; six `Visa Tracking Status` records present and active; the previously persisted 8 custom fields / 8 custom docperms converged (no duplicates); custom fields present on `Lead`, `CRM Lead`, `Customer`, `PF Process File`; no Guest permission rules on any tracking/extraction DocType.
+2. On-site suites: `run-tests --app the_visaguy` and `run-tests --app fileflo` — record exact counts. The previously site-bound DocType test modules must now execute (they were failing in `setUpClass` precisely because of Defect A).
+3. Pure-tier re-check standalone (no site): the_visaguy visa_tracking tests must not regress from the 197 pass / 10 skip baseline (the 2 pre-existing site-bound errors should now be gone on-site; standalone behavior may differ — report honestly).
+4. If migration or tests surface a further genuine defect, stop and report exact evidence — do not redesign or force green.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09d-task-005-corrective.md` with root-cause restatement, diffs summarized, migration evidence, before/after test counts, commit SHA(s), remaining issues, evidence labels. Do not move task files.
+
+REPLY ONLY:
+`<defect-A verdict>, <defect-B verdict>, <migrate verdict>, <on-site suite counts>, <commit SHA(s)>`

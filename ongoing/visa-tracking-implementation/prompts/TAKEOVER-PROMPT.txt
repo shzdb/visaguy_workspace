@@ -1,0 +1,97 @@
+You are taking over as the ORCHESTRATOR for FEAT-001 Visa Tracking. Almost all implementation is done; what remains is TASK-010 final verification/rollout planning, the runtime-closure blocker on TASK-002, and final workspace reconciliation. You own planning, prompt authoring, diff review, corrective dispatches, verification honesty, and final status decisions.
+
+USER INSTRUCTIONS (standing):
+- Complete all remaining FEAT-001 tasks.
+- Do not configure or override Git author/name/email and do not add yourself as author. Use environment defaults.
+- Do not push, deploy, or mutate production unless the user separately authorizes it.
+
+WORKSPACE AND CONNECTION:
+- Workspace/control plane: `/home/shzd/Projects/workspaces/visaguy_workspace`.
+- Start by reading `README.md`, `.agents/rules/project-rules.md`, `ongoing/visa-tracking-implementation/STATE.md`, and `ongoing/visa-tracking-implementation/prompts/HANDOFF.md`.
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad` works; user `shzd` has NO key access — do not use it).
+- Remote Frappe bench: `/home/shahzad/bench`.
+- Active production-like site `visaguy` is read-only for this feature. Never migrate it, run tests against it, or write feature/test data to it.
+- Feature worktrees, all branch `feat/visa-tracker`:
+  - `/home/shahzad/visa-tracker-worktrees/passport_extractor`
+  - `/home/shahzad/visa-tracker-worktrees/fileflo`
+  - `/home/shahzad/visa-tracker-worktrees/the_visaguy`
+- Local frontend repository: `/home/shzd/Projects/tridz/visa_tracker` (branch `main`, no remote).
+- Read-only frontend visual reference: `/home/shzd/Projects/tridz/visaguy-website-client`.
+- Original Frappe app checkouts and `processflo` are read-only. Preserve unrelated dirty work everywhere (processflo has a pre-existing unrelated dirty file `processflo/generate_file_collection.py` — leave it alone).
+
+COMPLETED IMPLEMENTATION — VERIFY CURRENT STATE, DO NOT REDO:
+- TASK-001 preflight/worktree setup: completed (reports `04a`/`04b`).
+- TASK-002 Passport Extraction model: static-complete (SHAs `6746d049`, corrective `2f25c0d5`, in passport_extractor); runtime-blocked — see below.
+- TASK-003 OCR/MRZ pipeline: completed, passport_extractor HEAD `034f1c17bc872fe8ebcd8f55df797b6c401e7eb1` (report `07a`).
+- TASK-004 FileFlo queued detection: completed, fileflo `fa1d6b38351ef1dfc5e9a4bb66ddae22b26f7866`, the_visaguy `34cb47754e9b31324ac81f64bd923cef7b22c082` (report `08a`).
+- TASK-005 tracking model/settings: completed, the_visaguy `f7ad8c0518a6442cbb33136b84dba524f2909ecd` (report `07b`).
+- TASK-006 lifecycle/status sync: completed, the_visaguy `9222302035c2c077ed91662cc49af784dac3119f` (report `08b`).
+- TASK-007 public API/security: completed, the_visaguy HEAD `d20cc6d49cfae6c47749f8b5a94df0fa38546979` (report `08c`).
+- TASK-008 frontend scaffold/design: completed, visa_tracker `a21bbd5083a4c2c9bf9b462697d0965e543423f0` (report `07c`).
+- TASK-009 frontend tracking flow: completed, visa_tracker HEAD `717c62d402287849b30a1fd25d3760edfb727747` (report `08d`). Known deviation to carry into TASK-010's E2E matrix: frontend implements the final TASK-007 wire contract (constant HTTP-200 generic failures), so mid-flow session expiry is indistinguishable from generic failure.
+- Read the implementation reports under `ongoing/visa-tracking-implementation/` before relying on these summaries.
+
+RUNTIME BLOCKER (verified 7+ times, most recently in report `09a-task-002-runtime-closure.md`):
+- `/home/shahzad/bench/sites/common_site_config.json` has NO `root_password` key, so no dedicated test site can be created and no migrations/site-bound tests can run.
+- Only key PRESENCE was ever inspected (`grep -c '"root_password"'`); never print the value or file.
+- If still absent: do not request credentials, create a site, or fall back to `visaguy`. Record runtime items as blocked honestly.
+- Unblocking requires the bench administrator to add the key; only then may the SAFE RUNTIME WORK in `09a-task-002-runtime-closure.txt` and TASK-010 Phase B/C run, and only on dedicated `visa-tracker-test.localhost`.
+
+WHERE THE PREVIOUS ORCHESTRATOR STOPPED:
+- TASK-002 runtime-closure gate (`09a`) executed: key absent, blocker report written, no runtime work done.
+- TASK-010 was moved to `tasks/in-progress/visa-tracking/` (status metadata updated) but its executor dispatch was interrupted by the user BEFORE any TASK-010 work ran. No `10-task-010-planning.md` or `11-task-010-evidence.md` exists yet.
+- STATE.md was NOT yet updated for the 09a outcome or TASK-010 in-progress status (phase-table row 9 and any stale "ready" wording need reconciliation).
+
+REMAINING WORK, IN ORDER:
+1. Reconcile `STATE.md`: record the 09a runtime-blocked outcome, mark phase 9 (TASK-010) in progress, fix ground-facts wording (TASK-010 now in-progress).
+2. Dispatch TASK-010 using `ongoing/visa-tracking-implementation/prompts/10-task-010-final-verification.txt`. TASK-010 is a read/verification/evidence gate: Phase A reconciliation table, Phase B dedicated-site safety (expected: key absent → blocked branch), Phase C static/frontend gates (local visa_tracker lint/tsc/tests/build + build scan) with runtime items marked blocked, Phase D rollout/rollback plan, Phase E evidence and verdict. It writes only `10-task-010-planning.md` and `11-task-010-evidence.md`; no app edits, no commits.
+3. If `root_password` has appeared by then, TASK-010's unblocked path and the 09a SAFE RUNTIME WORK become executable — follow those prompts exactly.
+4. Final reconciliation strictly from evidence: move completed task documents to `tasks/completed/visa-tracking/`, update feature metadata/links/completion notes, update `STATE.md`. If runtime gates remain blocked, TASK-002 and TASK-010 stay incomplete and FEAT-001 is NOT complete — record the exact next action for the workspace-maintainer.
+
+EXECUTOR PROMPTS (all under `ongoing/visa-tracking-implementation/prompts/`):
+- TASK-002 runtime: `09a-task-002-runtime-closure.txt` (already executed once; re-dispatch only if the blocker clears)
+- TASK-010: `10-task-010-final-verification.txt`
+
+ORCHESTRATION METHOD:
+- One executor per phase, briefed with the prompt file path plus coordinator-verified context (SHAs, access notes). The previous orchestrator used coder subagents; cold `kimi -p "$(< <prompt-file>)" --add-dir /home/shzd/Projects/workspaces/visaguy_workspace` sessions also work.
+- Before dispatch, update `STATE.md` phase status. After each run, read the report and one-line verdict.
+- Personally inspect the 1–3 riskiest diffs and verify test claims. Never accept executor "done" at face value, especially for idempotency, lifecycle transitions, permissions, HMAC/session security, rate limiting, PII boundaries, hook merging, and low-level database writes.
+- Keep detailed output in durable reports, not chat. Do not let a later task begin until prerequisite SHAs/reports are accepted.
+
+FRAPPE RULES:
+- Use bare `bench` from `/home/shahzad/bench` and always specify `--site` for site operations.
+- Do not run `which bench`, `bench --version`, or `bench --help`.
+- Never create DocType directories manually.
+- Tests/migrations may run only on the isolated `visa-tracker-test.localhost` site authorized by TASK-010.
+- Use worktree-first `PYTHONPATH` so validation imports the feature code, not original app checkouts.
+
+IMPLEMENTATION INVARIANTS (all currently enforced by committed code — preserve them):
+- passport_extractor stays domain-independent and owns extraction/OCR lifecycle.
+- FileFlo emits only a generic after-commit persistence extension event; no passport/VisaGuy dependencies or terminology.
+- the_visaguy owns configured passport-field inspection, business lifecycle, tracking status, public API, and security boundaries.
+- processflo remains unmodified; PF custom fields come from the_visaguy fixtures.
+- Both ERPNext `Lead` and Frappe CRM `CRM Lead` are supported through source-evidenced joins.
+- New Passport Extraction records begin `Queued`; missing/public Files produce no extraction and no OCR job.
+- Re-delivery must not duplicate extraction records, jobs, tracking applications, or effective status logs.
+- Statuses come from configured records, not hardcoded display labels.
+- No real passport data, raw OCR/MRZ, DOB, token, secret, or production PII in source, logs, tests, reports, URLs, frontend storage, or build output.
+- Public sessions are opaque and stored server-side with TTL; frontend token is memory-only.
+
+GIT/SAFETY:
+- Never run destructive cleanup against existing work.
+- Do not edit original checkouts or unrelated dirty repositories.
+- Do not set Git identity or pass `--author`.
+- Commit intentional app changes locally with environment defaults; no push.
+- Do not commit build output, secrets, test-site data, or unrelated workspace changes.
+
+COMPLETION STANDARD:
+- Do not mark a task complete merely because code exists. Require the task's static gates and all safely available tests.
+- Use evidence labels: `present`, `source-wired`, `configured-unverified`, `runtime-verified`.
+- TASK-010 and FEAT-001 can be completed only if every mandatory gate is proven. If isolated runtime remains unavailable, preserve the exact blocker and do not claim full completion.
+
+START NOW:
+1. Inspect workspace status (`git status` in the workspace; note the pre-existing documentation edits in `README.md` and the `features/planned/visa-tracking/` deletions — preserve them; they reflect the feature's move to `features/ongoing/`).
+2. Confirm all four repos are at the SHAs listed above with clean trees.
+3. Do the STATE.md reconciliation (item 1 above).
+4. Dispatch the TASK-010 executor.
+5. Review its evidence documents before final status reconciliation.

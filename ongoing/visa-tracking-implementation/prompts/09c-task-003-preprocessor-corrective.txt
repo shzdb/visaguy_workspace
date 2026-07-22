@@ -1,0 +1,34 @@
+ROLE: Corrective implementation for the two genuine `ocr/image_preprocessor.py` defects diagnosed by phase 09b in `passport_extractor`. Fix them with minimal, targeted changes and bring the full runtime suite to green on the dedicated site. You may edit app/test code and commit in the feature worktree only.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md (§2.3 rotation recovery mandate, §3 preprocessing design intent)
+- ongoing/visa-tracking-implementation/09b-task-002-003-corrective.md (exact diagnosis and failing tests)
+- ongoing/visa-tracking-implementation/09a-task-002-runtime-closure.md and 07a-task-003-implementation.md
+
+GROUND FACTS (coordinator-verified):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad` only). Bench `/home/shahzad/bench`; bare `bench` with explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/passport_extractor`, branch `feat/visa-tracker`, HEAD `cbea2159cc189debd36bc69d661aee434396b4fc` (clean — verify before starting). Commit here with environment-default Git identity; no push, no `--author`.
+- Dedicated site `visa-tracker-test.localhost` exists, migrated, `allow_tests true`; redis services running. PaddleOCR models preloaded in the bench user's cache (`PP-LCNet_x1_0_textline_ori`, `PP-OCRv6_medium_det`, `PP-OCRv6_medium_rec`); engine init verified working via the app's own `_get_engine()`.
+- Always run tests with `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/passport_extractor bench --site visa-tracker-test.localhost run-tests ...`.
+- Site `visaguy`, original app checkouts, `processflo`: read-only, never touch. Synthetic data only; no secrets/PII in reports.
+- Current suite state at HEAD: 61 tests, 55 pass / 0 errors / 6 failures. Logs on bench: `/tmp/vt_tests_final_09b.log`.
+
+DEFECT A — rotation recovery crops non-square images:
+`_preprocess_with_opencv` rotates with `cv2.warpAffine(..., (w, h))` — same-canvas rotation — so a 1200×400 image rotated 90°/270° keeps only a central vertical band. Fix with canvas-expanding rotation (compute the rotated bounding box and adjust the translation, or equivalent) so rotated documents retain full content. Preserve the existing variant set and deterministic behavior; do not change the OCR engine or parser.
+
+DEFECT B — CLAHE → median-blur chain degrades clean text:
+On an already-legible image, preprocessing destroys MRZ lines (44-char lines become ~20-char fragments), so `detect_mrz_candidates` finds nothing and the pipeline returns `Failed`/`NO_MRZ_FOUND`, while the raw image reads at 0.995 confidence. Fix so that legible input is not degraded: acceptable minimal directions are (a) include the raw/original image among the candidate variants passed through OCR, and/or (b) make the enhancement steps conditional or gentler (e.g. apply CLAHE/blur only when the image actually needs enhancement, by a measurable criterion). Choose the smallest change that makes the mandated rotation/preprocessing behavior work for both clean and degraded inputs. Do not weaken assertions, mock the engine, or special-case the test fixtures in app code.
+
+VERIFICATION (all worktree-first PYTHONPATH on `visa-tracker-test.localhost`):
+1. Target the 6 failing tests first: `test_service_extracts_valid_synthetic_mrz`, `test_corrupted_check_digit_needs_review`, `test_multi_page_pdf_finds_mrz_on_second_page`, `test_rotated_synthetic_image_extracts` (90/180/270).
+2. Full suite: `run-tests --app passport_extractor` — target 61/61 pass. Record before/after counts; keep logs on the bench host (synthetic data only).
+3. Pure/unit tier standalone: 26/26 must still pass with no site bound.
+4. Re-confirm no regression in the TASK-002 invariants (immutability, retry bounds, duplicate/supersession, public-file rejection) — they are covered by the full suite.
+5. If a failure persists after a correct preprocessing fix, stop and report the exact evidence; do not force green.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09c-task-003-preprocessor-corrective.md` with: root-cause restatement, exact diffs summarized, before/after test counts, commit SHA(s), remaining issues, evidence labels. Do not move task files.
+
+REPLY ONLY:
+`<defect-A verdict>, <defect-B verdict>, <final suite counts>, <commit SHA(s)>`

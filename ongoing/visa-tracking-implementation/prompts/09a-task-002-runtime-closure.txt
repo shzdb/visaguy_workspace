@@ -1,0 +1,34 @@
+ROLE: Close TASK-002's deferred runtime gates safely, without changing feature logic.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md
+- ongoing/visa-tracking-implementation/05b-task-002-implementation.md
+- ongoing/visa-tracking-implementation/07a-task-003-implementation.md
+- TASK-010 dedicated-site rules
+
+GROUND FACTS:
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in`; bench `/home/shahzad/bench`.
+- passport_extractor feature worktree: `/home/shahzad/visa-tracker-worktrees/passport_extractor`, expected clean `feat/visa-tracker` HEAD `034f1c17bc872fe8ebcd8f55df797b6c401e7eb1`.
+- TASK-002 model commits are `6746d049db93c86d3cce8f35f763aac6b9366192` and corrective `2f25c0d52d2bb898c217b61f448705e5eda550c7`; TASK-003 adds later commits.
+- Runtime was blocked because `/home/shahzad/bench/sites/common_site_config.json` lacked a `root_password` key. Never reveal its value.
+
+ENTRY/STOP GATE:
+1. Inspect only whether `root_password` exists as a JSON key; report yes/no without printing the value or file.
+2. If absent, do not request credentials, create a site, or use `visaguy`. Record the continuing blocker in `ongoing/visa-tracking-implementation/09a-task-002-runtime-closure.md` and stop with `runtime-blocked`.
+3. If present, use/reuse only `visa-tracker-test.localhost` after proving it is a dedicated nonproduction test site. If an existing site has ambiguous ownership/content, stop; never overwrite/drop it.
+
+SAFE RUNTIME WORK WHEN UNBLOCKED:
+- From `/home/shahzad/bench`, use bare `bench` and explicit `--site visa-tracker-test.localhost` for every site operation.
+- Create the site only according to TASK-010 and install required dependencies plus passport_extractor from the feature worktree, with worktree-first `PYTHONPATH`. Never copy/print credentials.
+- Enable tests on the dedicated site only, migrate it, verify Passport Extraction DocType/schema/permissions, and run targeted TASK-002 tests followed by `run-tests --app passport_extractor`.
+- Include TASK-003 tests because they share the app HEAD, but report TASK-002 and TASK-003 results separately where possible.
+- Verify transition invariants, private/public/missing File behavior, immutable audit fields, retry bounds, duplicate/supersession checks, role/Guest permissions, raw-field permlevels, and PII-free errors using synthetic data only.
+- Do not edit app logic merely to force a passing runtime verdict. If a genuine defect is found, stop and report exact failing tests/trace summary for a separate implementation task.
+- Do not run any command against `visaguy`, push, deploy, or commit generated site/build data.
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09a-task-002-runtime-closure.md` with key-presence verdict, dedicated-site evidence, exact commands (redacted), migration/test counts, failures/blockers, and evidence labels. Do not move TASK-002; coordinator reconciles status.
+
+REPLY ONLY:
+`<root_password key present/absent>, <dedicated-site verdict>, <test verdict>, <TASK-002 runtime verdict>`

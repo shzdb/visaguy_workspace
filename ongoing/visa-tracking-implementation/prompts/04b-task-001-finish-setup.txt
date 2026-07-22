@@ -1,0 +1,70 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace.
+- Active task: tasks/in-progress/visa-tracking/TASK-001-preflight-and-branch-setup.md.
+- Remote SSH endpoint: shahzad@erpcode.tridz.in on port 2257.
+- Bench root: /home/shahzad/bench; site: visaguy.
+- `the_visaguy` worktree already exists at /home/shahzad/visa-tracker-worktrees/the_visaguy on feat/visa-tracker.
+- User confirmed `fileflo` base branch: deployed `fix/mandatory-file` at verified SHA 6683010e89d9209363e6ba3881f4a90a47420bd2.
+- User confirmed passport_extractor metadata:
+  - app name: passport_extractor
+  - title: Passport Extractor
+  - description: Reusable passport extraction and MRZ validation for Frappe
+  - publisher: Shahzad Bin Shahjahan
+  - email: shahzad@tridz.com
+  - license: mit
+- Frappe new-app workflow requires bare `bench`, an explicit site for site commands, and piped printf input to `bench new-app`.
+- No push is authorized.
+
+READ FIRST:
+- .agents/skills/frappe-app-dev/SKILL.md
+- .agents/skills/frappe-app-dev/references/new-app.md
+- .agents/skills/frappe-app-development/SKILL.md
+- features/ongoing/visa-tracking/README.md
+- decisions/ADR-003-feat-001-repository-ownership-and-dependency-direction.md
+- decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- tasks/in-progress/visa-tracking/TASK-001-preflight-and-branch-setup.md
+- ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md
+- ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- F1. Reconfirm the bench root only with `ls apps/ sites/ Procfile` from /home/shahzad/bench. Do not run `which bench`, bench version/help, or other discovery commands.
+- F2. Create or safely reuse local-only branch `feat/visa-tracker` for fileflo from the user-confirmed base `fix/mandatory-file` at SHA 6683010e89d9209363e6ba3881f4a90a47420bd2, in dedicated worktree `/home/shahzad/visa-tracker-worktrees/fileflo`. Refuse if the verified base moved, is dirty, or an existing branch/worktree conflicts.
+- F3. Before creating the Frappe app, confirm `/home/shahzad/bench/apps/passport_extractor` does not exist and `passport_extractor` is not already installed. Stop app creation if either exists unexpectedly.
+- F4. In the bench root, set global developer mode as required by the selected Frappe workflow using `bench set-config -g developer_mode 1`.
+- F5. Create the app using exactly piped printf input, with no heredoc, no `--no-input`, and no `--no-git`:
+  `printf 'Passport Extractor\nReusable passport extraction and MRZ validation for Frappe\nShahzad Bin Shahjahan\nshahzad@tridz.com\nmit\nN\nN\nN\n' | bench new-app passport_extractor`
+- F6. Verify the scaffold with `ls apps/passport_extractor`. Inspect generated metadata for exact confirmed values. Do not add feature logic.
+- F7. Install the new scaffold on the explicit site with `bench --site visaguy install-app passport_extractor`, then verify with `bench --site visaguy list-apps`.
+- F8. Ensure the scaffold repository has one clean initial scaffold commit. If `bench new-app` already committed it, do not create a duplicate. If it did not, commit only generated scaffold files with message `chore: scaffold passport_extractor app`.
+- F9. From the scaffold repository's initial default branch/commit, create local-only `feat/visa-tracker` in dedicated worktree `/home/shahzad/visa-tracker-worktrees/passport_extractor`. Keep the original scaffold checkout clean and unchanged after worktree creation.
+- F10. Run an import-only verification using the bench environment and record it. Do not run OCR, download models, create DocTypes, or add dependencies in this task.
+- F11. Verify all three remote feature worktrees (`the_visaguy`, `fileflo`, `passport_extractor`) are clean and on `feat/visa-tracker`; verify the three original checkouts were not modified by feature code. Write the detailed evidence report.
+
+RESOLUTION POLICIES:
+- Preserve all unrelated work and dirty trees. Never stash, reset, clean, force-checkout, or commit unrelated changes.
+- If any existing branch/worktree differs from the expected base, stop that repository path and report exact metadata without changing it.
+- Installing the empty scaffold on site `visaguy` is authorized by TASK-001; no other site mutation is authorized.
+- Do not install PaddleOCR, PyMuPDF, OpenCV, or any feature dependency in this phase.
+- Do not add hooks, DocTypes, services, APIs, tests, or feature code.
+
+HARD GATES:
+- fileflo feature worktree starts exactly at confirmed SHA 6683010e89d9209363e6ba3881f4a90a47420bd2.
+- passport_extractor app metadata exactly matches confirmed values.
+- `bench --site visaguy list-apps` includes passport_extractor after installation.
+- All new feature worktrees are clean and on feat/visa-tracker.
+- No existing dirty worktree is altered.
+- No Git remote is added for passport_extractor unless bench generated one; do not push anything.
+- No feature implementation is performed.
+
+SCOPE GUARDS:
+- Workspace writes: ONLY ongoing/visa-tracking-implementation/04b-task-001-finish-setup.md.
+- Remote writes: fileflo Git worktree administration; generated passport_extractor scaffold/repository; installing that empty app on site visaguy; passport_extractor Git worktree administration.
+- DO NOT modify source in the_visaguy, fileflo, processflo, or visaguy-website-client.
+- DO NOT modify /home/shzd/Projects/tridz/visa_tracker.
+- DO NOT commit workspace files. DO NOT push.
+
+OUTPUT:
+- Write the detailed report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/04b-task-001-finish-setup.md.
+
+REPLY ONLY WITH:
+<fileflo worktree verdict>, <passport scaffold SHA>, <site install verdict>, <worktree cleanliness verdict>, <TASK-001 verdict>

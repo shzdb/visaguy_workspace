@@ -1,0 +1,47 @@
+ROLE: Execute TASK-010 as the final read/verification/evidence gate. Do not implement feature logic.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/ready/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md in full
+- FEAT-001 README/specifications and ADR-003/004/005
+- TASK-002 through TASK-009 task files and every implementation/runtime report
+- Current status/commits/diffs in all named application worktrees and local frontend
+
+ENTRY GATE:
+- TASK-004, TASK-006, TASK-007, and TASK-009 must have clean committed implementation SHAs and reports. TASK-002 may remain runtime-blocked only for the dedicated-site condition this task is designed to inspect.
+- If implementation evidence is missing or a repository is dirty unexpectedly, record the discrepancy and stop before runtime setup.
+- This task may write only workspace planning/evidence documents. It may run safe checks but may not edit application code, commit app changes, push, deploy, or mutate production.
+
+PHASE A — RECONCILE:
+- Build a TASK-002..009 table with repository, branch, base SHA, final SHA(s), static checks, runtime checks, blockers/deviations.
+- Confirm dependency boundaries: passport_extractor has no business-app imports; FileFlo has no passport/VisaGuy dependency; processflo and the visual-reference frontend are unchanged.
+- Run repository-wide secret/PII/dependency scans with false positives manually reviewed. Never print secret values or raw production data.
+
+PHASE B — DEDICATED SITE SAFETY:
+- Inspect only whether `/home/shahzad/bench/sites/common_site_config.json` contains a `root_password` key; never print its value.
+- If absent: do not request it, create a site, or use `visaguy`. Continue all static/frontend checks and planning, mark runtime matrix items blocked, keep TASK-002/TASK-010 incomplete, and record the exact blocker.
+- If present: create or safely reuse only `visa-tracker-test.localhost`. Prove it is isolated/nonproduction before writes. Never drop/overwrite an ambiguous existing site.
+- Use bare `bench` from `/home/shahzad/bench` and explicit `--site visa-tracker-test.localhost` for every operation. Never run migration/tests/write commands on `visaguy`.
+- Install only required apps/dependencies evidenced by TASK-001. Put all feature worktrees first on `PYTHONPATH`, migrate the dedicated site, and verify required DocTypes, fixtures, roles, statuses, hooks, and custom fields.
+
+PHASE C — AUTOMATED/RUNTIME VALIDATION:
+- Run targeted and full relevant test suites for passport_extractor, fileflo, and the_visaguy on the dedicated site. Record test counts and failures.
+- Verify queue/Redis behavior, generic FileFlo after-commit event, idempotent extraction creation, OCR state transitions using synthetic fixtures, lifecycle linking/status convergence, public HMAC/session/rate-limit/CORS boundaries, and reconciliation reports as far as safely executable.
+- No real files, passport data, production records, provider traffic, or active-site operations.
+- In `/home/shzd/Projects/tridz/visa_tracker`, run lint, TypeScript check, unit/component tests, and production build. Scan build output/config/source maps for secrets, PII, and internal endpoint leakage.
+- Execute/document the TASK-010 E2E/security/manual matrix with `pass`, `fail`, `blocked`, or `not-run` and the required evidence labels. Visual/manual approval cannot be invented; identify it as pending if no human reviewer evidence exists.
+
+PHASE D — ROLLOUT/ROLLBACK PLAN:
+- Write `ongoing/visa-tracking-implementation/10-task-010-planning.md` with prerequisites, app/migration order, fixture/config/queue/frontend artifact steps, smoke tests, monitoring, rollback toggles, code reversion outline, Redis session invalidation, data preservation, and human approvals.
+- The plan is procedural only. It must not authorize or perform push, release, production migration, deployment, worker restart, DNS/CORS changes, or secret provisioning.
+
+PHASE E — EVIDENCE AND VERDICT:
+- Write `ongoing/visa-tracking-implementation/11-task-010-evidence.md` with the reconciliation table, exact redacted commands/results, site-safety proof, schema/hook/dependency findings, test/build counts, E2E matrix, security/PII scan, unresolved defects, and rollout readiness verdict.
+- If any mandatory gate is blocked/failed—including absent root_password or missing human visual approval when required—do not mark FEAT-001 or TASK-010 complete. Do not move lifecycle files; report the exact next action for the workspace-maintainer/coordinator.
+- Only recommend completion if every mandatory validation item passes with evidence. Status reconciliation is a separate coordinator action.
+
+HARD PROHIBITIONS:
+- No application-code edits, no processflo edits, no Git identity changes, no push/deploy/release, no real PII, no secret values, no site `visaguy` writes/tests/migrations, and no fallback to another non-isolated site.
+
+REPLY ONLY:
+`<reconciliation verdict>, <dedicated-site verdict>, <backend tests>, <frontend gates>, <E2E/security verdict>, <TASK-010 verdict>`

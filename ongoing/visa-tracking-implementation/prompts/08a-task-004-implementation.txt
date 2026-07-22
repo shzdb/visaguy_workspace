@@ -1,0 +1,29 @@
+GROUND FACTS (already verified — do not re-derive):
+- Remote SSH: `shahzad@erpcode.tridz.in:2257`.
+- Work only in `/home/shahzad/visa-tracker-worktrees/fileflo` at clean branch `feat/visa-tracker` HEAD `6683010e89d9209363e6ba3881f4a90a47420bd2` and `/home/shahzad/visa-tracker-worktrees/the_visaguy` at clean branch `feat/visa-tracker` HEAD `f7ad8c0518a6442cbb33136b84dba524f2909ecd`.
+- TASK-003 worker is `passport_extractor.passport_extractor.jobs.run_passport_extraction`; `passport_extractor` HEAD is `034f1c17` and is not edited in this task.
+- FileFlo persistence/source joins are recorded in TASK-001 evidence. `processflo` is read-only.
+- No isolated test site exists. Never migrate/test `visaguy`, create a site, request credentials, push, or change Git identity.
+
+READ FIRST:
+- `tasks/in-progress/visa-tracking/TASK-004-fileflo-queued-passport-detection.md`
+- TASK-001 evidence reports, TASK-003 report, TASK-005 report, and `06-task-003-010-planning.md`.
+
+TASKS:
+- D1. Inspect the exact current FileFlo persistence code and existing hooks before editing. Add only a generic after-commit extension dispatcher/payload; FileFlo must contain no passport, VisaGuy, settings, or extractor dependency.
+- D2. Implement the `the_visaguy` hook subscriber, short inspection job, exact `field_id` matching, FF Document/private File resolution, provenance, deterministic idempotency, extraction creation, long-worker enqueue, bounded redacted retry, and backfill seam exactly per corrected TASK-004.
+- D3. Respect TASK-002 lifecycle: new extractions start `Queued`; public/missing File references create no extraction and enqueue no OCR. Do not create a new record directly in `Failed`. Format/size failures belong to TASK-003 after processing starts.
+- D4. Use document saves for lifecycle state. A simple `last_job_id` trace update may use a narrowly scoped write only after successful enqueue.
+- D5. Add synthetic pure/static tests and Frappe integration tests for both repositories. Do not run integration tests without the dedicated site.
+- D6. For each repository separately, create a local staging clone/unified patch, copy it remotely, require `git apply --check`, then apply. Do not edit original checkouts or `processflo`.
+- D7. Run static gates in both worktrees: diff check, compile, hook/import resolution with worktree-first PYTHONPATH, pure tests, dependency-boundary scan, PII/secret scan, and full diff review.
+- D8. Commit FileFlo as `feat: add generic post-persistence extension event`; commit the_visaguy as `feat: queue passport extraction from FileFlo`. Use existing default identities, leave both clean, no push.
+- D9. Write `ongoing/visa-tracking-implementation/08a-task-004-implementation.md` with both SHAs, changed files, static gates, and runtime deferrals.
+
+HARD GATES:
+- FileFlo imports/references no `the_visaguy`, `passport_extractor`, passport terminology, tracking DocTypes, or business statuses.
+- The synchronous persistence path only schedules generic after-commit work.
+- No real PII in payloads/tests/logs. No Lead/Customer/PF mutation. No `processflo` edit.
+- Repeated events must not duplicate extraction records or jobs.
+
+REPLY ONLY: `<fileflo sha>, <the_visaguy sha>, <static verdict>, <runtime verdict>, <TASK-004 verdict>`.

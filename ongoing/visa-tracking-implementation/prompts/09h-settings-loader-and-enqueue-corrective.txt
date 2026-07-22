@@ -1,0 +1,53 @@
+ROLE: Fix two genuine, coordinator-verified application defects in `the_visaguy` that make the FEAT-001 visa tracking feature non-functional at runtime, then prove the fixes with runtime evidence. This is APPLICATION LOGIC work — you ARE authorized to change app code for defects D1 and D2 below, and only those. You are NOT authorized to implement the 27 placeholder integration test bodies (that is the separate phase 09f, dispatched after you).
+
+GROUND FACTS (coordinator-verified against live source and the live database — do NOT re-derive):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad`). Bench `/home/shahzad/bench`; bare `bench`, explicit `--site visa-tracker-test.localhost`. Never run `which bench`, `bench --version`, or `bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `4593a845f336763a4afdce2d155bb96471c6b198`, CLEAN. Commit with environment-default Git identity; no `--author`; NO PUSH.
+- Site `visaguy`, the original app checkouts, and `processflo` are READ-ONLY. Use only `visa-tracker-test.localhost`.
+- Worktree-first PYTHONPATH for every bench command: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor`
+- Suite quirks: always `--app`-scoped; `--skip-test-records` required for the_visaguy.
+- Test-site prerequisites are ALREADY configured (synthetic, disposable): `visa_tracker_lookup_hmac_key` and `visa_tracker_audit_hmac_key` set via `set-config`; `Visa Tracker Settings` baseline saved (enabled, public tracking on, `frontend_base_url=https://tracker-test.example.com`, `default_lead_status=APPLICATION_RECEIVED`).
+- SYNTHETIC DATA ONLY: no real passport numbers, names, DOBs, MRZ, or IPs. Use documentation ranges (`P0000000`, `1990-01-01`, `203.0.113.x`).
+
+THE TWO DEFECTS (both independently confirmed by the coordinator — these are real, do not re-litigate whether they exist):
+
+D1 — Settings loader always returns `None` on every real site.
+- File: `the_visaguy/visa_tracking/utils/settings.py`, function `_load_settings()`.
+- Code: `if not frappe.db.table_exists(SETTINGS_DOCNAME): return None` where `SETTINGS_DOCNAME = "Visa Tracker Settings"`.
+- `Visa Tracker Settings` is a Single (`issingle: 1`). Singles are stored in `tabSingles` and have NO `tabVisa Tracker Settings` table. Coordinator confirmed on the live site: `SHOW TABLES LIKE 'tabVisa Tracker Settings'` returns nothing, while `tabSingles` holds 33 rows for that doctype. The guard is therefore ALWAYS false and the loader ALWAYS returns `None`.
+- Blast radius (all currently broken at runtime): public verify/status/logout APIs always generic-fail as "disabled"; `validate_cors` always fails closed; `create_tracking_application` always returns `None`; FileFlo inspection always "disabled"; `reconcile_missing_extractions` always `[]`.
+- Why it was never caught: every pure-tier test mocks the settings loader.
+- REQUIRED FIX POLICY: preserve the guard's legitimate original intent — tolerating the pre-install / pre-migrate state where the DocType does not exist yet — while working correctly for a Single. Use a DocType-existence check (e.g. `frappe.db.exists("DocType", SETTINGS_DOCNAME)`) and/or rely on the existing `frappe.DoesNotExistError` handler, rather than a table check. Do NOT simply delete the guard without preserving install-time safety; `frappe.flags.in_install` is already handled by the caller and must keep working.
+
+D2 — `enqueue_passport_extraction` raises on every "created" extraction.
+- File: `the_visaguy/visa_tracking/services/extraction_orchestrator.py`, ~lines 85-91.
+- Code calls `job = frappe.enqueue(..., enqueue_after_commit=True)` then `pex.db_set("last_job_id", job.id)`.
+- Frappe v15 `frappe/utils/background_jobs.py`: the `enqueue_after_commit` branch does `frappe.db.after_commit.add(enqueue_call)` then a bare `return` — it returns `None`. So `job.id` raises `AttributeError`. Coordinator read this source directly; it is definitive.
+- REQUIRED FIX POLICY: keep the after-commit safety semantics (the job must NOT be enqueued before the transaction commits, or a worker can pick up a record that does not exist yet). The preferred fix is to generate the job id ourselves, pass it to `frappe.enqueue(job_id=...)`, keep `enqueue_after_commit=True`, and record that same id via `db_set("last_job_id", ...)`. Verify Frappe's `job_id` parameter semantics in the installed source before relying on them. If that proves unworkable, the fallback is to stop recording `last_job_id` and document why — but do NOT "fix" this by dropping `enqueue_after_commit`, which would reintroduce the race. Whatever you choose, the function's return value must stay coherent for its callers — check every call site.
+
+WORK:
+1. Fix D1 and D2 per the policies above. Keep the diffs minimal and surgical. Change NO other application logic.
+2. Adjust ONLY the test code that the fixes directly invalidate. Known follow-on the coordinator already identified: `TestSettings.test_predicates_default_to_false_when_missing` will now conflict with the enabled Single baseline on the site — fix it in test code by establishing a disabled/missing Single inside the test itself, not by weakening the assertion.
+3. EXPECT NEW FAILURES. D1 means large parts of this feature have never actually executed on a real site; fixing it will run those paths for the first time. Triage every newly surfaced failure:
+   - If it is a test-side problem (fixture, stale mock, wrong expectation), fix the test.
+   - If it is ANOTHER genuine application defect beyond D1/D2, STOP and report it with exact evidence (file, line, observed vs expected, and how you confirmed it). Do NOT fix additional app defects under this dispatch, and do NOT paper over them in tests.
+4. Do NOT implement the 27 placeholder integration test bodies. Leave them skipping. That is phase 09f.
+
+VERIFICATION (dedicated site, worktree-first PYTHONPATH, `--app`-scoped) — record exact counts for each:
+V1. `bench --site visa-tracker-test.localhost migrate` — rc=0.
+V2. Prove D1 is actually fixed AT RUNTIME, not just in source: on the live site, show that `get_visa_tracker_settings()` now returns the real enabled Single, and that a previously-dead path (e.g. `run_fileflo_inspection` on a synthetic collection) no longer reports "disabled". Capture the before/after.
+V3. Prove D2 is actually fixed AT RUNTIME: trigger `enqueue_passport_extraction` on a synthetic record and show no `AttributeError` and a coherent `last_job_id` persisted.
+V4. `run-tests --app the_visaguy --skip-test-records` — record exact ran/pass/skip/error counts against the 248 ran / 221 pass / 27 skipped / 0 errors baseline.
+V5. `run-tests --app fileflo` — must stay 6/6.
+V6. Pure standalone tier (`visa_tracking/tests`, no site) — record exact counts; must not regress.
+V7. Run the on-site suite TWICE back-to-back; the second run must be identically green (no cross-run pollution).
+
+HARD GATES before committing: V1 rc=0; V2 and V3 demonstrated with real runtime output; V5 6/6; no new errors in V4 versus baseline; no conflict markers; no secrets or PII in the diff.
+
+SCOPE GUARDS: work ONLY in the `the_visaguy` worktree. Do not touch fileflo/passport_extractor source, site `visaguy`, original checkouts, or `processflo`. No push, no remotes, no deployment. Do not move task lifecycle files and do not edit `10-task-010-planning.md` or `11-task-010-evidence.md` — the coordinator owns those.
+
+OUTPUT: write `ongoing/visa-tracking-implementation/09h-settings-loader-and-enqueue-corrective.md` covering: the D1 and D2 root causes and exact fixes applied (with rationale for the approach chosen), every call site checked, before/after runtime evidence for V2 and V3, all suite counts (both runs), any newly surfaced genuine defects with full evidence, commit SHA, and an evidence label for every claim using: runtime-verified > statically-verified > unverifiable.
+
+REPLY ONLY with:
+`<D1 verdict>, <D2 verdict>, <V4 counts run1/run2>, <fileflo>, <standalone counts>, <new defects found>, <commit SHA>`
+Do not paste file contents or diffs into your reply.

@@ -1,0 +1,39 @@
+ROLE: Close E2E matrix item 19 as far as it can be closed without a browser: prove that the LIVE backend's actual HTTP wire responses match the contract the frontend was built against. This is verification work. You may write throwaway probe scripts and the report. You may NOT change application logic in any repository — if the live responses disagree with the contract, STOP and report exact evidence.
+
+WHY THIS MATTERS: the frontend's 41 tests all run against MSW mocks derived from a hand-written contract module. The backend's 248 tests all run in-process. NOTHING has ever exercised the real HTTP surface. This feature has already produced four defects that only runtime execution caught, two of which made it non-functional. A mock/reality mismatch here is a live possibility, not a formality.
+
+GROUND FACTS (coordinator-verified — do not re-derive):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in`. Bench `/home/shahzad/bench`; bare `bench`, explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- `the_visaguy` worktree `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `910914e`, CLEAN. Worktree-first PYTHONPATH: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor`
+- Site `visa-tracker-test.localhost` is fully migrated at this HEAD; on-site suite is 248/248, 0 skips, 0 errors. Settings are configured (enabled, public tracking on, `frontend_base_url=https://tracker-test.example.com`), and `visa_tracker_lookup_hmac_key`/`visa_tracker_audit_hmac_key` are set. Bench redis is running.
+- THE FRONTEND CONTRACT IS AUTHORITATIVE FOR THIS COMPARISON and lives LOCALLY at `/home/shzd/Projects/tridz/visa_tracker/src/test/contract/wireContract.ts` (committed at `a6a07a9a`). Read it first — it encodes the exact request shapes, response shapes, and the constant-200 generic-failure body the frontend expects.
+- Backend contract source of truth: `tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md` and report `08c-task-007-implementation.md` in the workspace.
+- Site `visaguy`, original checkouts, `processflo`: READ-ONLY. SYNTHETIC DATA ONLY (`P0000000`, `1990-01-01`, `203.0.113.x`). NO PUSH, NO DEPLOY.
+
+WORK:
+1. Read the frontend `wireContract.ts` and the TASK-007 docs; write down the expected wire contract for all three Guest endpoints (verify-identity, masked status, logout) before probing anything.
+2. Bring up the site's HTTP surface locally on the remote host (e.g. `bench serve` on a free high port, or an existing running web process — check first and prefer whatever is already running; do NOT disturb site `visaguy`'s serving). Drive it with `curl` using the correct Host header for `visa-tracker-test.localhost`. Do not expose anything publicly; bind to loopback.
+3. Seed a synthetic tracking application with at least 2 status-log rows via `bench console` so the status endpoint has real data to mask and a real timeline to return.
+4. Probe and record ACTUAL raw HTTP responses (status code, headers, body) for:
+   L1. verify-identity happy path -> session token issued; compare body shape field-by-field against `wireContract.ts`.
+   L2. verify-identity with wrong identity -> constant-200 generic failure; confirm it is byte-identical in shape to the contract's generic-failure body and leaks no enumeration signal.
+   L3. masked status with a valid session -> confirm the masked field names and the `{status, message, effective_on, icon}` timeline shape EXACTLY match the contract, and that `effective_on` is populated (this is the D4 path that was broken until `910914e`).
+   L4. masked status with a missing/invalid/expired session -> generic failure.
+   L5. logout -> non-enumerating response; then confirm the old session no longer works.
+   L6. GET (not POST) against each endpoint -> must be rejected; confirm POST-only enforcement.
+   L7. Guest access to a raw `/api/resource/Visa Tracking Application` style path -> must be denied (no data leak).
+   L8. CORS: a request with a disallowed `Origin` must not receive permissive CORS headers; an allowed origin (per `frontend_base_url`) must. Record the actual headers.
+   L9. Rate limit / lockout: repeat failed verifications past the configured threshold and confirm lockout behaves per contract against real redis.
+5. Produce an explicit FIELD-BY-FIELD comparison table: contract field -> expected -> actual -> match/mismatch, for every endpoint. Any mismatch, however cosmetic (field name, casing, nesting, type, extra field, missing field), is a FINDING — record it; do not smooth it over.
+6. Clean up: remove probe scripts, synthetic rows you created where practical, and stop any server you started. Leave the site as you found it.
+
+POLICIES:
+- If the live wire shape disagrees with `wireContract.ts`, STOP: report the exact mismatch with raw response evidence. Do NOT edit the frontend contract to match the backend, and do NOT edit the backend to match the frontend — the coordinator decides which side is wrong.
+- If you cannot bring up an HTTP surface at all, say so plainly and report exactly what you tried and what blocked it. Do NOT substitute in-process Python calls and describe them as HTTP evidence — that would defeat the entire purpose of this phase.
+- Label every claim: runtime-verified > statically-verified > unverifiable.
+
+OUTPUT: write `ongoing/visa-tracking-implementation/09j-live-wire-contract-smoke.md` with: the expected contract as read from the frontend, how you served and addressed the site, raw evidence per probe L1-L9, the field-by-field comparison table, every mismatch found, which E2E matrix items are now runtime-closed and which remain open (browser/visual rendering is NOT closed by this phase), and cleanup performed.
+
+REPLY ONLY with:
+`<L1-L9 pass/fail each>, <contract mismatches: none|list>, <matrix items closed>, <blocked? y/n>`
+Do not paste raw bodies or file contents into your reply.

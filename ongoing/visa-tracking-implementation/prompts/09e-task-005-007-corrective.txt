@@ -1,0 +1,32 @@
+ROLE: Corrective implementation for the remaining genuine defects found by phase 09d in `the_visaguy`, and re-enablement of the stale-skipped integration tests now that a dedicated site exists. Fix minimally, run the on-site suites green, commit in the feature worktree only.
+
+READ FIRST:
+- README.md, .agents/rules/project-rules.md
+- tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md (status-model uniqueness rules, §10.3)
+- ongoing/visa-tracking-implementation/09d-task-005-corrective.md §5–6 (the exact defects and suite context)
+
+GROUND FACTS (coordinator-verified):
+- SSH: `ssh -p 2257 shahzad@erpcode.tridz.in` (user `shahzad`). Bench `/home/shahzad/bench`; bare `bench`, explicit `--site visa-tracker-test.localhost`. Never `which bench`/`bench --version`/`bench --help`.
+- Worktree: `/home/shahzad/visa-tracker-worktrees/the_visaguy`, branch `feat/visa-tracker`, HEAD `28e58c0420a21dff34f0b8a3763bacb43ec4f9d8` (clean — verify). Commit here with environment-default Git identity; no push, no `--author`.
+- Dedicated site `visa-tracker-test.localhost` is fully migrated and green for schema: all feature DocTypes, 6 status records, custom fields/docperms, no Guest rules. fileflo on-site 6/6 OK. the_visaguy on-site (with `--skip-test-records`): 216 ran / 201 pass / 12 skipped / 3 errors.
+- Suite invocation quirks (from 09d §6): use `--skip-test-records` (plain `run-tests` aborts in ERPNext's global test-record bootstrap — environmental, out of scope); always scope with `--app` (unscoped `--module` pulls ERPNext `before_tests` which crashes on this site).
+- Worktree-first PYTHONPATH for every bench command: `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/the_visaguy:/home/shahzad/visa-tracker-worktrees/fileflo:/home/shahzad/visa-tracker-worktrees/passport_extractor bench --site visa-tracker-test.localhost ...`
+- Site `visaguy`, original checkouts, `processflo`: read-only. Synthetic data only.
+
+DEFECT 1 (test isolation, TASK-004 test code): `the_visaguy/visa_tracking/tests/test_fileflo_inspection.py` `TestProvenanceResolution.setUp` binds a `MagicMock` to `frappe.local.db` and `tearDown` does `del frappe.local.db`, destroying the real connection for the rest of the process — this causes the 2 downstream errors in `TestLookupService`/`TestSettings` (`AttributeError: db`). Fix: save the original `frappe.local.db` in `setUp` and restore it in `tearDown` (do not `del`). Verify the whole `visa_tracking/tests` tree for the same pattern and fix consistently.
+
+DEFECT 2 (status uniqueness semantics, TASK-005): `test_visa_tracking_status.py::test_unique_status_code_and_sequence` expects `frappe.ValidationError` on duplicate `status_code`/`sequence`, but the raw `DuplicateEntryError` escapes. TASK-005 §Validation ("`sequence` must be unique or validated"; test 10.3 "enforces uniqueness constraints") and the test's intent call for friendly controller validation. Fix in the `Visa Tracking Status` controller (`validate()`): explicit duplicate checks for `status_code` and `sequence` (excluding self) raising `frappe.ValidationError` with clear PII-free messages, so the DB constraint never surfaces as an integrity error for normal saves. Do not change the DocType schema or the test's assertions.
+
+DEFECT 3 (stale skips): 12 on-site skips are integration classes self-skipping with the stale reason "Deferred to TASK-010: no dedicated test site available" — the dedicated site now exists and is authorized. Remove the skip guards so these tests execute on-site (keep any skip that guards a genuinely unavailable capability, and document any such remainder). Run them; if any newly-unskipped test surfaces a genuine app defect, stop and report exact evidence — do not force green.
+
+VERIFICATION (dedicated site, worktree-first PYTHONPATH, `--app`-scoped):
+1. `bench --site visa-tracker-test.localhost run-tests --app the_visaguy --skip-test-records` — target: all previously erroring/skipped tests now run and pass; record exact counts. Zero errors required; zero skips unless individually justified and documented.
+2. `run-tests --app fileflo` — must stay 6/6.
+3. Pure standalone tier (`visa_tracking/tests`, no site) — must not regress below the 197 pass / 10 skip baseline behavior (the 2 former `IncorrectSitePath` errors should now also be gone standalone if Defect 1's fix makes teardown safe; report honestly what remains and why).
+4. Re-confirm migration stays rc=0 (run `migrate` once after your changes).
+
+REPORT:
+Write `ongoing/visa-tracking-implementation/09e-task-005-007-corrective.md` with diffs summarized, before/after counts, newly-unskipped test outcomes, commit SHA(s), remaining issues, evidence labels. Do not move task files.
+
+REPLY ONLY:
+`<defect-1 verdict>, <defect-2 verdict>, <defect-3 unskip verdict>, <on-site suite counts>, <commit SHA(s)>`

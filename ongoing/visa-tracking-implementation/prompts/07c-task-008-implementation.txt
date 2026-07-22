@@ -1,0 +1,25 @@
+GROUND FACTS (already verified — do not re-derive):
+- Work only in local repo `/home/shzd/Projects/tridz/visa_tracker`, branch `master`, clean HEAD `20b8c45`.
+- `/home/shzd/Projects/tridz/visaguy-website-client` is read-only visual evidence.
+- Existing stack: Vite 8, React 19, TypeScript 6, Tailwind CSS 4, shadcn base-nova, React Router, Axios, React Hook Form, Zod.
+- Current Tailwind v4 documentation uses the Vite plugin and CSS-first `@theme`; do not add a legacy `tailwind.config.js`.
+- Apply React guidance: derive state during render, keep components stable, avoid unnecessary effects and broad barrel imports.
+- Do not push, add a remote, or change Git identity.
+
+READ FIRST:
+- `tasks/in-progress/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md`
+- `ongoing/visa-tracking-implementation/06-task-003-010-planning.md`
+
+TASKS:
+- C1. Inspect the read-only reference app's design tokens, fonts, header/footer, spacing, color, border, shadow, and responsive patterns. Record source paths used.
+- C2. Implement TASK-008 design tokens, accessible shell, reusable presentational components, typed tracking contracts/API seams, and safe mock data. Preserve Tailwind v4 CSS-first setup.
+- C3. Do not implement real verification/session/status flow (TASK-009), persist sensitive state, or copy unrelated reference-app business code.
+- C4. Validate keyboard/focus semantics and responsive layouts in source/tests where available. Use no real PII in mocks.
+- C5. Run `npm run lint`, TypeScript/build, and any existing tests. Correct failures. Review bundle/import patterns against React performance guidance.
+- C6. Commit `feat: add VisaGuy tracker design system` using existing default Git identity, leave clean, no push.
+- C7. Write `ongoing/visa-tracking-implementation/07c-task-008-implementation.md` with SHA, reference paths, changed files, and validation evidence.
+
+HARD GATES:
+- Reference repo remains clean/read-only. No backend edits. No secrets/PII. No localStorage/sessionStorage/cookies for session data. No legacy Tailwind config.
+
+REPLY ONLY: `<sha>, <lint>, <build>, <tests>, <TASK-008 verdict>`.

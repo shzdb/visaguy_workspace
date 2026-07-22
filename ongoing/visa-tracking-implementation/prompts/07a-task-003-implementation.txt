@@ -1,0 +1,27 @@
+GROUND FACTS (already verified — do not re-derive):
+- Work only in remote worktree `/home/shahzad/visa-tracker-worktrees/passport_extractor` over SSH `shahzad@erpcode.tridz.in:2257`, branch `feat/visa-tracker`, clean HEAD `2f25c0d52d2bb898c217b61f448705e5eda550c7`.
+- TASK-002 static model is implemented; no dedicated test site exists because `root_password` is absent.
+- Do not migrate or test on `visaguy`. Do not create a site, request credentials, build assets, push, or change Git identity.
+
+READ FIRST:
+- `tasks/in-progress/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md`
+- `ongoing/visa-tracking-implementation/05b-task-002-implementation.md`
+- `ongoing/visa-tracking-implementation/06-task-003-010-planning.md`
+
+TASKS:
+- A1. Inspect the committed TASK-002 code and current `pyproject.toml`; implement every TASK-003 requirement in the dedicated worktree.
+- A2. Keep heavy OCR/PDF/OpenCV imports lazy and worker-only. Build pure deterministic MRZ/check-digit/confidence functions that import without a site or OCR runtime.
+- A3. Validate the private Frappe File before byte access. Do not log passport numbers, DOB, MRZ, OCR text, paths, or raw exceptions.
+- A4. Implement an idempotent queue-ready service/worker that uses controller transitions, never direct status database writes.
+- A5. Add synthetic unit/integration tests. Do not run Frappe integration tests without the dedicated site.
+- A6. Use a local staging clone plus unified patch, copy it to the remote, run `git apply --check`, then apply. Do not edit the original checkout or use shell redirection/heredocs/sed/perl/Python to rewrite remote application files.
+- A7. Run static gates: `git diff --check`, JSON parse, compile all changed Python, pure unit tests that truly require no site, worktree-first imports, and forbidden dependency/PII scans. Do not install missing packages or claim unavailable runtime checks.
+- A8. Review the entire diff, correct defects, commit with message `feat: add passport OCR and MRZ pipeline` using the environment's existing Git identity, leave clean, no push.
+- A9. Write `ongoing/visa-tracking-implementation/07a-task-003-implementation.md` with SHA, files, static gates, and deferred runtime gates.
+
+HARD GATES:
+- No dependencies on `the_visaguy`, `fileflo`, `processflo`, Lead, Customer, PF Process File, or public APIs.
+- No real passport fixtures or PII.
+- No runtime claim for PaddleOCR, PDF rendering, migration, workers, or integration tests unless actually verified safely.
+
+REPLY ONLY: `<sha>, <static verdict>, <runtime verdict>, <TASK-003 verdict>`.

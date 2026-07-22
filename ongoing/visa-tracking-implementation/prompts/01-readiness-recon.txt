@@ -1,0 +1,50 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace.
+- This repository is documentation/control-plane only; application code belongs in separate repositories.
+- Feature: FEAT-001 at features/planned/visa-tracking/.
+- tasks/ready/ currently has no implementation task document.
+- FEAT-001 references TASK-001 through TASK-010 and ADR-003 through ADR-005, but those files are currently absent.
+- Remote Frappe bench is /home/shahzad/bench on erpcode.tridz.in:2257.
+- Frontend repository target is /home/shzd/Projects/tridz/visa_tracker.
+- The workspace checkout already has edits in README.md and features/planned/visa-tracking/README.md. Preserve them.
+
+READ FIRST:
+- README.md
+- .agents/rules/project-rules.md
+- tasks/README.md
+- features/planned/visa-tracking/README.md
+- features/planned/visa-tracking/01-architecture-and-data-model.md
+- decisions/ADR-001-workspace-and-repository-authority.md
+- decisions/ADR-002-app-ownership-classification.md
+- ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- R1. Inspect the workspace tree and Git history to determine whether the missing TASK-001..TASK-010, ADR-003..ADR-005, and supporting specification files ever existed, were deleted, or are merely referenced but uncreated.
+- R2. Assess the exact workspace lifecycle gates that prevent implementation from starting now. Separate hard blockers from documentation drift.
+- R3. Determine the smallest safe next phase that would satisfy the gate. Identify which documents can be authored from accepted FEAT-001 intent and which require user/product decisions.
+- R4. Inspect only enough repository metadata to identify clean, dedicated-worktree prerequisites for the local frontend and remote Frappe repositories. Do not connect over SSH and do not modify any application repository.
+- R5. Write a concise implementation-readiness report with evidence paths and a proposed phase sequence.
+
+POLICIES:
+- Treat accepted workspace rules and ADRs as authoritative.
+- Do not invent missing product or architecture decisions.
+- A broken link to a nonexistent file is documentation drift; a missing accepted decision required by feature metadata is a blocker unless evidence shows the dependency is stale.
+- Preserve all existing user changes.
+
+GATES:
+- Do not modify files outside ongoing/visa-tracking-implementation/01-readiness-recon.md.
+- Do not create tasks, ADRs, application repositories, branches, commits, or worktrees.
+- Do not use SSH, network access, or push.
+- Report evidence with exact workspace-relative paths.
+
+SCOPE GUARDS:
+- Work ONLY in /home/shzd/Projects/workspaces/visaguy_workspace.
+- Read-only except for the required report output.
+- DO NOT touch /home/shzd/Projects/tridz or the remote bench.
+- DO NOT commit or push.
+
+OUTPUT:
+- Write the detailed report to ongoing/visa-tracking-implementation/01-readiness-recon.md.
+
+REPLY ONLY WITH:
+<hard blocker count>, <documentation drift count>, <recommended next phase>, <verdict>

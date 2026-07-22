@@ -1,0 +1,56 @@
+GROUND FACTS (already verified — do not re-derive):
+- FEAT-001 is ongoing at features/ongoing/visa-tracking/.
+- TASK-001 is completed at tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md.
+- passport_extractor scaffold exists, is installed on site visaguy, and has clean feature worktree `/home/shahzad/visa-tracker-worktrees/passport_extractor` on `feat/visa-tracker` at base SHA 07b8cab40cd4054b39a78f23a271d7201e71baa0.
+- Accepted `Passport Extraction` schema, states, ownership, and privacy rules are in features/ongoing/visa-tracking/01-architecture-and-data-model.md and ADR-004.
+- Bench asset build currently uses Node 12.22.9 and cannot satisfy Frappe 15's Node >=18 asset requirement. TASK-002 must not depend on asset building.
+- No push is authorized.
+
+READ FIRST:
+- .agents/templates/task.md
+- .agents/rules/project-rules.md
+- features/ongoing/visa-tracking/README.md
+- features/ongoing/visa-tracking/01-architecture-and-data-model.md
+- decisions/ADR-003-feat-001-repository-ownership-and-dependency-direction.md
+- decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md
+- ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md
+- ongoing/visa-tracking-implementation/04b-task-001-finish-setup.md
+- ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- P1. Author `tasks/ready/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md` from the canonical task template.
+- P2. Scope TASK-002 to completing the app's domain structure and implementing only the `Passport Extraction` DocType, controller-level state transition validation, permissions, safe file-reference validation seams, and automated tests for the data model. OCR/MRZ processing, FileFlo orchestration, public APIs, and tracking DocTypes are excluded.
+- P3. Enumerate expected app files using the actual Frappe v15 generated layout under the passport_extractor feature worktree, while keeping implementation paths repository-relative in the task.
+- P4. Translate every accepted `Passport Extraction` field group and lifecycle rule into explicit required behavior. Preserve generic source fields and forbid links/imports to VisaGuy business DocTypes.
+- P5. Define validation gates that can run on site visaguy without requiring asset builds: JSON/schema validation, Python compile/lint where available, explicit-site migrate, targeted app tests, import checks, and clean Git status.
+- P6. Include privacy/security tests ensuring raw OCR/error fields are private to privileged roles, error messages do not leak OCR text/PII, files must be private, and unverified records cannot be treated as verified through invalid transitions.
+- P7. Include clear stop conditions for contradictions in generated Frappe layout, inability to create the DocType using supported Frappe tooling/migration flow, test-site safety issues, or required architecture decisions not present in accepted documents.
+- P8. Write a concise planning log.
+
+POLICIES:
+- Do not invent fields or behavior beyond accepted FEAT-001/ADR-004 intent.
+- The task may refine implementation details needed to realize accepted behavior, but it may not change repository ownership, public exposure, or lifecycle semantics.
+- TASK-002 status and folder must both be `ready`.
+- TASK-002 depends on TASK-001 and ADR-004.
+- The task must explicitly authorize implementation only in the passport_extractor feature worktree and site-scoped migration/tests on visaguy.
+- Do not require bench asset builds while the Node runtime remains below Frappe 15 requirements.
+
+GATES:
+- New task has complete frontmatter and every canonical section.
+- Task references FEAT-001, TASK-001, ADR-004, and the exact feature worktree.
+- Expected files are repository-relative and no workspace/app code is mixed.
+- Validation and definition of done are objective and evidence-producing.
+- Run `git diff --check` in the workspace.
+- Do not commit or push.
+
+SCOPE GUARDS:
+- Work ONLY in /home/shzd/Projects/workspaces/visaguy_workspace.
+- Modify ONLY tasks/ready/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md and ongoing/visa-tracking-implementation/05a-task-002-planning.md.
+- Do not connect over SSH or touch application repositories.
+
+OUTPUT:
+- Write the planning log to ongoing/visa-tracking-implementation/05a-task-002-planning.md.
+
+REPLY ONLY WITH:
+<task path>, <field coverage verdict>, <validation verdict>, <ready verdict>

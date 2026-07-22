@@ -1,0 +1,7 @@
+# Application source clones and patch scratch space.
+# The workspace is the control plane only — application code lives in its own
+# repositories (see docs/architecture/repository-catalog.md). These directories
+# hold working copies and patches used during implementation phases and must
+# never be committed here.
+.staging/
+staging/

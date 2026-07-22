@@ -1,0 +1,63 @@
+GROUND FACTS (already verified — do not re-derive):
+- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace.
+- Active task: tasks/in-progress/visa-tracking/TASK-001-preflight-and-branch-setup.md.
+- FEAT-001 is ongoing at features/ongoing/visa-tracking/.
+- SSH endpoint: shahzad@erpcode.tridz.in on port 2257.
+- Remote bench root: /home/shahzad/bench; site: visaguy.
+- Local frontend target: /home/shzd/Projects/tridz/visa_tracker; it did not exist during readiness recon.
+- visaguy-website-client is read-only.
+- No push is authorized.
+- Vite 8 official docs require Node.js 20.19+ or 22.12+ and use `npm create vite@latest <name> -- --template react-ts`.
+- Current Tailwind official docs use `tailwindcss` plus `@tailwindcss/vite`; current shadcn CLI uses `npx shadcn@latest init` after the `@/*` alias is configured.
+- Frappe new-app metadata (publisher, email, license) has not been provided; DO NOT run `bench new-app` in this phase.
+
+READ FIRST:
+- README.md
+- .agents/rules/project-rules.md
+- features/ongoing/visa-tracking/README.md
+- features/ongoing/visa-tracking/01-architecture-and-data-model.md
+- decisions/ADR-003-feat-001-repository-ownership-and-dependency-direction.md
+- decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- tasks/in-progress/visa-tracking/TASK-001-preflight-and-branch-setup.md
+- ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- T1. Connect read-only first. In /home/shahzad/bench run `ls apps/ sites/ Procfile` to confirm the bench, then record installed apps with `bench --site visaguy list-apps`. Do not run bench discovery/help/version commands.
+- T2. Inspect source and Git metadata for the_visaguy, fileflo, and processflo. Record repository paths, HEAD SHA, branch, remotes without credentials, dirty state, and inferred default branch. Never print diff contents or secret values.
+- T3. Using source-only evidence, identify the exact FileFlo persisted submission/value DocType and code path, stable field-ID property, File Collection-to-Lead relationship, Lead-to-PF Process File creation/link path, and whether ERPNext Lead, CRM Lead, or both are in the deployed flow. Record file paths and symbols, not production records.
+- T4. If and only if the_visaguy and fileflo default branches are clean and their intended base branches are unambiguous, create or safely reuse local-only branch `feat/visa-tracker` in dedicated worktrees at `/home/shahzad/visa-tracker-worktrees/the_visaguy` and `/home/shahzad/visa-tracker-worktrees/fileflo`. Do not modify original checkouts. If either condition fails, do not branch that repository and report the stop condition.
+- T5. Inspect processflo only. Do not branch, edit, stash, commit, reset, or clean it.
+- T6. Inspect the remote environment sufficiently to record whether PaddleOCR/PaddlePaddle imports and required runtime packages are available, without opening passport files, downloading models, or running OCR. Label import evidence accurately; do not claim OCR runtime verification.
+- T7. Locally verify Node.js satisfies Vite 8. If compatible and `/home/shzd/Projects/tridz/visa_tracker` is still absent, scaffold React + TypeScript with Vite, initialize Git, configure current Tailwind Vite integration and the `@/*` alias, initialize shadcn/ui non-interactively for Vite, install React Router, Axios, React Hook Form, `@hookform/resolvers`, and Zod, run lint and build, then make one local scaffold commit. If the directory exists, inspect it and stop rather than overwrite.
+- T8. Do not scaffold passport_extractor. Instead report the exact missing metadata fields required by the Frappe new-app workflow and propose values only when supported by existing maintained-app metadata.
+- T9. Write a detailed evidence log and concise list of completed, skipped, and blocked validation items.
+
+RESOLUTION POLICIES:
+- Preserve unrelated dirty trees. Never stash, reset, clean, checkout over, or commit their changes.
+- A branch/worktree that already exists may be reused only if its HEAD/base and worktree state are safe and clearly attributable to FEAT-001; otherwise stop that repository path.
+- Use dedicated worktrees for existing Frappe repositories; never implement in the default-branch checkout.
+- Source evidence can resolve integration joins; do not query production business records.
+- The frontend phase is scaffold/configuration only. Do not create tracker screens or copy design-reference code/assets.
+- If a current CLI behaves differently from documented non-interactive flags, stop and report rather than answering prompts by guesswork.
+
+HARD GATES:
+- Remote original checkouts remain byte-for-byte untouched except Git worktree administrative metadata needed to create approved worktrees.
+- No feature source code is added to Frappe apps.
+- No secrets, PII, raw diffs, passport data, or environment values appear in output.
+- `git status --short` is clean in the new visa_tracker repository after its scaffold commit.
+- `npm run lint` and `npm run build` pass before the frontend scaffold commit.
+- No Git remote is added and nothing is pushed.
+- Do not mark TASK-001 complete; passport_extractor metadata/scaffold may remain outstanding.
+
+SCOPE GUARDS:
+- Workspace writes: ONLY ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md.
+- Local application writes: ONLY /home/shzd/Projects/tridz/visa_tracker when safely creating the new repository.
+- Remote writes: ONLY Git branch/worktree administration for the_visaguy and fileflo under /home/shahzad/visa-tracker-worktrees/ when gates pass.
+- DO NOT modify processflo or visaguy-website-client.
+- DO NOT commit workspace files. DO NOT push anything.
+
+OUTPUT:
+- Write the detailed log to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/04a-task-001-recon-and-setup.md.
+
+REPLY ONLY WITH:
+<integration evidence verdict>, <remote worktree count>, <frontend scaffold verdict>, <passport scaffold blocker>, <overall verdict>

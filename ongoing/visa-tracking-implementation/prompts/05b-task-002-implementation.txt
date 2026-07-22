@@ -1,0 +1,62 @@
+GROUND FACTS (already verified — do not re-derive):
+- Active task: /home/shzd/Projects/workspaces/visaguy_workspace/tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md.
+- Work ONLY on application code in remote worktree `/home/shahzad/visa-tracker-worktrees/passport_extractor`, branch `feat/visa-tracker`, base SHA 07b8cab40cd4054b39a78f23a271d7201e71baa0.
+- Bench root: /home/shahzad/bench; active site visaguy has only the empty scaffold installed.
+- Automated tests MUST run only on dedicated site `passport-extractor-test.localhost`, never on `visaguy`.
+- The feature worktree must be first on PYTHONPATH for all migration/test commands; verify module resolution before use.
+- Bench Node 12.22.9 cannot build Frappe 15 assets. This task has no frontend assets and must not run bench build.
+- No push is authorized.
+
+READ FIRST:
+- /home/shzd/Projects/workspaces/visaguy_workspace/.agents/rules/project-rules.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/features/ongoing/visa-tracking/README.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/features/ongoing/visa-tracking/01-architecture-and-data-model.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/05a-task-002-planning.md
+- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/STATE.md
+
+TASKS:
+- I1. Confirm the feature worktree branch, clean status, and base SHA. Inspect its generated Frappe v15 layout. If layout contradicts TASK-002 paths, stop before editing and report.
+- I2. Confirm developer mode without exposing config values. Inspect `bench new-doctype --help` or installed command behavior if useful, but do not mutate the original app checkout. Do not create DocType directories with `mkdir`; create files through patching/supported generation flow.
+- I3. Implement standard DocType `Passport Extraction` with every accepted field, exact status options, `PEX-.YYYY.-.#####` naming, change tracking, indexes where safely supported, and permissions from TASK-002. Add app-owned role `Passport Extractor User` and permission-level-1 protection for raw OCR/MRZ/error fields.
+- I4. Implement controller and utility logic for initial Queued creation, exact transition graph, bounded retries, processing/verification timestamps, immutable verification provenance after supersession, duplicate/supersession target checks, server-set request metadata, passport normalization, private File validation, and chunked SHA-256 hashing after privacy validation. Use `self.get_doc_before_save()`; do not bypass validation with direct db writes.
+- I5. Keep package dependencies generic: no imports, schema Links, or hardcoded business logic for the_visaguy, fileflo, processflo, Lead, Customer, PF Process File, or Visa Tracking Application. Generic source_doctype/source_document may hold those runtime values.
+- I6. Write IntegrationTestCase and UnitTestCase coverage for all valid/invalid transitions, retry bounds, timestamps/audit preservation, duplicate/supersession checks, normalization, private/public/missing File handling, hashing, role/Guest permissions, permission-level raw field visibility, and PII-free error messages. Generate only synthetic fake values and private/public File records inside test transactions; commit no sample passport files.
+- I7. Validate JSON and Python compilation before site operations. Check for forbidden imports/references with rg.
+- I8. Resolve the feature worktree module via `PYTHONPATH=/home/shahzad/visa-tracker-worktrees/passport_extractor` and verify `passport_extractor.__file__` points inside that worktree. Stop site operations if it does not.
+- I9. Inspect only whether `root_password` is a configured key in `/home/shahzad/bench/sites/common_site_config.json`; never print its value. If the test site does not exist and the key exists, create it with `bench new-site passport-extractor-test.localhost --admin-password admin`. If the key is absent, finish static implementation/tests but stop runtime verification and report the blocker without asking for or exposing a password.
+- I10. On the dedicated test site only, enable tests, install passport_extractor with the feature worktree first on PYTHONPATH, migrate, and run targeted then full app tests. Never migrate or run tests on visaguy. Verify visaguy still lists the empty installed scaffold.
+- I11. Fix implementation/test failures within TASK-002 scope. Do not weaken assertions or permissions to make tests pass.
+- I12. Commit all TASK-002 app changes locally with an intentional message. Ensure the feature worktree is clean. Write a detailed implementation/verification report.
+
+IMPLEMENTATION POLICIES:
+- Preserve verified_by and verified_on permanently after a record becomes Verified, including after Superseded.
+- New records may start only in Queued; all other states require valid transitions.
+- Public or missing File references must fail before bytes are read. Hash files in chunks with hashlib.sha256 and never log content.
+- Error messages use stable generic wording and may include record names/status labels but never passport number, DOB, MRZ, OCR text, or file contents.
+- Raw fields use permlevel 1. Passport Extractor User has explicit level-0 and level-1 permissions; Guest has none. System Manager retains full access.
+- Tests must prove field permission behavior using Frappe permission APIs/source behavior, not only JSON inspection.
+- Do not add test_records.json; create synthetic records dynamically.
+- Do not call frappe.db.commit in controllers or tests.
+
+HARD GATES:
+- Worktree starts at expected base and ends clean on feat/visa-tracker with one or more local TASK-002 commits.
+- DocType JSON parses; all 47 accepted fields are present exactly once; status options and field types match the task.
+- Python compile/import checks pass.
+- No forbidden app/business dependency appears.
+- Dedicated test-site migrate and tests pass, or runtime verification is explicitly blocked only because safe test-site creation is unavailable.
+- visaguy is not migrated or used for tests and still lists passport_extractor.
+- No asset build, no production data access, no secrets in output, no push.
+
+SCOPE GUARDS:
+- Application writes: ONLY /home/shahzad/visa-tracker-worktrees/passport_extractor.
+- Site writes: ONLY creating/configuring/migrating/testing passport-extractor-test.localhost. On visaguy, list-apps is read-only.
+- Workspace writes: ONLY /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/05b-task-002-implementation.md.
+- Do not modify original bench app checkouts, other apps, frontend repositories, or workspace task/feature files.
+
+OUTPUT:
+- Write detailed report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/05b-task-002-implementation.md.
+
+REPLY ONLY WITH:
+<commit SHA>, <field count>, <targeted tests>, <full app tests>, <test-site verdict>, <TASK-002 verdict>
