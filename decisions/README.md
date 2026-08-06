@@ -14,6 +14,7 @@ This directory is the durable record of VisaGuy's architecture and process decis
 | [ADR-006](ADR-006-zone-and-company-as-distinct-domain-axes.md) | **Zone and Company are distinct domain axes** | Accepted | **Foundational — read first** |
 | [ADR-007](ADR-007-whatsapp-configuration-keyed-on-zone.md) | WhatsApp configuration is keyed on Zone | Accepted | `the_visaguy`, `waflo` |
 | [ADR-008](ADR-008-deployment-authority-and-completion-gates.md) | Deployment authority and completion gates | Accepted | Process |
+| [ADR-009](ADR-009-waflo-as-maintained-whatsapp-extension-layer.md) | Waflo is the maintained WhatsApp extension layer | Accepted | `waflo`, `frappe_whatsapp` |
 
 ## Read these first
 
@@ -38,6 +39,9 @@ Smaller decisions that shape the project but do not warrant a full ADR. Newest f
 
 ### 2026-08-06
 
+- **`waflo`'s conversational flow engine has never been tested and is not in use.** It is planned work ([FEAT-004](../features/planned/whatsapp-flow-engine/README.md)), not a live capability. `waflo`'s real role today is a send helper for template features `frappe_whatsapp` lacks — dynamic URL buttons, FLOW buttons, caller-supplied header/body params — plus rate limiting and retry. Promoted to [ADR-009](ADR-009-waflo-as-maintained-whatsapp-extension-layer.md). Consequence: FEAT-003 defects D1, D2, N1 and N2 sit on the dormant flow path and are prerequisites for FEAT-004, **not live production bugs**. Do not enable `WF Settings.enable_flow_engine` on a site with real customers until FEAT-003 is deployed.
+- **Rate limiting lives in `waflo`, not `frappe_whatsapp`, because we maintain `waflo` and do not maintain `frappe_whatsapp`.** Architecturally it belongs at the provider layer; this is a deliberate ownership tradeoff, not an oversight. Known cost: anything calling `frappe_whatsapp` directly bypasses the limiter. See ADR-009.
+- The `visaguy` site on `erpcode.tridz.in` is a **development** environment. Production is a separate server this project has no access to. Do not describe `visaguy` as production, and do not infer production configuration from it.
 - **One site per bench, always.** VisaGuy does not run multiple production sites on a shared bench. Therefore: do not design for cross-site isolation in Redis keys, caches, or any other bench-shared resource. Plain cache keys are correct; `frappe.cache().make_key()` prefixing is unnecessary ceremony. If a second site exists transiently for testing, that is not a reason to add isolation machinery to production code. This constraint exists to stop over-engineering — an earlier draft of FEAT-003 D4 added site-prefixing and a two-site isolation test, both of which were removed as scope creep.
 - **Corrected:** WhatsApp configuration is keyed on **Zone**, not Company. An earlier draft recommended Company; the project owner corrected it. Keying on Company would have sent a UAE customer messages from the `TVG India` back-office number. Promoted to [ADR-006](ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](ADR-007-whatsapp-configuration-keyed-on-zone.md).
 - The four-companies / three-zones asymmetry is **correct by design**. `TVG India` is a back office with no customers of its own, so it needs no zone and no WhatsApp configuration. A prior audit wrongly flagged this as a data gap; that finding is retracted.

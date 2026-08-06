@@ -15,9 +15,24 @@ updated: 2026-08-06
 
 ## Summary
 
-Fix a set of defects in `waflo` found while assessing whether the WhatsApp stack can safely serve more than one company. The rate limiter is not merely incomplete — it is **inert whenever the flow engine is enabled**, because the counter is never incremented on the flow paths. The same defect also breaks conversation state for new chats.
+Fix a set of defects in `waflo` found while assessing whether the WhatsApp stack can safely serve more than one zone.
 
-This feature is a **prerequisite for [FEAT-002](../multi-company-whatsapp/README.md)**. Fanning WhatsApp traffic out to additional companies while the limiter does not count is an avoidable risk to the Meta account.
+This feature is a **prerequisite for [FEAT-002](../multi-company-whatsapp/README.md)** and for [FEAT-004](../whatsapp-flow-engine/README.md).
+
+## Read this before ranking the defects
+
+`waflo`'s production role today is a **send helper** — template sends with dynamic URL buttons and FLOW buttons that `frappe_whatsapp` does not support — plus rate limiting and retry. See [ADR-009](../../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md).
+
+The conversational flow engine that gives the app its name **has never been tested and is switched off** (`WF Settings.enable_flow_engine = 0`). It is planned work, tracked as [FEAT-004](../whatsapp-flow-engine/README.md).
+
+That splits these defects into two very different groups:
+
+| Group | Defects | Status |
+|---|---|---|
+| **Live send path** — runs on every message VisaGuy sends today | D3, D4, D5, D8, D9, D10, D11, N3, and D2's default-reply path | Real, affecting production now |
+| **Flow-engine path** — dormant while the engine is off | D1, D2 (flow branches), N1, N2 | Prerequisites for FEAT-004, not live bugs |
+
+D1 and N1 are described below as critical, and they are — **but only once the flow engine is enabled.** They are blockers for FEAT-004, not fires to put out today. Do not set `enable_flow_engine = 1` on a site with real customers until this branch is deployed.
 
 ## Evidence
 

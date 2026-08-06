@@ -46,18 +46,27 @@ Covered:
 - D11 — `use_flow` combined with `button_url_map` is rejected
 - N2 — a continuing flow with null reference doctype/name does not raise
 
-## Retraction — the "latent, not active" claim
+## Severity — resolved
 
-A previous version of this document concluded that D1, D2, N1 and N2 were **latent rather than active**, reasoning that `WF Settings.enable_flow_engine = 0` means `process_whatsapp_message` is never reached.
+This document went back and forth on how urgent D1/D2/N1/N2 are. Settled position, per the project owner:
 
-**That conclusion is withdrawn.** It was based on config read from `visaguy`, which is a development site. Production is a different server this project cannot access, so its `enable_flow_engine` value, its rate-limit settings, and its WhatsApp account configuration are all **unknown**.
+**The `waflo` conversational flow engine has never been tested and is not in use anywhere.** It is a planned capability ([FEAT-004](../../features/planned/whatsapp-flow-engine/README.md)), not a live one. `waflo`'s actual production role is a send helper plus rate limiting and retry ([ADR-009](../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md)).
 
-What can honestly be said:
+So the defects split cleanly:
 
-- On the `visaguy` dev site: `enable_flow_engine = 0`, `enable_rate_limiting = 1`, `max_replies_per_window = 3`, `window_seconds = 30`.
-- On production: unknown. If the flow engine is enabled there, D1 and N1 are **actively firing today** — a customer-visible message loop, and mangled arguments on every flow-driven send.
+| Group | Defects | Reality |
+|---|---|---|
+| Live send path | D3, D4, D5, D8, D9, D10, D11, N3, D2's default-reply path | Runs on every message VisaGuy sends. Genuinely worth fixing. |
+| Flow-engine path | D1, D2 (flow branches), N1, N2 | Cannot fire while the engine is off. **Prerequisites for FEAT-004, not live bugs.** |
 
-Whoever has production access should check `WF Settings.enable_flow_engine` there before deciding how urgent this branch is.
+Two earlier claims in this document are therefore withdrawn:
+
+1. That D1/D2/N1/N2 were latent *because of a config value read from one site*. The real reason is stronger and site-independent: the feature they live in has never been switched on anywhere.
+2. That "if production has the flow engine enabled, D1 and N1 are firing there today". That was an unfounded worry — the engine is untested by design, so it is not enabled in production either.
+
+The operative instruction is unchanged and now has a clear owner: **do not set `enable_flow_engine = 1` on any site with real customers until this branch is deployed.** That is recorded as a prerequisite in FEAT-004.
+
+Dev-site config, for reference: `enable_flow_engine = 0`, `enable_rate_limiting = 1`, `max_replies_per_window = 3`, `window_seconds = 30`. Production config remains unknown — that server is inaccessible to this project.
 
 ## Backward compatibility with `the_visaguy`
 

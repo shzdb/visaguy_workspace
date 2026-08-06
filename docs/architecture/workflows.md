@@ -211,6 +211,8 @@ The full exclusion list and rationale are in [ADR-005](../../decisions/ADR-005-v
 
 Two distinct paths share one send function. Traced in detail 2026-08-06.
 
+> **`waflo` is not primarily a flow engine today.** Despite its name and module layout, its live role is a send helper for template features `frappe_whatsapp` lacks — dynamic URL buttons, FLOW buttons, caller-supplied header and body params — plus rate limiting and retry. See [ADR-009](../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md). The conversational flow engine described in W9a steps 4–5 has **never been tested and is switched off** (`WF Settings.enable_flow_engine = 0`); it is planned as [FEAT-004](../../features/planned/whatsapp-flow-engine/README.md).
+
 ### W9a — Inbound: provider webhook → conversational flow
 
 1. `frappe_whatsapp/utils/webhook.py` receives provider callbacks and creates `WhatsApp Message` records. The inbound account is resolved by `phone_id` via `frappe_whatsapp/utils/__init__.py:get_whatsapp_account` — **inbound multi-account already works**.
@@ -236,8 +238,8 @@ Event types today: Lead Form, Process Form, Payment Success, Visa Completion (au
 This path has open defects, planned in [FEAT-002](../../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../../features/planned/waflo-correctness/README.md). Read those before changing anything here.
 
 - **`send.py:29` always resolves the global default outgoing account.** `send_whatsapp_template` takes no account parameter, so every outbound message leaves from one number regardless of company. This is the multi-company blocker.
-- **`processor.py:61` raises `NameError`** (`doc` not in scope), which is swallowed by a broad `except`. `create_active_flow` on the next line never runs, so new conversations get no `WF Active Chat Flow` record and the initial step can be re-sent on every subsequent inbound message.
-- **The rate limiter never increments on flow paths**, so it is inert whenever the flow engine is enabled. W9b is not rate limited at all.
+- **`processor.py:61` raises `NameError`** (`doc` not in scope), which is swallowed by a broad `except`. `create_active_flow` on the next line never runs, so new conversations get no `WF Active Chat Flow` record and the initial step can be re-sent on every subsequent inbound message. Dormant while the flow engine is off — a blocker for FEAT-004, not a live bug.
+- **The rate limiter never increments on flow paths**, so it would be inert if the flow engine were enabled. With the engine off, the default-reply path does increment correctly. W9b is not rate limited at all — that one is live.
 - **Configuration lookup keys a Zone name into a Company field** (`{"company": doc.custom_zone}`), resolving only because the names currently coincide. The callers are right — WhatsApp is customer-facing and therefore Zone-scoped — and the field is wrong. See [ADR-006](../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md).
 - **Unconfigured event types raise `IndexError`** at six `[...][0]` call sites.
 
