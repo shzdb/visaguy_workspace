@@ -66,11 +66,39 @@ The current design only ever contemplated limiting *replies to inbound messages*
 
 `is_rate_limited` reads the counter; `increment_rate_limit` later performs a separate read-modify-write. Two workers processing concurrent inbound messages can both read `count = max - 1`, both pass, and both write. The limit is exceeded under exactly the burst conditions it exists to control.
 
-`frappe.cache().get_value` / `set_value` cannot express this safely. Use an atomic Redis `INCR` with `EXPIRE` on first write.
+**The transport is not the problem — the value shape is.** Keep using `frappe.cache()`. Verified against Frappe 15.113.0: `frappe/utils/redis_wrapper.py:27` declares `class RedisWrapper(redis.Redis)`, so `frappe.cache()` *is* a Redis client and already exposes the atomic primitives by inheritance. A separate Redis connection would duplicate the connection pool that bench already manages, for no benefit.
+
+The defect is that the counter is stored as a **compound dict** `{"count": N, "window_start": T}` via `set_value`, which serializes it. Reading it back, incrementing in Python, and writing it again is a read-modify-write that no transport can make atomic.
+
+Fix: store a **scalar** and let Redis do the arithmetic.
+
+```
+count = frappe.cache().incr(key)
+if count == 1:
+    frappe.cache().expire(key, window_seconds)
+```
+
+`INCR` is atomic, so concurrent workers serialise correctly, and setting the TTL only when the counter returns 1 gives a fixed window that starts at the first request. This also removes the need for a separate `window_start` field, which resolves D5 at the same time.
+
+#### Gotcha: `incr` and `expire` skip site prefixing
+
+`RedisWrapper` overrides `set_value`, `get_value`, `hset`, `sadd`, and similar — all of which call `make_key`, which prefixes the key with the site: `f"{frappe.conf.db_name}|{key}".encode()`.
+
+`incr` and `expire` are **not** overridden. They are inherited raw from `redis.Redis` and therefore **do not apply `make_key`**. On a bench serving multiple sites — this bench serves `visaguy` and `visa-tracker-test.localhost` from one Redis — an unprefixed key means both sites share the same rate limit counter.
+
+So prefix explicitly:
+
+```
+key = frappe.cache().make_key(f"waflo:rl:{account}:{mobile_no}")
+```
+
+`make_key` is public and returns bytes, which `incr` accepts. Any implementation of this fix must include a test asserting that two sites do not share a counter — this is silent and easy to miss in single-site testing.
 
 ### D5 — Window TTL is extended on every increment
 
-`increment_rate_limit` calls `set_value(..., expires_in_sec=window_seconds)` on each increment, resetting the key's TTL. The key therefore outlives its window under sustained traffic. The explicit `window_start` comparison currently compensates, so this is latent rather than active — but it makes the two mechanisms redundant and the behaviour hard to reason about. Pick one: a fixed window keyed by timestamp bucket, or a TTL-driven window. Not both.
+`increment_rate_limit` calls `set_value(..., expires_in_sec=window_seconds)` on each increment, resetting the key's TTL. The key therefore outlives its window under sustained traffic. The explicit `window_start` comparison currently compensates, so this is latent rather than active — but it makes the two mechanisms redundant and the behaviour hard to reason about.
+
+There are two windowing mechanisms fighting each other: a TTL and a stored `window_start`. Pick one. The D4 fix picks the TTL — set once when `INCR` returns 1 — and drops `window_start` entirely, which resolves this defect as a side effect.
 
 ### D6 — `WF Settings.limit_after` is an orphaned field
 
@@ -127,7 +155,7 @@ except Exception as e:
 |---|---|---|---|
 | 1 | Reconcile the dirty `waflo` tree; branch `feat/waflo-correctness`; confirm line references | `waflo` | Blocking prerequisite |
 | 2 | Fix D1 and add a regression test proving `WF Active Chat Flow` is created | `waflo` | Highest severity; ship independently if needed |
-| 3 | Rewrite the limiter on atomic Redis `INCR`/`EXPIRE` — fixes D2, D4, D5 | `waflo` | |
+| 3 | Rewrite the limiter on `frappe.cache().incr()` / `.expire()` with an explicit `make_key` prefix — fixes D2, D4, D5 | `waflo` | Include a two-site isolation test |
 | 4 | Add rate limiting to the outbound send path — D3 | `waflo` | Coordinate with FEAT-002 account routing |
 | 5 | Add account-level ceiling — D7 | `waflo` | |
 | 6 | Resolve or remove `limit_after` — D6 | `waflo` | Needs a product decision; see open questions |
@@ -139,6 +167,7 @@ except Exception as e:
 - A new inbound conversation creates exactly one `WF Active Chat Flow`, and the initial step is sent exactly once.
 - The rate limit counter increments on every send path: new flow, continuing flow, default reply, and outbound template.
 - With `max_replies_per_window = N`, a concurrent burst of `N + M` messages results in exactly `N` sends.
+- Two sites on the same bench maintain independent counters for the same account and mobile number.
 - An account-level ceiling is enforced independently of the per-recipient one.
 - No configuration field under the Rate Limiting tabs is unread by code.
 - A send failure occurring before the HTTP request is issued is logged with its original exception.
