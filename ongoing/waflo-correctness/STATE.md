@@ -16,9 +16,9 @@ Verified 2026-08-06. Executors must not re-derive these.
 
 ## Test environment constraint (unresolved)
 
-`waflo` is installed **only on the production site `visaguy`**. The test site `visa-tracker-test.localhost` does not have it (its apps: frappe, erpnext, crm, insights, processflo, fileflo, the_visaguy, passport_extractor). The local benches at `~/Projects/tridz/bench/bench-15|16` do not have `waflo` either.
+`waflo` is installed only on the `visaguy` site (a **development** environment on `erpcode.tridz.in` — production is a separate server this project has no access to). The test site `visa-tracker-test.localhost` does not have it (its apps: frappe, erpnext, crm, insights, processflo, fileflo, the_visaguy, passport_extractor). The local benches at `~/Projects/tridz/bench/bench-15|16` do not have `waflo` either.
 
-So there is currently **no non-production site where `bench run-tests --app waflo` can run.** Phases 1–3 do not need one. Phase 4 does. Resolution is pending a user decision — see the decisions log.
+**Resolved 2026-08-06:** `visaguy` is a dev site, so the suite was run there. 15/15 pass. See `04-verify.md`.
 
 # Phase table
 
@@ -44,4 +44,5 @@ D6 was unblocked mid-run by an owner decision (remove the field) and folded into
 
 - 2026-08-06: Owner decisions unblocked D3 (queue with backoff, never drop), D7 (build mechanism, default disabled), D6 (remove `limit_after`), and set verification to static-only.
 - 2026-08-06: Executor's first D3 backoff used `time.sleep()` in the worker. Rejected and corrected — a sleeping RQ worker starves the `short` queue. `frappe.enqueue(timeout=)` is a job kill-switch, not a delay (`background_jobs.py:160`), and `bench worker` runs without `--with-scheduler`, so RQ `enqueue_in` would never fire. Corrected to reuse waflo's existing hourly `schedule_retry_message` pipeline.
-- 2026-08-06: Production config read: `enable_rate_limiting=1` (max 3 / 30s) but `enable_flow_engine=0`. So D1/D2/N1/N2 are **latent, not active** — they fire only when the flow engine is enabled. FEAT-003 did not establish this.
+- 2026-08-06: **Retracted.** An earlier entry read `enable_flow_engine=0` from `visaguy` and concluded D1/D2/N1/N2 were latent. `visaguy` is a DEV site; production is a separate inaccessible server, so its config is unknown. If production has the flow engine enabled, D1 and N1 are firing there today.
+- 2026-08-06: Test suite executed on `visaguy` @ `d057f1e`: 15/15 pass. Bench `apps/waflo` restored to `develop` @ `2167958`, clean. `allow_tests` left enabled on the site.

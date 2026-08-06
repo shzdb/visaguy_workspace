@@ -1,30 +1,67 @@
 # Phase 4 — Verification
 
-## Honest verification level
+## Verification level: runtime-verified (tests), with limits stated below
 
-**statically-verified.** No test in this branch has been executed.
+The full `waflo` test suite was executed on the `visaguy` site on the `erpcode.tridz.in` bench, on branch `feat/waflo-correctness` @ `d057f1e`.
 
-`waflo` is installed only on the production site `visaguy`. `visa-tracker-test.localhost` does not have it, and neither local bench has it. Per the owner's decision, this run ships static verification only. Nothing below claims a passing test suite.
+```
+bench --site visaguy run-tests --app waflo
+...............
+Ran 15 tests in 0.068s
 
-## Gates run by the orchestrator against the full branch
+OK
+```
 
-| Gate | Result |
-|---|---|
-| `python3 -m compileall waflo/` | pass, no errors |
-| All doctype JSON files parse | pass |
-| `grep -rn "limit_after" waflo/` | empty — D6 fully removed from JSON, Python, and field_order |
-| `grep -rn "time.sleep\|import time" send.py` | empty — worker-blocking backoff gone |
-| `grep -rn "header_video" waflo/` | empty — N4 fixed |
-| `grep -rn "WhatsApp API URL AND INDEX" waflo/` | empty — D10 log spam gone |
-| `grep -rn "make_key\|import redis\|redis.Redis" waflo/` | empty — no site-prefixing, no separate Redis client |
-| `grep -n "window_start" rate_limiting.py` | empty — D5 dual-mechanism resolved |
+All 15 tests pass. The count matches this branch's test files exactly — `test_outbound_rate_limit.py` (5), `test_process_whatsapp_message.py` (3), `test_rate_limiting.py` (3), `test_send_hardening.py` (4). The four pre-existing doctype test files are empty scaffolds and contribute zero tests, so nothing was silently skipped.
+
+`allow_tests` had to be enabled on the site first (`bench --site visaguy set-config allow_tests true`). **It was left enabled.** Revert with `set-config allow_tests false` if you want the original state.
+
+### Environment correction
+
+An earlier draft of this document called `visaguy` the production site. **It is not.** Production is a separate server to which this project has no access. `visaguy` on `erpcode.tridz.in` is a development environment.
+
+Two consequences:
+
+1. Running the suite there is safe and appropriate, which is why this phase is no longer static-only.
+2. **The runtime configuration read from `visaguy` says nothing about production.** See the retraction below.
+
+### Bench state
+
+`apps/waflo` is bench-wide, so testing required checking out the feature branch there. It has been **restored to `develop` @ `2167958`, clean** — identical to the pre-test state. The `feat/waflo-correctness` branch remains available locally on the bench and is pushed to `tridz-dev/waflo`.
+
+## What the tests actually cover
+
+The suite runs in 0.068s, which tells you these are **mocked unit tests**, not integration tests. `frappe.cache()`, `frappe.enqueue`, and `make_post_request` are all mocked. They verify logic and wiring; they do **not** verify behaviour against live Redis, a live queue, or the Meta API.
+
+Covered:
+
+- D1 — a new conversation creates exactly one `WF Active Chat Flow` and sends the initial step once
+- N1 — `send_whatsapp_template` receives `button_url_map` / `ref_doctype` / `ref_name` in the correct parameters
+- D2/D4/D5 — counter increments from absent to 1, TTL set exactly once, limit enforced at max, continuing-conversation sends counted
+- N3 — incomplete configuration writes no key
+- D3 — a rate-limited transactional send persists a retry record and makes no API call
+- D7 — the account ceiling blocks when configured and is inert when blank
+- D8 — a failure before the HTTP request still logs the original exception
+- D9 — an unknown template raises rather than sending a null name
+- D11 — `use_flow` combined with `button_url_map` is rejected
+- N2 — a continuing flow with null reference doctype/name does not raise
+
+## Retraction — the "latent, not active" claim
+
+A previous version of this document concluded that D1, D2, N1 and N2 were **latent rather than active**, reasoning that `WF Settings.enable_flow_engine = 0` means `process_whatsapp_message` is never reached.
+
+**That conclusion is withdrawn.** It was based on config read from `visaguy`, which is a development site. Production is a different server this project cannot access, so its `enable_flow_engine` value, its rate-limit settings, and its WhatsApp account configuration are all **unknown**.
+
+What can honestly be said:
+
+- On the `visaguy` dev site: `enable_flow_engine = 0`, `enable_rate_limiting = 1`, `max_replies_per_window = 3`, `window_seconds = 30`.
+- On production: unknown. If the flow engine is enabled there, D1 and N1 are **actively firing today** — a customer-visible message loop, and mangled arguments on every flow-driven send.
+
+Whoever has production access should check `WF Settings.enable_flow_engine` there before deciding how urgent this branch is.
 
 ## Backward compatibility with `the_visaguy`
 
-`the_visaguy/handlers/whatsapp_message.py` imports `send_whatsapp_template` from
-`waflo.waflo.messaging.send` and calls it with keyword arguments only.
-
-Final signature:
+`the_visaguy/handlers/whatsapp_message.py` imports `send_whatsapp_template` and calls it with keyword arguments only. Final signature:
 
 ```
 send_whatsapp_template(mobile, template_name, body_params=None, header_params=None,
@@ -32,54 +69,31 @@ send_whatsapp_template(mobile, template_name, body_params=None, header_params=No
                        use_flow=False, queue=False, rate_limit=True)
 ```
 
-The original parameter order is unchanged and the one new parameter is appended with a default. **Existing callers do not break.**
+Original parameter order unchanged; the one new parameter is appended with a default. Existing callers do not break.
 
-The behavioural change is intentional: `rate_limit=True` by default means `the_visaguy`'s transactional messages are now subject to the limiter, which is the point of D3.
+The behavioural change is intentional: `rate_limit=True` by default brings `the_visaguy`'s transactional messages under the limiter, which is the point of D3.
 
-## Runtime configuration — blast radius
+## Static gates (also all passing)
 
-Read from the production site, read-only:
-
-| Setting | Value |
+| Gate | Result |
 |---|---|
-| `WF Account Settings` (`Visaguy UAE`) `enable_rate_limiting` | **1 (on)** |
-| `max_replies_per_window` | **3** |
-| `window_seconds` | **30** |
-| `WF Settings.enable_flow_engine` | **0 (off)** |
+| `python3 -m compileall waflo/` | pass |
+| All doctype JSON parses | pass |
+| `grep -rn "limit_after" waflo/` | empty — D6 fully removed |
+| `grep -rn "time.sleep\|import time" send.py` | empty — no worker-blocking backoff |
+| `grep -rn "header_video" waflo/` | empty — N4 fixed |
+| `grep -rn "WhatsApp API URL AND INDEX" waflo/` | empty — D10 gone |
+| `grep -rn "make_key\|import redis\|redis.Redis" waflo/` | empty |
+| `grep -n "window_start" rate_limiting.py` | empty — D5 resolved |
 
-### This corrects a claim in FEAT-003
+## Still not verified
 
-FEAT-003 states the limiter "is inert whenever the flow engine is enabled". That is accurate as written, but the feature document did not establish that **the flow engine is currently off in production**.
+- **No integration test.** Redis, the RQ queue, and the Meta API are mocked throughout. The atomic `incr`/`expire` behaviour is asserted against a mock, not against real Redis.
+- **The retry path was never executed end to end.** No rate-limited message has actually been persisted and later picked up by `schedule_retry_message` on a real site.
+- **Per-module runs fail on this bench**, e.g. `bench --site visaguy run-tests --module waflo.waflo.tests.test_rate_limiting`, with `MandatoryError: [Company, _Test Indian Registered Company]: custom_display_name`. This is a **pre-existing site-data problem**, not a defect in this branch: Frappe's `make_test_records` bootstrap cannot create its standard test Company because a customization added a mandatory `custom_display_name` field to Company. The app-level run does not hit this path. Worth fixing separately — it blocks module-scoped testing for every app on this bench.
 
-Consequences of that, which change the urgency assessment:
+## Recommended next runtime checks
 
-- `process_whatsapp_message` is only reached when `enable_flow_engine` is on. **D1's `NameError` is therefore not currently firing in production.** It is dormant.
-- With the flow engine off, inbound messages go to `send_default_message`, which calls `increment_rate_limit` correctly. **The limiter does work today.**
-- D1, D2, N1, and N2 are all latent defects on the flow-engine path. They detonate the moment someone enables `enable_flow_engine`.
-
-**Do not enable `WF Settings.enable_flow_engine` on production until this branch is deployed.** Before this branch, enabling it would produce a customer-visible message loop (D1) and mangled button/reference arguments on every send (N1).
-
-### New behaviour to watch on deployment
-
-With `enable_rate_limiting = 1`, `max = 3`, `window = 30s`, and D3 now applying the limiter to outbound transactional messages:
-
-- A 4th message to the same recipient inside 30 seconds is no longer sent immediately. It is persisted with `custom_should_retry = 1` and picked up by the existing **hourly** `schedule_retry_message`.
-- Worst case, that message arrives up to an hour late. It is never dropped, which is the owner's stated requirement.
-- `_send_payment_received` in `the_visaguy` sends **two** messages back to back (invoice PDF, then payment feedback). Combined with a form link, a single customer can legitimately approach 3 messages in one burst.
-
-Recommendation before deploying: either raise `max_replies_per_window` for the account, or add a more frequent retry cron. Hourly retry granularity was appropriate when retries were rare error-recovery; it is coarse for routine rate-limit deferral. Flagged, not fixed — changing the cron was explicitly out of scope.
-
-## What was NOT verified
-
-- No test executed. All test files are new and unrun.
-- No live WhatsApp API interaction.
-- The retry path's `WhatsApp Message` insert was reasoned about, not executed. Supporting evidence: production rows created by the pre-existing `log_whatsapp_message` — which likewise never sets the mandatory `content_type` — exist with `content_type = "text"`, so Frappe supplies the Select default on insert. The new sibling uses an identical construction.
-- `before_insert` on `WhatsApp Message` was confirmed by source reading to skip its send branch when `message_type == "Template"`, which the retry record sets. So persisting the record does not trigger an immediate send. Source-verified, not runtime-verified.
-
-## Recommended first runtime checks after deployment to a test site
-
-```bash
-bench --site <site> run-tests --app waflo
-```
-
-Then, with the flow engine still off, confirm no regression in default replies. Only then enable `enable_flow_engine` on the test site and exercise a new conversation end to end, asserting exactly one `WF Active Chat Flow` is created.
+1. Check `WF Settings.enable_flow_engine` on production to establish real urgency.
+2. On a site with waflo, enable the flow engine and exercise a new inbound conversation end to end, asserting exactly one `WF Active Chat Flow` is created and the initial step is sent once.
+3. Force a rate-limit condition and confirm the deferred message is persisted with `custom_should_retry = 1` and later sent by the hourly `schedule_retry_message`.

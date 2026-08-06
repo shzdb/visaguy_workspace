@@ -57,4 +57,4 @@ Phase 3c (D3, D7) is **removed** from this run pending owner decisions.
 
 ## Verification reality
 
-There is currently **no non-production site with `waflo` installed**. `bench run-tests --app waflo` cannot run anywhere except the production site `visaguy`. Phases 3a/3b/3d are therefore **statically verified** at best until that is resolved. Claims will be labelled accordingly, and no phase will assert "tests pass" without having run them.
+`waflo` is installed on the `visaguy` site, which is a **development** environment (production is a separate, inaccessible server). The suite was run there after implementation: 15/15 pass. See `04-verify.md` for what the tests do and do not cover.
