@@ -100,11 +100,15 @@ Three repositories carry unmerged `feat/visa-tracker` work, all pushed to upstre
 
 | Repository | Branch head | Checked out on bench? |
 |---|---|---|
-| `the_visaguy` | `8254f93` | No — bench is on `main` |
+| `the_visaguy` | `8254f93` | No — deliberately on `main` for unrelated work |
 | `fileflo` | `c7244a4` | Yes |
 | `passport_extractor` | `0216829` | Yes |
 
-Because `the_visaguy` is checked out on `main`, the visa tracking code is **not active** on site `visaguy`.
+The visa tracking code is **not active** on site `visaguy`: `the_visaguy` is intentionally checked out on `main` while other work proceeds there. This is a working state, not a misconfiguration.
+
+It is safe to leave it this way. With no subscriber registered, `fileflo`'s extension dispatcher finds an empty handler list and returns, and `passport_extractor` simply sits idle. Nothing half-runs.
+
+The one thing to keep in mind: the bench is a **mixed branch state**, so it does not reproduce any single configuration. Before the TASK-011 merge, re-check every branch rather than assuming this table still holds.
 
 ## Source evidence
 
