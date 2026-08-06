@@ -53,7 +53,18 @@ Each item uses the workspace evidence labels defined in `AGENTS.md`: **present**
 
 ## WhatsApp messaging risks
 
-Found 2026-08-06 while assessing multi-company readiness. Planned in [FEAT-002](../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../features/planned/waflo-correctness/README.md).
+Found 2026-08-06 while assessing multi-company readiness. Planned in [FEAT-002](../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../features/ongoing/waflo-correctness/README.md).
+
+**Status as of 2026-08-06.** Risks **30, 31, 32, 36, 37 and 38 are fixed on branch `feat/waflo-correctness` @ `56899f2`** (20/20 tests pass on the `visaguy` dev site) but are **not merged and not deployed**. They remain open here until [TASK-017](../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md) records both deployment gates — this register describes the running system, not a branch.
+
+Risks 33, 34, 35, 39 and 40 belong to FEAT-002 and are **not** addressed by that branch.
+
+Two additions from implementing FEAT-003:
+
+| # | Risk / open question | Category | Label |
+|---|---|---|---|
+| 41 | A rate-limited transactional message is deferred to the **hourly** `schedule_retry_message`, so it can arrive up to an hour late. Never dropped, per the owner's decision, but the dev site is configured at 3 sends per 30s and `the_visaguy._send_payment_received` alone sends two messages back to back. `max_replies_per_window` needs a deliberate value before deployment. | Functionality | source-wired |
+| 42 | No deferred-then-retried WhatsApp message has ever been delivered end to end on a real site. The most serious defect found while implementing FEAT-003 — silent message loss — lived in exactly that seam and was caught by code reading, not by a test. All FEAT-003 tests mock Redis, the queue, and the Meta API. | Quality | source-wired |
 
 | # | Risk / open question | Category | Label |
 |---|---|---|---|

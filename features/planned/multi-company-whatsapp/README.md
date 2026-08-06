@@ -93,7 +93,7 @@ The four-companies-to-three-zones asymmetry is **not** a data gap. `TVG  India` 
 | M3 | Make the template language code configurable per account instead of the hardcoded `"en"`. | `send.py:80` |
 | M4 | Pass the resolved account through to `log_whatsapp_message` so logs attribute messages to the right number. Already parameterised; just needs the correct value. | `send.py:103` |
 
-D8–D11 in [FEAT-003](../waflo-correctness/README.md) touch the same file. Sequence the two features to avoid conflicting edits — FEAT-003 first.
+D8–D11 in [FEAT-003](../../ongoing/waflo-correctness/README.md) touch the same file. Sequence the two features to avoid conflicting edits — FEAT-003 first.
 
 ### `the_visaguy` — configuration model
 
@@ -170,7 +170,7 @@ D8–D11 in [FEAT-003](../waflo-correctness/README.md) touch the same file. Sequ
 
 ## Dependencies
 
-- [FEAT-003](../waflo-correctness/README.md) — the rate limiter must actually count before traffic is fanned out to more numbers.
+- [FEAT-003](../../ongoing/waflo-correctness/README.md) — the rate limiter must actually count before traffic is fanned out to more numbers.
 - [ADR-006](../../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) — Zone and Company are independent axes.
 - [ADR-007](../../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md) — WhatsApp configuration is keyed on Zone.
 - `frappe_whatsapp` multi-account support — already present, unused.

@@ -2,7 +2,7 @@
 
 Verified 2026-08-06. Executors must not re-derive these.
 
-- Task: implement [FEAT-003](../../features/planned/waflo-correctness/README.md) — 11 defects D1–D11 in `waflo`.
+- Task: implement [FEAT-003](../../features/ongoing/waflo-correctness/README.md) — 11 defects D1–D11 in `waflo`.
 - The feature document is the specification. Read it before any phase.
 - Repository: `tridz-dev/waflo`, remote alias `git@tridz:tridz-dev/waflo.git`.
 - Worktree: `ongoing/waflo-correctness/worktree` (fresh clone, clean, `develop` @ `2167958`). **All edits happen here.**
@@ -33,6 +33,7 @@ Verified 2026-08-06. Executors must not re-derive these.
 | 4 | Verify — suite run on `visaguy` | `04-verify.md` | done — 20/20 pass @ `56899f2` |
 | 3e | Re-verify with waflo-role context; fix retry message loss | `03e-retry-loss-corrective.md` | done — `56899f2` |
 | 5 | Final report (orchestrator) | — | done |
+| 6 | Workspace reconciliation (maintainer) | `tasks/*/waflo-correctness/` | done — TASK-012..017 |
 
 D6 was unblocked mid-run by an owner decision (remove the field) and folded into phase 3d.
 
@@ -48,3 +49,4 @@ D6 was unblocked mid-run by an owner decision (remove the field) and folded into
 - 2026-08-06: **Retracted.** An earlier entry read `enable_flow_engine=0` from `visaguy` and concluded D1/D2/N1/N2 were latent. `visaguy` is a DEV site; production is a separate inaccessible server, so its config is unknown. If production has the flow engine enabled, D1 and N1 are firing there today.
 - 2026-08-06: Test suite executed on `visaguy` @ `d057f1e`: 15/15 pass. Bench `apps/waflo` restored to `develop` @ `2167958`, clean. `allow_tests` left enabled on the site.
 - 2026-08-06: Re-verification after ADR-009 landed found a message-loss defect introduced by the D3 interaction with pre-existing `retry_message`: a deferred retry returned None, the `{"message_id": None}` lookup matched an arbitrary NULL-id row, and setting `custom_retried_message` excluded the original from the retry pool forever. Fixed in `56899f2`. Suite re-run on `visaguy`: 20/20 pass.
+- 2026-08-06: Workspace reconciled. FEAT-003 moved `planned` -> `ongoing`; TASK-012 through TASK-016 recorded completed with commit evidence; TASK-017 created blocked (manual merge + deploy, owner only). This orchestration directory stays in `ongoing/` until TASK-017 records both deployment gates, then archives.

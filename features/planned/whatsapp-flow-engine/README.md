@@ -41,7 +41,7 @@ What it can express today: a default flow, an initial step, per-step message tem
 
 Per [ADR-009](../../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md), `waflo`'s actual production role today is a **send helper** — template sends with dynamic URL buttons and FLOW buttons that `frappe_whatsapp` does not support — plus rate limiting and retry. The flow engine is dormant.
 
-This matters for reading [FEAT-003](../waflo-correctness/README.md): defects **D1, D2, N1 and N2 all sit on the flow-engine path** and therefore cannot fire while `enable_flow_engine = 0`. They are prerequisites for this feature, not live production bugs.
+This matters for reading [FEAT-003](../../ongoing/waflo-correctness/README.md): defects **D1, D2, N1 and N2 all sit on the flow-engine path** and therefore cannot fire while `enable_flow_engine = 0`. They are prerequisites for this feature, not live production bugs.
 
 ## Prerequisite: FEAT-003 must land first
 
@@ -92,7 +92,7 @@ None of these have been established, because the engine has never run:
 
 ## Dependencies
 
-- [FEAT-003](../waflo-correctness/README.md) deployed.
+- [FEAT-003](../../ongoing/waflo-correctness/README.md) deployed.
 - A test WhatsApp number and approved templates.
 - Business input on the actual conversation design.
 

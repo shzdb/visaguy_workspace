@@ -2,7 +2,7 @@
 
 Verified against local clone `ongoing/waflo-correctness/worktree`, branch `develop` @ `2167958816b55743c13a81fb94ce5673dd9834a3` (short `2167958`). Read-only; worktree left clean.
 
-Spec: `features/planned/waflo-correctness/README.md` (FEAT-003).
+Spec: `features/ongoing/waflo-correctness/README.md` (FEAT-003).
 
 ---
 

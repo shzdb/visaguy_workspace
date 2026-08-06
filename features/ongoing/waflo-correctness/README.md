@@ -1,29 +1,67 @@
 ---
 id: FEAT-003
 title: Waflo flow engine and rate limiting correctness
-status: planned
+status: ongoing
 priority: high
 repositories:
   - waflo
 owners: []
-depends_on: []
+depends_on:
+  - ADR-009
 created: 2026-08-06
 updated: 2026-08-06
 ---
 
 # Waflo flow engine and rate limiting correctness
 
+## Current status
+
+**Implemented and verified. Not merged, not deployed.**
+
+All 11 spec defects fixed, plus 4 found during implementation recon. Branch `feat/waflo-correctness` @ `56899f2`, pushed to `tridz-dev/waflo`.
+
+| Task | State |
+|---|---|
+| [TASK-012](../../../tasks/completed/waflo-correctness/TASK-012-flow-nameerror-and-argument-binding.md) — D1, N1 | completed — `3e2428a` |
+| [TASK-013](../../../tasks/completed/waflo-correctness/TASK-013-atomic-rate-limiter.md) — D2, D4, D5, N3 | completed — `31da123` |
+| [TASK-014](../../../tasks/completed/waflo-correctness/TASK-014-outbound-limiting-and-retry-integrity.md) — D3, D7 | completed — `1ab527f`, `de72ec5`, `56899f2` |
+| [TASK-015](../../../tasks/completed/waflo-correctness/TASK-015-send-hardening-and-dead-config-removal.md) — D8–D11, N2, N4, D6 | completed — `d057f1e` |
+| [TASK-016](../../../tasks/completed/waflo-correctness/TASK-016-verification.md) — verification | completed — 20/20 pass |
+| [TASK-017](../../../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md) — merge and deploy | blocked — **manual, owner only** |
+
+Test suite: `bench --site visaguy run-tests --app waflo` → **20/20 pass** on the `visaguy` dev site.
+
+### Three blocking prerequisites before deployment
+
+Recorded honestly rather than glossed over. All are in TASK-017.
+
+1. **No end-to-end retry test has ever run.** The most serious defect found — silent message loss on a deferred retry — lived exactly in that seam and was caught by code reading, not by a test. All tests mock Redis, the queue, and the Meta API.
+2. **`bench migrate` has not been run**, so the D6 `limit_after` removal patch is unexercised.
+3. **`max_replies_per_window` needs a decision.** Dev is 3 per 30s; with outbound now limited, `_send_payment_received` alone sends two messages back to back, and anything deferred waits up to an hour.
+
+### Defects found beyond the original spec
+
+Recon and re-verification found four the spec missed. N1 and the retry message-loss defect were the most serious:
+
+- **N1** — every flow-driven `send_whatsapp_template` call passed arguments positionally against a signature whose 4th parameter is `header_params`, so most flow sends raised rather than sending.
+- **Retry message loss** — `send_whatsapp_template` returning `None` on deferral caused `retry_message` to match an arbitrary NULL-`message_id` row and permanently exclude the original from the retry pool. Introduced by this feature's own D3 fix; found only after [ADR-009](../../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md) reframed the send path as the live path.
+- **N2**, **N3**, **N4** — null-reference assumption, check/increment disagreement on incomplete config, and a nonexistent `header_video` field.
+
+### Completion gate
+
+Moves to `features/completed/` only when TASK-017 Gate 1 (**staging**) and Gate 2 (**live**) are both confirmed by the project owner, as two separate events. See [ADR-008](../../../decisions/ADR-008-deployment-authority-and-completion-gates.md).
+
 ## Summary
 
 Fix a set of defects in `waflo` found while assessing whether the WhatsApp stack can safely serve more than one zone.
 
-This feature is a **prerequisite for [FEAT-002](../multi-company-whatsapp/README.md)** and for [FEAT-004](../whatsapp-flow-engine/README.md).
+This feature is a **prerequisite for [FEAT-002](../../planned/multi-company-whatsapp/README.md)** and for [FEAT-004](../../planned/whatsapp-flow-engine/README.md).
 
 ## Read this before ranking the defects
 
 `waflo`'s production role today is a **send helper** — template sends with dynamic URL buttons and FLOW buttons that `frappe_whatsapp` does not support — plus rate limiting and retry. See [ADR-009](../../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md).
 
-The conversational flow engine that gives the app its name **has never been tested and is switched off** (`WF Settings.enable_flow_engine = 0`). It is planned work, tracked as [FEAT-004](../whatsapp-flow-engine/README.md).
+The conversational flow engine that gives the app its name **has never been tested and is switched off** (`WF Settings.enable_flow_engine = 0`). It is planned work, tracked as [FEAT-004](../../planned/whatsapp-flow-engine/README.md).
 
 That splits these defects into two very different groups:
 
