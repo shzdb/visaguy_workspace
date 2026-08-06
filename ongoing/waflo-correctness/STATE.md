@@ -30,7 +30,8 @@ Verified 2026-08-06. Executors must not re-derive these.
 | 3b | Limiter rewrite: D2, D4, D5, N3 | `03b-limiter.md` | done — `31da123` |
 | 3c | Outbound limiting D3 + ceiling D7 | `03c-outbound.md` | done — `1ab527f`, corrected by `de72ec5` |
 | 3d | `send.py` hardening D8–D11, N2, N4, D6 removal | `03d-send-hardening.md` | done — `d057f1e` |
-| 4 | Verify (static only) | `04-verify.md` | done |
+| 4 | Verify — suite run on `visaguy` | `04-verify.md` | done — 20/20 pass @ `56899f2` |
+| 3e | Re-verify with waflo-role context; fix retry message loss | `03e-retry-loss-corrective.md` | done — `56899f2` |
 | 5 | Final report (orchestrator) | — | done |
 
 D6 was unblocked mid-run by an owner decision (remove the field) and folded into phase 3d.
@@ -46,3 +47,4 @@ D6 was unblocked mid-run by an owner decision (remove the field) and folded into
 - 2026-08-06: Executor's first D3 backoff used `time.sleep()` in the worker. Rejected and corrected — a sleeping RQ worker starves the `short` queue. `frappe.enqueue(timeout=)` is a job kill-switch, not a delay (`background_jobs.py:160`), and `bench worker` runs without `--with-scheduler`, so RQ `enqueue_in` would never fire. Corrected to reuse waflo's existing hourly `schedule_retry_message` pipeline.
 - 2026-08-06: **Retracted.** An earlier entry read `enable_flow_engine=0` from `visaguy` and concluded D1/D2/N1/N2 were latent. `visaguy` is a DEV site; production is a separate inaccessible server, so its config is unknown. If production has the flow engine enabled, D1 and N1 are firing there today.
 - 2026-08-06: Test suite executed on `visaguy` @ `d057f1e`: 15/15 pass. Bench `apps/waflo` restored to `develop` @ `2167958`, clean. `allow_tests` left enabled on the site.
+- 2026-08-06: Re-verification after ADR-009 landed found a message-loss defect introduced by the D3 interaction with pre-existing `retry_message`: a deferred retry returned None, the `{"message_id": None}` lookup matched an arbitrary NULL-id row, and setting `custom_retried_message` excluded the original from the retry pool forever. Fixed in `56899f2`. Suite re-run on `visaguy`: 20/20 pass.

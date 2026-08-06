@@ -1,0 +1,103 @@
+CORRECTIVE MICRO-TASK. Commits 3e2428a, 31da123, 1ab527f, de72ec5, d057f1e are otherwise
+accepted. This fixes ONE serious defect discovered during re-verification.
+
+GROUND FACTS (verified by the orchestrator by reading the code — do NOT re-derive, do NOT argue):
+
+- Frappe app `waflo`. Work ONLY in the current directory, branch `feat/waflo-correctness`.
+- CONTEXT YOU DID NOT HAVE BEFORE: `waflo`'s live production role is the OUTBOUND SEND PATH.
+  Its conversational flow engine has never been tested and is switched off everywhere.
+  So `send_whatsapp_template` runs on every WhatsApp message VisaGuy sends. Treat it as a
+  hot path. Correctness here matters more than anywhere else in the app.
+- HARD REQUIREMENT FROM THE OWNER: a transactional message must NEVER be silently dropped.
+- There is NO delayed-enqueue on this bench. Do not add sleeps, RQ scheduler use, or crons.
+- DO NOT push. DO NOT merge.
+
+THE DEFECT (message loss — this is the whole point of this task):
+
+`send_whatsapp_template` now returns `None` when it defers a rate-limited send, after creating
+a pending `WhatsApp Message` record via `log_pending_retry_whatsapp_message`. That record
+deliberately has NO `message_id`.
+
+`waflo/waflo/messaging/retry_message.py` does:
+
+    message_id = send_whatsapp_template(..., rate_limit=True)
+    message = frappe.db.get_value("WhatsApp Message", {"message_id": message_id}, "name")
+    message_doc = frappe.get_doc("WhatsApp Message", message)
+    initail_message = frappe.get_doc("WhatsApp Message", doc["name"])
+    initail_message.custom_retried_message = message
+    initail_message.save()
+
+When the retry is ITSELF rate limited, `message_id` is `None`. The filter
+`{"message_id": None}` then matches records whose message_id is NULL — and pending retry
+records are exactly that. So it selects an ARBITRARY UNRELATED RECORD, and then sets
+`custom_retried_message` on the original.
+
+`schedule_retry_message` filters on `{"custom_should_retry": 1, "custom_retried_message": None}`.
+Once `custom_retried_message` is set, the original is excluded FOREVER. The message is
+silently lost. This directly violates the never-drop requirement.
+
+TASKS:
+
+Y1. Fix the message-loss path in `retry_message.py`.
+
+    When `send_whatsapp_template` returns None (deferred, not sent):
+      - do NOT run the `{"message_id": None}` lookup at all
+      - do NOT set `custom_retried_message` on the original
+      - leave the original eligible for a future retry, OR mark it in a way that is
+        explicitly distinguishable from "successfully retried" — your choice, but it must
+        not remove the message from the retry pool
+      - return cleanly so `schedule_retry_message`'s loop continues
+
+    Think carefully about whether the ORIGINAL should stay retriable while a NEW pending
+    record also exists for the same logical message. Duplicate delivery is a real risk here.
+    State your reasoning in the log and pick the option that cannot lose the message and
+    cannot send it twice. If those conflict, prefer not losing it, and say so.
+
+Y2. Guard the `{"message_id": ...}` lookup generally. Even on a successful send, if the
+    lookup returns None, `frappe.get_doc("WhatsApp Message", None)` raises. Make that path
+    safe and logged rather than an exception swallowed by the caller's broad except.
+
+Y3. `_send_whatsapp_template` calls `get_whatsapp_account(account_type="outgoing")` and then
+    reads `whatsapp_account.name` inside the rate_limit branch. `get_whatsapp_account` returns
+    None when no default outgoing account is configured. Guard it with a clear error instead
+    of an AttributeError.
+
+Y4. Verify and state explicitly in your log that the deferred-then-retried round trip
+    preserves ALL of these, because `waflo` exists specifically to provide the last two and
+    silently losing them would defeat its purpose:
+      - body params           (written as? read back as?)
+      - header params         (written as? read back as?)
+      - button_url_map        -> dynamic URL buttons
+      - use_flow              -> WhatsApp FLOW button
+      - reference doctype/name
+    For each: name the field it is written to by `log_pending_retry_whatsapp_message` and the
+    field `retry_message` reads it back from, and confirm they match. If any does NOT round
+    trip, fix it.
+
+Y5. Tests in `waflo/waflo/tests/`:
+      - a retry that is itself rate limited does NOT set `custom_retried_message` on the
+        original, and the original remains selectable by `schedule_retry_message`'s filter
+      - a successful retry still links original -> new message as before
+      - a send with no configured outgoing account raises a clear error
+      - the full round trip preserves use_flow and button_url_map
+    Mock `frappe.cache()`, `make_post_request`, and `get_whatsapp_account`. Use FrappeTestCase.
+
+POLICIES:
+- Do NOT change `schedule_retry_message` or `hooks.py` scheduler_events.
+- Do NOT change the rate limiting design from previous phases.
+- Preserve `send_whatsapp_template`'s signature.
+- Keep the diff tight.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- `grep -n "message_id.*message_id" waflo/waflo/messaging/retry_message.py` — confirm no
+  unguarded `{"message_id": <possibly None>}` lookup remains.
+- No conflict markers.
+
+COMMIT: one commit, message starting `fix(retry):`. Local only.
+
+OUTPUT: write to ../03e-retry-loss-corrective.md: the Y1 reasoning (loss vs duplicate), the
+Y4 round-trip table, and what the tests assert.
+
+REPLY ONLY with this single line:
+SHA=<sha> LOSS_FIXED=<yes|no> ROUNDTRIP_OK=<yes|no|fixed> TESTS_ADDED=<count> COMPILE=<pass|fail> UNCERTAIN=<none|short phrase>

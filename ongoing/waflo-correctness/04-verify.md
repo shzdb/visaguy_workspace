@@ -2,17 +2,55 @@
 
 ## Verification level: runtime-verified (tests), with limits stated below
 
-The full `waflo` test suite was executed on the `visaguy` site on the `erpcode.tridz.in` bench, on branch `feat/waflo-correctness` @ `d057f1e`.
+The full `waflo` test suite was executed on the `visaguy` site on the `erpcode.tridz.in` bench, on branch `feat/waflo-correctness` @ `56899f2`.
 
 ```
 bench --site visaguy run-tests --app waflo
-...............
-Ran 15 tests in 0.068s
+....................
+Ran 20 tests in 0.389s
 
 OK
 ```
 
-All 15 tests pass. The count matches this branch's test files exactly — `test_outbound_rate_limit.py` (5), `test_process_whatsapp_message.py` (3), `test_rate_limiting.py` (3), `test_send_hardening.py` (4). The four pre-existing doctype test files are empty scaffolds and contribute zero tests, so nothing was silently skipped.
+All 20 tests pass. The count matches this branch's test files exactly — `test_outbound_rate_limit.py` (5), `test_process_whatsapp_message.py` (3), `test_rate_limiting.py` (3), `test_retry_message.py` (5), `test_send_hardening.py` (4). The four pre-existing doctype test files are empty scaffolds and contribute zero tests, so nothing was silently skipped.
+
+## Re-verification pass (2026-08-06, after the waflo-role context landed)
+
+Once [ADR-009](../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md) established that `waflo`'s **live** role is the outbound send path, the whole branch was re-read with the send path treated as a hot path. That surfaced a serious defect the first pass had missed.
+
+### Message loss on a deferred retry — found and fixed (`56899f2`)
+
+`send_whatsapp_template` returns `None` when it defers a rate-limited send, having persisted a pending `WhatsApp Message` with **no `message_id`**. `retry_message` then ran:
+
+```python
+message = frappe.db.get_value("WhatsApp Message", {"message_id": message_id}, "name")
+...
+initail_message.custom_retried_message = message
+```
+
+With `message_id = None`, that filter matches rows whose `message_id` is NULL — and pending retry records are precisely that, **by design of the D3 fix**. So it selected an arbitrary unrelated record and set `custom_retried_message` on the original.
+
+`schedule_retry_message` filters on `{"custom_should_retry": 1, "custom_retried_message": None}`. Once set, the original is excluded permanently: **the transactional message is silently lost** — a direct violation of the owner's never-drop requirement, introduced by the interaction between the new D3 deferral and pre-existing retry code.
+
+Fix: `log_pending_retry_whatsapp_message` records the row it created in `frappe.flags.waflo_deferred_pending_message`; `retry_message` clears the flag before sending, and on a deferred result leaves the **original** eligible while neutralising the sibling it just created. Exactly one row stays in the retry pool — no loss, no double send. If neutralisation fails, the original still stays retriable, preferring duplication over loss.
+
+### Round-trip fidelity of deferred sends — verified
+
+`waflo` exists to provide capabilities `frappe_whatsapp` lacks, so a deferred message losing them would defeat its purpose. Every field round-trips:
+
+| Value | Written by `log_pending_retry_whatsapp_message` | Read by `retry_message` |
+|---|---|---|
+| body params | `body_param` (and `template_parameters`) | `body_param` |
+| header params | `template_header_parameters` | `template_header_parameters` |
+| **dynamic URL buttons** | `buttons` | `buttons` → `button_url_map` |
+| **FLOW button** | `custom_is_flow` | `custom_is_flow` → `use_flow` |
+| reference | `reference_doctype` / `reference_name` | same |
+
+### Other re-verification findings
+
+- **Missing outgoing account** (`Y3`): `_send_whatsapp_template` read `whatsapp_account.name` inside the rate-limit branch, but `get_whatsapp_account` returns `None` when no default outgoing account exists → `AttributeError`. Now guarded with a clear error.
+- **D11 reject is safe for current callers.** The fix rejects `use_flow` combined with `button_url_map` because both hard-code button index `0`. Checked every `the_visaguy` caller: `_send_lead_form_link` and `_send_process_form_link` use `button_url_map` only; the two feedback sends use `use_flow` only. **No current caller combines them.** If a future template needs both, this throws loudly rather than sending a wrong payload — which is the intended behaviour, but it is a constraint worth knowing before designing such a template.
+- **`retry_message` keeps `rate_limit=True`.** Retries are outbound re-attempts and remain subject to the ceiling rather than bypassing it.
 
 `allow_tests` had to be enabled on the site first (`bench --site visaguy set-config allow_tests true`). **It was left enabled.** Revert with `set-config allow_tests false` if you want the original state.
 
