@@ -1,7 +1,7 @@
 ---
 id: FEAT-001
 title: Visa application tracking and passport extraction
-status: planned
+status: ongoing
 priority: high
 repositories:
   - the_visaguy
@@ -14,10 +14,27 @@ depends_on:
   - ADR-004
   - ADR-005
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-08-06
 ---
 
 # Visa application tracking and passport extraction
+
+## Current status
+
+Backend implementation is complete on `feat/visa-tracker` branches in all three backend repositories and pushed to upstream. The public SPA has not been started. Nothing is merged or deployed.
+
+| Area | State |
+|---|---|
+| TASK-001 – TASK-007 (backend) | completed — see `tasks/completed/visa-tracking/` |
+| TASK-008 (SPA scaffold) | ready — the only pickable task |
+| TASK-009 (SPA flow) | blocked by TASK-008 |
+| TASK-010 (verification) | blocked by TASK-009, plus two carried-forward review items |
+| TASK-011 (staging + live deploy) | blocked by TASK-010 — **manual, project owner only** |
+
+Two review items are carried forward into TASK-010 and must be closed before completion:
+
+1. Commit `8254f93` "auto verify extraction" must be checked against the exclusion on automatic use of unverified extraction data.
+2. PaddleOCR extraction is **source-wired**, not **runtime-verified** — no live OCR run has been recorded.
 
 ## Summary
 
@@ -275,25 +292,28 @@ It must not include DOB, full passport number, passport files, extracted MRZ, in
 
 Implementation must follow this order. A junior developer must not skip ahead when a dependency is incomplete.
 
-1. [TASK-001](../../../tasks/ready/visa-tracking/TASK-001-preflight-and-branch-setup.md) — preflight, local repository setup, and exact integration evidence.
-2. [TASK-002](../../../tasks/ready/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — new app and extraction-history model.
-3. [TASK-003](../../../tasks/ready/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — PaddleOCR/MRZ pipeline.
-4. [TASK-004](../../../tasks/ready/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — FileFlo event and queued matching.
-5. [TASK-005](../../../tasks/ready/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — settings, tracking DocTypes, custom fields, fixtures.
-6. [TASK-006](../../../tasks/ready/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md) — Lead, Customer, and Process File lifecycle.
-7. [TASK-007](../../../tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md) — secure public APIs.
-8. [TASK-008](../../../tasks/ready/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — local Vite repo and shared visual design.
-9. [TASK-009](../../../tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md) — form, verification, status, timeline, errors.
-10. [TASK-010](../../../tasks/ready/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
+| # | Task | State |
+|---|---|---|
+| 1 | [TASK-001](../../../tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md) — preflight, repository setup, integration evidence | completed |
+| 2 | [TASK-002](../../../tasks/completed/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — new app and extraction-history model | completed |
+| 3 | [TASK-003](../../../tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — PaddleOCR/MRZ pipeline | completed |
+| 4 | [TASK-004](../../../tasks/completed/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — FileFlo event and queued matching | completed |
+| 5 | [TASK-005](../../../tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — settings, tracking DocTypes, custom fields, fixtures | completed |
+| 6 | [TASK-006](../../../tasks/completed/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md) — Lead, Customer, and Process File lifecycle | completed |
+| 7 | [TASK-007](../../../tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md) — secure public APIs | completed |
+| 8 | [TASK-008](../../../tasks/ready/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — local Vite repo and shared visual design | **ready** |
+| 9 | [TASK-009](../../../tasks/blocked/visa-tracking/TASK-009-frontend-tracking-flow.md) — form, verification, status, timeline, errors | blocked |
+| 10 | [TASK-010](../../../tasks/blocked/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate | blocked |
+| 11 | [TASK-011](../../../tasks/blocked/visa-tracking/TASK-011-staging-and-live-deployment.md) — merge to develop/main, staging then live deploy | blocked — **manual, owner only** |
 
 ## Supporting specifications
 
 - [Architecture and data model](01-architecture-and-data-model.md)
-- [Backend workflows and API contracts](02-backend-workflows-and-api-contracts.md)
-- [Frontend design and layout](03-frontend-design-and-layout.md)
-- [Security, privacy, and abuse controls](04-security-privacy-and-abuse-controls.md)
-- [Test and verification matrix](05-test-and-verification-matrix.md)
-- [Junior developer runbook](06-developer-runbook.md)
+- Backend workflows and API contracts — not written; the shipped implementation is documented in [`docs/architecture/workflows.md`](../../../docs/architecture/workflows.md) §W6.
+- Frontend design and layout — not written; to be produced as part of TASK-008.
+- Security, privacy, and abuse controls — not written; the boundary is specified in [TASK-007](../../../tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md) and [ADR-005](../../../decisions/ADR-005-visa-tracker-public-exposure-boundary.md).
+- Test and verification matrix — not written; folded into [TASK-010](../../../tasks/blocked/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md).
+- Junior developer runbook — not written; superseded by the per-task documents above.
 
 ## Acceptance criteria
 
@@ -358,6 +378,25 @@ No unresolved product or architecture decision blocks implementation. TASK-001 m
 
 If evidence contradicts this plan, stop the affected task, document the mismatch, and request a workspace decision rather than improvising a new architecture.
 
+## Completion gate
+
+Moved to `ongoing/` on 2026-08-06 after an audit found TASK-001 through TASK-007 already implemented and pushed while this document still claimed the feature was unstarted.
+
+This feature moves to `features/completed/` **only** when all of the following hold:
+
+1. TASK-010 records implementation and validation evidence, including both carried-forward review items.
+2. TASK-011 Gate 1 — **staging deployment** — is confirmed by the project owner.
+3. TASK-011 Gate 2 — **live deployment** — is confirmed by the project owner.
+
+Gates 1 and 2 are separate events and must be confirmed separately. Merging to `develop`/`main` and deploying are performed **manually by the project owner**; no agent may perform them.
+
+Any agent asked to mark FEAT-001 complete must first ask the project owner, as two distinct questions:
+
+1. Has the visa tracker been **deployed to staging**?
+2. Has the visa tracker been **deployed live**?
+
+A "yes" to staging alone does not complete this feature.
+
 ## Completion notes
 
-Not implemented. Move this feature to `ongoing/` only when TASK-001 is assigned and implementation work actually begins. Move to `completed/` only after TASK-010 records implementation and validation evidence.
+Not yet complete. Backend implemented and pushed; SPA not started; nothing merged or deployed.

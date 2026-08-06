@@ -59,6 +59,25 @@
 | HRMS customizations | source-wired | `visaguy_hrms` class/method overrides |
 | Raven notifications | source-wired | `visaguy_raven` doc_event handlers |
 
+## Visa tracking and passport extraction (FEAT-001, unmerged)
+
+Delivered on `feat/visa-tracker` branches and **not active on site `visaguy`** — `the_visaguy` is checked out on `main`. See [FEAT-001](../../features/ongoing/visa-tracking/README.md).
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Generic FileFlo post-persistence extension point | source-wired | `fileflo/events.py:dispatch_after_commit_extension_event` |
+| Queued passport-upload detection | source-wired | `the_visaguy.visa_tracking.jobs.enqueue_fileflo_inspection` |
+| Local PaddleOCR + TD3 MRZ extraction | source-wired | `passport_extractor/ocr/*`, `services/extraction_service.py` |
+| Append-only extraction history and review | source-wired | `Passport Extraction` DocType |
+| Visa tracking application and immutable status log | source-wired | `Visa Tracking Application`, `Visa Tracking Status Log` |
+| Status as configuration, not code | source-wired | `Visa Tracking Status` records |
+| Lead / Customer / Process File lifecycle sync | source-wired | `visa_tracking/services/lifecycle_service.py` |
+| Guest verification and status APIs | source-wired | `visa_tracking/api/verification.py`, `api/status.py` |
+| HMAC lookup, opaque sessions, rate limit, lockout | source-wired | `services/lookup_service.py`, `session_service.py`, `rate_limit_service.py` |
+| Verification audit trail | source-wired | `Visa Tracker Audit Log` |
+| Public tracker SPA | **not started** | TASK-008 / TASK-009 |
+| Live OCR run on the bench | **not verified** | gated in TASK-010 |
+
 ## Integrations
 
 | Capability | Status | Evidence |

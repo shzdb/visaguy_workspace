@@ -1,8 +1,10 @@
 # Frappe Apps
 
-This document describes the 18 internally maintained Frappe apps installed on site `visaguy` and the 11 external/upstream apps. For ownership, version/HEAD, and install status, see [`repository-catalog.md`](repository-catalog.md).
+This document describes the 19 internally maintained Frappe apps installed on site `visaguy` and the 11 external/upstream apps. For ownership, version/HEAD, and install status, see [`repository-catalog.md`](repository-catalog.md). For how these apps compose into end-to-end functionality, see [`workflows.md`](workflows.md).
 
-## Internally maintained apps (18)
+This document is a **responsibility and interface inventory**. It answers "what does this app own and what does it expose". It does not trace call chains — that is `workflows.md`.
+
+## Internally maintained apps (19)
 
 ### Core domain and communication
 
@@ -51,6 +53,16 @@ This document describes the 18 internally maintained Frappe apps installed on si
 | `payment_integrations` | Custom payment gateways (TotalPay, MyFatoorah) | TotalPay Settings, MyFatoorah Settings | `handle_webhook`, `payment_success`, `payment_cancel`, `on_update_after_submit` | source-wired |
 | `quick_kanban` | Enhanced Vue-based Kanban view | Kanban Board Highlight | `get_kanban_config` | source-wired |
 
+### Passport extraction
+
+| App | Responsibility | Key DocTypes / Entities | Key Interfaces | Verification |
+|---|---|---|---|---|
+| `passport_extractor` | Reusable, domain-free passport OCR/MRZ extraction with append-only history | Passport Extraction, Passport Extractor User (role) | `services/extraction_service`, `ocr/paddle_ocr_engine`, `ocr/mrz_parser`, `ocr/image_preprocessor`, `ocr/pdf_renderer`, `jobs` | source-wired |
+
+`passport_extractor` declares no `required_apps` and imports nothing from any VisaGuy app — see [ADR-004](../../decisions/ADR-004-passport-extraction-as-standalone-reusable-app.md). All domain coupling lives in `the_visaguy.visa_tracking`. OCR runs locally; no passport data leaves the bench.
+
+**Status:** installed on site `visaguy`, but delivered on the unmerged `feat/visa-tracker` branch (`0216829`). Extraction is **source-wired**, not **runtime-verified** — no live OCR run has been recorded.
+
 ## External/upstream apps (11)
 
 | App | Role in VisaGuy | Direct VisaGuy Dependencies | Verification |
@@ -85,6 +97,10 @@ This document describes the 18 internally maintained Frappe apps installed on si
 4. `india_compliance`
 5. Remaining apps
 6. Run wrapper tests between each step.
+
+### Extension-point relationships
+
+Distinct from forks and wrappers: `fileflo` exposes a generic `fileflo_extension_handlers` hook list that any app may subscribe to. `the_visaguy` is currently its only subscriber. FileFlo contains no reference to its consumers — see [ADR-003](../../decisions/ADR-003-fileflo-consumer-agnostic-extension-point.md).
 
 ### Fork/wrapper relationships
 

@@ -7,10 +7,11 @@ This repository is a project workspace, not an application-code repository.
 1. Read `README.md`.
 2. Read `.agents/rules/project-rules.md`.
 3. Read relevant documentation and accepted ADRs in `docs/` and `decisions/`.
-4. Read the relevant feature document in `features/`.
-5. For implementation work, use only a task marked `ready` in `tasks/ready/`.
-6. Load the applicable workflow under `.agents/skills/` when present.
-7. For questions about libraries, frameworks, API references, or CLI commands, use the available Context7 integration first. If it is unavailable or returns no relevant documentation, state that and fall back to the product's official primary documentation or installed CLI help. Use `.agents/` for this workspace's canonical rules, skills, and templates.
+4. Before changing behaviour in any app, read `docs/architecture/workflows.md` for the end-to-end code flow you are touching.
+5. Read the relevant feature document in `features/`.
+6. For implementation work, use only a task marked `ready` in `tasks/ready/`.
+7. Load the applicable workflow under `.agents/skills/` when present.
+8. For questions about libraries, frameworks, API references, or CLI commands, use the available Context7 integration first. If it is unavailable or returns no relevant documentation, state that and fall back to the product's official primary documentation or installed CLI help. Use `.agents/` for this workspace's canonical rules, skills, and templates.
 
 ## Authority model
 
@@ -24,8 +25,13 @@ This repository is a project workspace, not an application-code repository.
 - Skills: `.agents/skills/`
 - Templates: `.agents/templates/`
 - Canonical docs: `docs/index.md`
+- Code flows: `docs/architecture/workflows.md`
 - Features: `features/README.md`
 - Tasks: `tasks/README.md`
+
+## Deployment authority
+
+Merging to `develop`/`main` and deploying to staging or live are **manual, project-owner-only** actions. No agent may perform them. Staging and live are separate events. Before marking any feature complete, ask the owner both questions separately — see `.agents/rules/project-rules.md`.
 
 ## Verification labels
 

@@ -21,11 +21,12 @@
 │  frappe · erpnext · hrms · payments · india_compliance · insights · raven    │
 │  frappe_whatsapp · non_profit                                                 │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│  Internally maintained apps (18)                                              │
+│  Internally maintained apps (19)                                              │
 │  crm · fileflo · frappe_conversions_api · frappe_notifier · helpdesk          │
-│  otp_authentication · payment_integrations · processflo · quick_kanban        │
-│  the_visaguy · visaguy_business · visaguy_crm · visaguy_frappe_crm           │
-│  visaguy_helpdesk · visaguy_hrms · visaguy_raven · visaguy_website · waflo   │
+│  otp_authentication · passport_extractor · payment_integrations · processflo  │
+│  quick_kanban · the_visaguy · visaguy_business · visaguy_crm                  │
+│  visaguy_frappe_crm · visaguy_helpdesk · visaguy_hrms · visaguy_raven         │
+│  visaguy_website · waflo                                                      │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  Bench-only external apps (2, not installed on `visaguy`)                     │
 │  employee_self_service · mansico_meta_integration                             │
@@ -57,6 +58,10 @@
 | Internal process/file workflow | `visaguy_website` / `visaguy_business` | `processflo`, `fileflo`, `payment_integrations` | `03a-maintained-apps.md` W2/W3 | source-wired |
 | CRM pipeline | `the_visaguy` / `visaguy_frappe_crm` | `crm` → ERPNext `Customer` | `03a-maintained-apps.md` W1 | source-wired |
 | Notifications | Doc events across apps | `visaguy_raven`, `frappe_notifier`, `frappe_whatsapp` | `03a-maintained-apps.md` MA3 | source-wired |
+| Passport extraction | `fileflo` upload | `the_visaguy.visa_tracking` → `passport_extractor` (local OCR only) | [`workflows.md`](workflows.md) W6 | source-wired, unmerged |
+| Public status lookup | `visa_tracker` SPA (not built) | `the_visaguy.visa_tracking.api` guest endpoints | [`workflows.md`](workflows.md) W6 | backend source-wired; no client exists |
+
+Full call chains for every workflow are documented in [`workflows.md`](workflows.md).
 
 ## Verified vs unresolved joins
 

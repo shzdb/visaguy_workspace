@@ -37,6 +37,13 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 - Do not assign unresolved product or architecture decisions to implementation agents.
 - Mark a task `ready` only when it requires no new product or architecture decision.
 
+## Deployment authority
+
+- Merging application repositories into `develop` or `main`, and deploying to staging or live, are **manual actions performed by the project owner**. No agent may perform them.
+- An agent may prepare change lists, report branch state, and record confirmed outcomes. It may not merge, tag, deploy, or alter branch checkout state on the bench.
+- Staging deployment and live deployment are **separate events** and must be confirmed separately.
+- Before marking any feature `completed`, an agent must ask the project owner two distinct questions: whether the work is deployed to **staging**, and whether it is deployed **live**. Confirmation of staging alone is never sufficient.
+
 ## Lifecycle alignment
 
 - Feature states: `planned`, `ongoing`, `completed`, `parked`.

@@ -7,8 +7,11 @@ Each item uses the workspace evidence labels defined in `AGENTS.md`: **present**
 | # | Risk / open question | Category | Label |
 |---|---|---|---|
 | 1 | Five dirty working trees on the bench (`insights`, `mansico_meta_integration`, `processflo`, `visaguy_frappe_crm`, `visaguy_raven`) block reproducible builds. | Deployment | runtime-verified |
-| 2 | Non-standard / non-version-15 branches on `crm` (`tridz-dev`), `helpdesk` (`modification_develop_branch`), `fileflo` (`fix/mandatory-file`), `otp_authentication` (`email`), plus external `insights`/`raven`/`frappe_whatsapp`/`non_profit`/`mansico_meta_integration`. | Upgrade | runtime-verified |
+| 2 | Non-standard / non-version-15 branches on `crm` (`tridz-dev`), `helpdesk` (`modification_develop_branch`), `fileflo` (`feat/visa-tracker`), `passport_extractor` (`feat/visa-tracker`), `otp_authentication` (`email`), plus external `insights`/`raven`/`frappe_whatsapp`/`non_profit`/`mansico_meta_integration`. | Upgrade | runtime-verified |
 | 13 | Node v12 system runtime vs Node v18 socketio runtime split. | Infrastructure | runtime-verified |
+| 24 | Three unmerged FEAT-001 `feat/visa-tracker` branches (`the_visaguy`, `fileflo`, `passport_extractor`). `fileflo` and `passport_extractor` are checked out on the bench; `the_visaguy` is not, so the tracking code is inactive while its dependencies are live. | Deployment | runtime-verified |
+| 25 | ~~Stale `the_visaguy/visa_tracking/**/__pycache__/` bytecode on the bench while the working tree is on `main`.~~ **Resolved 2026-08-06** — 23 orphaned `.pyc` files with no `.py` source removed; working tree still clean. | Deployment | runtime-verified |
+| 26 | A second bench site, `visa-tracker-test.localhost`, carries a divergent app set and app versions recorded at install time that no longer match the checked-out branches. | Deployment | runtime-verified |
 
 ## Security risks
 
@@ -44,6 +47,9 @@ Each item uses the workspace evidence labels defined in `AGENTS.md`: **present**
 | 21 | GST / India Compliance active configuration not verified. | Compliance | configured-unverified |
 | 22 | Consumer website order → `PF Process File` / payment join is unresolved at the frontend source level. | Workflow | source-wired |
 | 23 | `visaguy_website` does not invoke `visaguy_business.create_process_file` in the frontend evidence. | Workflow | source-wired |
+| 27 | FEAT-001 commit `8254f93` auto-verifies passport extractions, while the feature excludes automatic use of unverified extraction data. Promotion criteria unreviewed. | Architecture | source-wired |
+| 28 | PaddleOCR model availability to production workers is unconfirmed; no live OCR run recorded. Extraction remains source-wired, not runtime-verified. | Integration | configured-unverified |
+| 29 | No frontend repository is cloned on the active workstation, so all recorded frontend HEADs, versions, and risks (#3–#12) are unverified since 2026-07. | Quality | present |
 
 ## Notes
 

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The VisaGuy bench contains 29 app repositories with mixed origins. Some are internally maintained, some are true upstream checkouts, and two are maintained forks of upstream projects. A consistent ownership rule is needed for documentation, security review, and upgrade planning.
+The VisaGuy bench contains 30 app repositories with mixed origins (29 at the time this ADR was written; `passport_extractor` was added by FEAT-001 and classified as internally maintained under this rule). Some are internally maintained, some are true upstream checkouts, and two are maintained forks of upstream projects. A consistent ownership rule is needed for documentation, security review, and upgrade planning.
 
 ## Decision
 

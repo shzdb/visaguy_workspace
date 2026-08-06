@@ -2,6 +2,26 @@
 
 **Safety disclaimer:** every command below is documented from checked-in scripts, `Procfile`, `package.json`, and accepted reconnaissance reports. No commands were executed as part of this audit. Run each against a staging bench or with a verified backup first.
 
+## Prerequisite: clone the frontends
+
+As of 2026-08-06 **none of the frontend repositories is cloned on the active workstation**. Clone them before any frontend work:
+
+```bash
+git clone git@tridz:tvgglobal/visa_eligibility_checker.git
+```
+
+```bash
+git clone git@tridz:tridz-dev/visaguy_business_client.git
+```
+
+```bash
+git clone git@tridz:tvgglobal/visaguy-website-client.git
+```
+
+`visaguy-website-client` is read-only design reference for FEAT-001 TASK-008 — never commit tracker changes into it.
+
+The fourth frontend, `visa_tracker`, does not exist yet; TASK-008 creates it locally with Vite and requires no remote.
+
 ## `visa_eligibility_checker`
 
 ```bash
