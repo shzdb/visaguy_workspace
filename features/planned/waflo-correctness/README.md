@@ -21,7 +21,7 @@ This feature is a **prerequisite for [FEAT-002](../multi-company-whatsapp/README
 
 ## Evidence
 
-All findings verified against `waflo` branch `develop` @ `2167958` on the remote bench, 2026-08-06. `waflo` currently has a **dirty working tree**; the diff was not inspected, so confirm these line references still hold before editing.
+All findings verified against `waflo` branch `develop` @ `2167958` on the remote bench, 2026-08-06. The working tree is **clean** — an earlier draft of this document wrongly listed `waflo` among the dirty repositories; the five dirty trees are `insights`, `processflo`, `visaguy_frappe_crm`, `visaguy_raven`, and `mansico_meta_integration`.
 
 ## Defects
 
@@ -135,13 +135,13 @@ except Exception as e:
 
 - Redesigning the flow engine itself.
 - Per-company rate limit policy — that arrives with FEAT-002 and should build on the corrected primitives, not precede them.
-- Reconciling waflo's dirty working tree. That is a prerequisite, not part of this feature.
+- Deployment. Merging to `develop`/`main` and deploying are manual and owner-only per [ADR-008](../../../decisions/ADR-008-deployment-authority-and-completion-gates.md).
 
 ## Proposed task order
 
 | # | Task | Repository | Notes |
 |---|---|---|---|
-| 1 | Reconcile the dirty `waflo` tree; branch `feat/waflo-correctness`; confirm line references | `waflo` | Blocking prerequisite |
+| 1 | Branch `feat/waflo-correctness` off `develop`; confirm line references | `waflo` | |
 | 2 | Fix D1 and add a regression test proving `WF Active Chat Flow` is created | `waflo` | Highest severity; ship independently if needed |
 | 3 | Rewrite the limiter on `frappe.cache().incr()` / `.expire()` — fixes D2, D4, D5 | `waflo` | |
 | 4 | Add rate limiting to the outbound send path — D3 | `waflo` | Coordinate with FEAT-002 account routing |
@@ -165,7 +165,7 @@ except Exception as e:
 
 - **D1 may be masking real production behaviour.** Before fixing, check the Error Log for "WF Flow Error" volume and check whether customers have been receiving repeated initial-step messages. The fix will change live behaviour immediately.
 - Turning a decorative limiter into a real one **will start blocking messages** that currently go out. Values must be chosen deliberately before enabling, or legitimate traffic will be dropped.
-- `waflo` has a dirty working tree; edits risk entangling unrelated changes.
+- No existing test coverage for the flow engine, so regressions are hard to detect by running the suite alone.
 - No existing test coverage for the flow engine, so regressions are hard to detect.
 
 ## Open questions

@@ -1,0 +1,1 @@
+SHA=31da123 FILES=4 TESTS_ADDED=4 COMPILE=pass B3_LOCATION=processor.py:125 UNCERTAIN=incr get() encodingThat background search for `redis_wrapper.py` was killed as a hung `find` — it wasn’t needed. Phase 3b already landed on `31da123` using the ground-fact that `frappe.cache()` exposes `.incr()` / `.expire()` directly.

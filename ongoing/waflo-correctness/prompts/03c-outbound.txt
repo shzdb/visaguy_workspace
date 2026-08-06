@@ -1,0 +1,104 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue with these):
+
+- Frappe app `waflo`. Work ONLY in the current directory. Branch `feat/waflo-correctness`.
+- Already landed: 3e2428a (D1/N1 flow fixes), 31da123 (atomic limiter rewrite).
+- `waflo/waflo/flow/rate_limiting.py` now exposes `is_rate_limited(account, mobile_no)`,
+  `increment_rate_limit(account, mobile_no)`, `_rate_limit_configured(settings)`.
+  It uses `frappe.cache().incr()` / `.expire()` on plain key `waflo:rl:{account}:{mobile_no}`.
+  DO NOT change that design. DO NOT add site-prefixing. DO NOT use redis-py directly.
+- `frappe.cache()` IS a Redis client (RedisWrapper subclasses redis.Redis).
+- There is NO site to run `bench run-tests`. Write tests; do NOT claim they pass; do NOT run bench.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections D3, D7, and the R2 body of send.py.
+- ../02-triage.md
+
+IMPORTANT CONTEXT — how limiting already works, so you do not double-count:
+
+`_process_incoming_whatsapp_message` in processor.py already gates INBOUND messages:
+it calls `is_rate_limited(...)`, and if limited it marks the message `custom_rate_limited`
+and returns. The flow paths then call `increment_rate_limit(...)` explicitly after sending.
+
+So flow-driven sends are ALREADY accounted for. If you naively add a check+increment inside
+`send_whatsapp_template`, flow sends will be counted twice. Design around this.
+
+OWNER DECISIONS (these are settled policy — implement exactly this):
+
+- Transactional outbound messages (payment success, visa completion, form links — everything
+  `the_visaguy` sends on a business event) must NEVER be dropped. When rate limited, they are
+  RE-QUEUED WITH BACKOFF so they eventually arrive.
+- Conversational replies are the only thing that may be dropped, and that already happens at
+  the inbound gate. Do not add dropping anywhere else.
+- The account-level ceiling (D7) must be BUILT but DISABLED BY DEFAULT: add the field, add
+  enforcement, but leave the value blank/zero so behaviour is unchanged until an operator
+  sets it.
+
+TASKS:
+
+C1. Implement D3 in `waflo/waflo/messaging/send.py`.
+
+    Add a parameter to `send_whatsapp_template` controlling rate-limit behaviour. Suggested:
+    `rate_limit=True` (default). Callers that are already accounted for pass `rate_limit=False`.
+
+    When `rate_limit=True` and the send would exceed the limit:
+      - do NOT send now, and do NOT drop
+      - re-enqueue the send with a delay (backoff), so it retries after the window
+      - use `frappe.enqueue` with an appropriate queue and a bounded number of retries so a
+        permanently-limited recipient cannot loop forever — pick a sane bound and document it
+      - log at info/debug level, not as an error
+
+    When the send DOES go out and `rate_limit=True`, call `increment_rate_limit`.
+
+    The account used for limiting is the resolved outgoing WhatsApp account
+    (`get_whatsapp_account(account_type="outgoing")` — note FEAT-002 will later make this
+    parameterised; do not do that here).
+
+C2. Update `waflo/waflo/flow/processor.py` so its `send_whatsapp_template` calls pass
+    `rate_limit=False` — they are already gated at the inbound check and already call
+    `increment_rate_limit` explicitly. Verify you have covered EVERY call site in that file.
+    Do not remove the existing explicit `increment_rate_limit` calls.
+
+C3. Check `waflo/waflo/messaging/retry_message.py` — it also calls `send_whatsapp_template`.
+    Decide and justify whether retries should be rate limited, and implement your decision.
+    State your reasoning in the output log.
+
+C4. Implement D7 — account-level ceiling.
+    - Add an Int field `max_sends_per_window` to the `WF Account Settings` DocType JSON, in the
+      rate limiting tab, with a description making clear that blank/zero means DISABLED.
+    - Add a function in rate_limiting.py, e.g. `is_account_rate_limited(account)` plus an
+      increment, using a separate plain key such as `waflo:rl:acct:{account}`, reusing the same
+      atomic incr/expire pattern and the same `window_seconds`.
+    - Enforce it alongside the per-recipient check in the outbound path from C1.
+    - Blank/zero MUST mean disabled — no key written, no behaviour change.
+
+C5. Tests in `waflo/waflo/tests/`:
+    - a transactional outbound send that is rate limited is RE-ENQUEUED, not dropped
+      (assert frappe.enqueue called, assert no send performed)
+    - the retry bound is respected
+    - a flow-path send (`rate_limit=False`) does NOT double-increment the counter
+    - the account ceiling blocks when configured and is inert when blank/zero
+    Mock `frappe.cache()`, `frappe.enqueue`, and `make_post_request`. Use FrappeTestCase.
+
+POLICIES:
+- Preserve `send_whatsapp_template`'s existing parameter order. New parameters go at the END
+  with defaults — `the_visaguy` calls this function and must not break.
+- Do NOT fix D8/D9/D10/D11 in this phase; a later phase owns those. Touch only what C1–C4 need.
+- Do NOT touch `WF Settings.limit_after`.
+- Keep the diff tight.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` succeeds on every .py file you modified.
+- `python -c "import json;json.load(open('waflo/waflo/doctype/wf_account_settings/wf_account_settings.json'))"` succeeds.
+- `grep -rn "make_key\|import redis\|redis.Redis" waflo/` returns nothing.
+- No conflict markers.
+- Every `send_whatsapp_template` call in processor.py passes `rate_limit=False`.
+
+COMMIT: one commit, message starting `feat(rate-limit):`. Commit locally only.
+
+OUTPUT: write a detailed log to ../03c-outbound.md covering: the backoff design and its bound,
+your C3 decision and reasoning, the account-ceiling key design, how you avoided double-counting,
+what each test asserts, and anything you were uncertain about.
+
+REPLY ONLY with this single line, nothing else:
+SHA=<sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> JSON_VALID=<yes|no> RETRY_BOUND=<value> UNCERTAIN=<none|short phrase>

@@ -1,0 +1,90 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue):
+
+- Frappe app `waflo`. Work ONLY in the current directory. Branch `feat/waflo-correctness`.
+- Already landed: 3e2428a (D1/N1), 31da123 (atomic limiter), 1ab527f + de72ec5 (outbound
+  limiting via the existing hourly retry pipeline, account ceiling). Build on these.
+- No delayed-enqueue exists on this bench. Do NOT add sleeps, RQ scheduler use, or new crons.
+- There is NO site to run `bench run-tests`. Write tests; do NOT claim they pass; do NOT run bench.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections D8, D9, D10, D11, and R6/N2, R6/N4.
+- ../02-triage.md
+
+OWNER DECISION (settled): D6 — the `limit_after` field on `WF Settings` is to be REMOVED.
+Nobody could establish what it was for, and a dead knob under a "Rate Limiting" tab misleads
+whoever configures this next.
+
+TASKS:
+
+E1. D8 — error handler masks the original error. In `waflo/waflo/messaging/send.py`, the
+    `except` around the send does:
+        frappe.get_doc({... "meta_data": frappe.flags.integration_request.json()}).insert(...)
+    `frappe.flags.integration_request` only exists once a request has actually been issued.
+    When the failure happens earlier (missing token, unresolved template, bad payload) this
+    raises AttributeError inside the handler and the ORIGINAL exception is lost.
+    Guard it. The original exception must always be logged with a full traceback
+    (`frappe.get_traceback()`), and the notification-log insert must never be able to mask it.
+
+E2. D9 — missing template not guarded. `frappe.db.get_value("WhatsApp Templates",
+    template_name, "actual_name")` returns None for an unknown template, and the payload then
+    goes out with `"name": null`. Fail fast with a clear, actionable error instead. Do not
+    send a null template name.
+
+E3. D10 — log spam. `frappe.log_error("WhatsApp API URL AND INDEX", ...)` is called inside the
+    per-button loop on EVERY send that has buttons. Remove it. It is leftover debug output in
+    a production path and it buries real errors in the Error Log.
+
+E4. D11 — `use_flow` collides with `button_url_map`. The flow button is appended at
+    `index "0"`, but when `button_url_map` is also supplied its first entry is already
+    `index "0"`. Decide and implement: either reject the combination with a clear error, or
+    offset the flow button index past the URL buttons. Justify your choice in the log.
+
+E5. N2 — continuing path assumes a non-null reference doc. In `processor.py`,
+    `context_doc = frappe.get_doc(active_doc.reference_doctype, active_doc.reference_name)`
+    runs unguarded, but `create_active_flow` permits both to be None. Guard it the same way
+    the new-flow branch already does (`if ref_doctype and ref_name else None`).
+
+E6. N4 — `send_default_message` reads `wf_account_settings.header_video` when
+    `header_type == "Video"`, but `WF Account Settings` has no such field — it defines
+    `header_image`, `header_attachment`, `header_text`. Use the correct field. Check the
+    DocType JSON to confirm which field is intended for video before choosing.
+
+E7. D6 — remove `limit_after` from `WF Settings`:
+    - remove the field from `wf_settings.json` (both the `field_order` list and the `fields`
+      array — miss one and the DocType will not load)
+    - add a Frappe patch to drop the stale column/property on existing sites, registered in
+      `patches.txt`. Follow the existing patch conventions in this repo if any exist; if
+      `patches.txt` does not exist, create it in the standard Frappe location.
+    - confirm nothing in Python reads it before removing.
+
+E8. Tests in `waflo/waflo/tests/`:
+    - a send failure occurring BEFORE the HTTP request is issued still logs the original
+      exception (D8 regression)
+    - an unknown template name raises rather than sending a null name (D9)
+    - `use_flow` + `button_url_map` behaves as you decided in E4
+    - a continuing flow with null reference doctype/name does not raise (N2)
+    Mock `make_post_request` and `frappe.cache()`. Use FrappeTestCase.
+
+POLICIES:
+- Do NOT change the rate limiting design from the previous phases.
+- Do NOT change `retry_message`, `schedule_retry_message`, or `hooks.py` scheduler_events.
+- Preserve public function signatures; `the_visaguy` imports `send_whatsapp_template`.
+- Keep the diff tight. No drive-by refactors, no reformatting untouched code.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- `python -c "import json;json.load(open('waflo/waflo/doctype/wf_settings/wf_settings.json'))"` succeeds.
+- `grep -rn "limit_after" waflo/` returns NOTHING (json, python, patches — all clean).
+- `grep -rn "WhatsApp API URL AND INDEX" waflo/` returns nothing.
+- `grep -rn "header_video" waflo/` returns nothing.
+- No conflict markers.
+
+COMMIT: one commit, message starting `fix(send):`. Local only.
+
+OUTPUT: write a detailed log to ../03d-send-hardening.md covering each of E1–E8, your E4
+decision and reasoning, the E6 field you chose and why, the patch you wrote for E7, and
+anything you were uncertain about.
+
+REPLY ONLY with this single line:
+SHA=<sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> JSON_VALID=<yes|no> LIMIT_AFTER_GONE=<yes|no> E4_CHOICE=<reject|offset> UNCERTAIN=<none|short phrase>

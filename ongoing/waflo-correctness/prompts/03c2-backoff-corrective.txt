@@ -1,0 +1,90 @@
+CORRECTIVE MICRO-TASK. Your previous commit 1ab527f is otherwise accepted; this fixes ONE
+design defect in it.
+
+GROUND FACTS (verified by the orchestrator against the live bench — do NOT re-derive, do NOT
+argue, do NOT "improve" on these):
+
+- Your backoff used `time.sleep()` inside the worker. This is REJECTED. A sleeping RQ worker
+  is a blocked worker: a handful of rate-limited messages starve the `short` queue for
+  everything else on the bench.
+- `frappe.enqueue(..., timeout=N)` does NOT delay a job. Verified at
+  `frappe/utils/background_jobs.py:160` — `timeout` is passed to RQ as `job_timeout`, the
+  maximum EXECUTION duration before the worker kills the job as failed (default 300s from
+  `get_queues_timeout()`). It is a kill-switch, not a schedule. Do not use it for backoff.
+  It also means your sleep >300s would be killed mid-sleep.
+- RQ 1.15.1's `enqueue_in` is NOT usable here: `bench worker` on this bench runs WITHOUT
+  `--with-scheduler` (verified in the bench Procfile), so scheduled jobs would never fire.
+- Therefore: there is no delayed-enqueue primitive available. Do not invent one.
+
+THE CORRECT MECHANISM ALREADY EXISTS IN THIS APP. Use it.
+
+`waflo` already ships a retry pipeline that is in production:
+
+1. `WhatsApp Message` has custom fields `custom_should_retry` and `custom_retried_message`.
+2. `wf_settings.py` already flags messages for retry with:
+   `frappe.db.set_value("WhatsApp Message", {"message_id": message_id}, "custom_should_retry", 1)`
+3. `scheduler_events` in `waflo/hooks.py` runs `schedule_retry_message` hourly (`0 * * * *`).
+4. `schedule_retry_message` selects
+   `frappe.get_all("WhatsApp Message", filters={"custom_should_retry": 1, "custom_retried_message": None})`
+   and calls `retry_message(doc.as_dict(), queued=False)` for each.
+5. `retry_message` in `waflo/waflo/messaging/retry_message.py` reconstructs the send from the
+   WhatsApp Message record's fields: `to`, `template`, `body_param`,
+   `template_header_parameters`, `buttons`, `reference_doctype`, `reference_name`,
+   `custom_is_flow`.
+6. The `custom_retried_message: None` filter means each message is retried at most once —
+   that is your natural retry bound. Do not add a competing counter.
+
+TASKS:
+
+X1. Remove `time.sleep` and the `_rate_limit_backoff_seconds` delay machinery from
+    `waflo/waflo/messaging/send.py` entirely. Remove the now-unused `import time` if nothing
+    else needs it.
+
+X2. Replace the backoff with the existing retry pipeline. When a transactional outbound send
+    is rate limited, it must NOT be sent now and must NOT be dropped. Instead, persist a
+    `WhatsApp Message` record carrying everything `retry_message` needs to reconstruct the
+    send, with `custom_should_retry = 1` and `custom_retried_message` unset, so the existing
+    hourly `schedule_retry_message` picks it up.
+
+    Look at how `log_whatsapp_message` in `waflo/waflo/messaging/logs.py` builds a
+    `WhatsApp Message` record and reuse it if you can — but note it is currently only called
+    AFTER a successful API response and expects a `message_id`. A rate-limited send has no
+    message_id. Handle that cleanly: either extend `log_whatsapp_message` with an explicit
+    "not sent, pending retry" path, or add a sibling function. Your choice — justify it in
+    the log. Do NOT fabricate a fake message_id.
+
+    Field names must match exactly what `retry_message` reads (see fact 5 above), or the
+    retry will silently send an incomplete message. Verify each one against
+    `retry_message.py` and against the `WhatsApp Message` DocType JSON before committing.
+
+X3. Keep everything else from 1ab527f: the `rate_limit` parameter, `rate_limit=False` on the
+    processor call sites, the account-level ceiling (D7), and the increment-on-successful-send
+    behaviour. Only the delay mechanism changes.
+
+X4. Update the tests you added in 1ab527f: a rate-limited transactional send must now assert
+    that a `WhatsApp Message` is created with `custom_should_retry = 1` and that NO API call
+    is made — instead of asserting a re-enqueue. Remove any test that asserted sleeping or
+    delayed enqueue. Mock `frappe.cache()` and `make_post_request`.
+
+POLICIES:
+- Do NOT change `schedule_retry_message`, `retry_message`, or `hooks.py`. They already work.
+- Do NOT add a new scheduler event or a new cron.
+- Do NOT add a retry counter — the `custom_retried_message: None` filter is the bound.
+- Do NOT touch D8/D9/D10/D11; a later phase owns those.
+- Retry granularity is hourly. That is ACCEPTED and intentional — do not try to make it finer.
+
+GATES (all must pass before you commit):
+- `grep -rn "time.sleep\|import time" waflo/waflo/messaging/send.py` returns nothing.
+- `python -m py_compile` passes on every modified .py file.
+- Every field name you write onto the WhatsApp Message record for retry appears in
+  `retry_message.py`'s read list AND in the WhatsApp Message DocType custom fields.
+  List them explicitly in your output log as a checklist with a tick per verified field.
+- No conflict markers.
+
+COMMIT: one commit on top of 1ab527f, message starting `fix(rate-limit):`. Local only.
+
+OUTPUT: write to ../03c2-backoff-corrective.md: what you removed, the record-creation approach
+you chose and why, the field-name verification checklist, and what the tests now assert.
+
+REPLY ONLY with this single line:
+SHA=<sha> SLEEP_REMOVED=<yes|no> FIELDS_VERIFIED=<count> TESTS_UPDATED=<count> COMPILE=<pass|fail> UNCERTAIN=<none|short phrase>

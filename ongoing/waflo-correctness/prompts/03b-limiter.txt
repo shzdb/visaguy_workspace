@@ -1,0 +1,87 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue with these):
+
+- Frappe app `waflo`. Work ONLY in the current directory. You are on branch `feat/waflo-correctness`.
+- Phase 3a already landed commit 3e2428a: `process_whatsapp_message` now takes a
+  `whatsapp_account=None` parameter and calls `increment_rate_limit(whatsapp_account, mobile_no)`
+  at what is now line 74. Build on that; do not revert it.
+- Frappe 15.113.0. `frappe/utils/redis_wrapper.py:27` declares `class RedisWrapper(redis.Redis)`.
+  So `frappe.cache()` IS a Redis client and inherits `.incr()` and `.expire()` directly.
+  DO NOT open a separate Redis connection. DO NOT use redis-py directly.
+- VisaGuy runs ONE site per bench. DO NOT add site-prefixing, DO NOT call `make_key`,
+  DO NOT add cross-site isolation. Plain cache keys are correct and this is a settled decision.
+- There is NO site available to run `bench run-tests`. Write tests, but do NOT claim they pass
+  and do NOT attempt to run bench.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections D2, D4, D5, and R6/N3, plus the R2 full body of rate_limiting.py.
+- ../02-triage.md — policies section.
+
+TASKS:
+
+B1. Rewrite `waflo/waflo/flow/rate_limiting.py` to use an atomic counter.
+
+    Current design stores a compound dict {"count": N, "window_start": T} via
+    `frappe.cache().set_value(...)`, then reads-modifies-writes it in Python. That is
+    inherently non-atomic (D4) and duplicates the TTL with a stored window_start (D5).
+
+    New design — fixed window, atomic:
+        key = f"waflo:rl:{account}:{mobile_no}"
+        count = frappe.cache().incr(key)
+        if count == 1:
+            frappe.cache().expire(key, window_seconds)
+
+    `incr` is atomic so concurrent workers serialise. Setting the TTL only when the counter
+    returns 1 starts the window at the first request and removes the need for window_start.
+
+    Keep the public function names and signatures: `is_rate_limited(account, mobile_no)`,
+    `increment_rate_limit(account, mobile_no)`, `set_message_rate_limited(message)`.
+    Other modules import these.
+
+B2. Fix N3: `is_rate_limited` returns False (allow) when `max_replies_per_window` or
+    `window_seconds` is falsy, but `increment_rate_limit` has no equivalent guard and would
+    set a key with a null/zero TTL. Make both functions agree on what "incompletely
+    configured" means and behave consistently. A key must never be written without a
+    positive TTL.
+
+B3. Fix D2: the continuing-conversation path in `waflo/waflo/flow/processor.py` never
+    increments the counter. In `process_whatsapp_message`, the branch that handles an
+    EXISTING `WF Active Chat Flow` (the code after `active_doc = frappe.get_doc(...)`) sends
+    templates via `send_whatsapp_template` but never calls `increment_rate_limit`.
+
+    Add the increment so that EVERY successful send on a flow path counts. Think about
+    where exactly it belongs so a step that sends nothing does not count, and a step that
+    sends twice does not double-count incorrectly — state your reasoning in the output log.
+
+B4. Tests. Add to the existing `waflo/waflo/tests/` package:
+    - counter increments from absent to 1, and TTL is set exactly once (assert `expire` is
+      called on the first increment and not on subsequent ones)
+    - at max_replies, `is_rate_limited` returns True; below max it returns False
+    - incomplete configuration (max or window falsy) never writes a key
+    - a continuing-conversation send increments the counter (regression test for D2)
+    Mock `frappe.cache()` so tests do not need a live Redis. Use FrappeTestCase.
+
+POLICIES:
+- Do NOT touch `waflo/waflo/messaging/send.py` in this phase. A later phase owns it.
+- Do NOT add outbound rate limiting (D3) or an account-level ceiling (D7). Both are blocked
+  on product decisions and are explicitly OUT OF SCOPE for this phase.
+- Do NOT touch `WF Settings.limit_after` (D6) — also blocked, also out of scope.
+- The call to `increment_rate_limit(doc.whatsapp_account, mobile_no)` at the end of
+  `send_default_message` is CORRECT. Leave it alone.
+- Keep the diff tight. No drive-by refactors.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` succeeds on every .py file you modified.
+- `grep -n "window_start" waflo/waflo/flow/rate_limiting.py` returns nothing.
+- `grep -rn "make_key\|redis.Redis\|import redis" waflo/` returns nothing.
+- `git diff --stat` touches only rate_limiting.py, processor.py, and test files.
+- No conflict markers.
+
+COMMIT: one commit, message starting `fix(rate-limit):`. Commit locally only.
+
+OUTPUT: write a detailed log to ../03b-limiter.md covering: the new rate_limiting.py design,
+exactly where you placed the B3 increment and WHY, how you resolved N3, what each test
+asserts, and anything you were uncertain about.
+
+REPLY ONLY with this single line, nothing else:
+SHA=<sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> B3_LOCATION=<file:line> UNCERTAIN=<none|short phrase>

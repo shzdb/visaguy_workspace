@@ -1,0 +1,2 @@
+# Executor worktrees hold application code and must never be committed here (ADR-001).
+*/worktree

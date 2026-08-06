@@ -1,0 +1,49 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT second-guess):
+
+- You are working on the Frappe app `waflo` (WhatsApp conversational flow engine for VisaGuy).
+- Work ONLY in the current directory, which is a fresh clean clone on branch `develop` @ 2167958.
+- Frappe version in production is 15.113.0.
+- `frappe/utils/redis_wrapper.py:27` declares `class RedisWrapper(redis.Redis)`. Therefore `frappe.cache()` IS a Redis client and inherits `incr` and `expire` directly. Do not propose opening a separate Redis connection.
+- VisaGuy runs ONE site per bench. Do NOT propose site-prefixing of cache keys or cross-site isolation.
+- DO NOT create a branch. DO NOT commit. DO NOT push. DO NOT edit any file.
+- This phase is READ-ONLY reconnaissance.
+
+READ FIRST:
+- ../../features/planned/waflo-correctness/README.md — the specification. It lists 11 defects D1 through D11 with claimed file paths and line numbers.
+
+TASKS:
+
+R1. For EACH defect D1 through D11 in the spec, locate the actual code in this clone and report:
+    - the real current file path and line number(s)
+    - whether the defect as described is STILL PRESENT, ALREADY FIXED, or MISDESCRIBED
+    - if misdescribed, what the code actually does
+    Be precise. The spec's line numbers came from a different checkout and may have drifted.
+
+R2. Report the exact current signature and full body of:
+    - waflo/waflo/flow/rate_limiting.py (all functions)
+    - waflo/waflo/messaging/send.py: send_whatsapp_template and _send_whatsapp_template
+    - waflo/waflo/flow/processor.py: process_whatsapp_message, create_active_flow, send_default_message
+
+R3. List EVERY call site of: is_rate_limited, increment_rate_limit, set_message_rate_limited, send_whatsapp_template. Include file and line. Include calls from outside waflo if any exist in this repo.
+
+R4. Report the existing test setup: is there a tests/ directory, any test files, any test runner config, any conftest? What test framework does this app use, if any?
+
+R5. Report the fields actually defined on the DocTypes `WF Account Settings` and `WF Settings` (fieldname, fieldtype, options) by reading their .json files. Confirm whether `limit_after` exists and confirm it has no Python consumer.
+
+R6. Identify any OTHER defect you find in rate_limiting.py, send.py, or processor.py that the spec does NOT list. Be specific and terse. Do not speculate about style; only report real bugs.
+
+POLICIES:
+- If the spec and the code disagree, the CODE is the truth. Report the discrepancy; do not "fix" the spec.
+- Do not fix anything in this phase.
+- If a defect is already fixed in this clone, say so plainly — that is a valuable finding, not a failure.
+
+GATES (must hold when you finish):
+- `git status --porcelain` produces NO output. You changed nothing.
+- The output file below exists and is complete.
+
+OUTPUT: write your full detailed findings to ../01-recon.md (relative to this clone, i.e. the file ongoing/waflo-correctness/01-recon.md in the parent workspace). Use markdown with one section per defect ID.
+
+REPLY ONLY with this single line format, nothing else:
+STILL_PRESENT=<count> ALREADY_FIXED=<count> MISDESCRIBED=<count> NEW_DEFECTS=<count> TESTS_EXIST=<yes|no> VERDICT=<one short sentence>
+
+Do NOT paste file contents into your reply.

@@ -1,0 +1,79 @@
+GROUND FACTS (already verified — do NOT re-derive):
+
+- Frappe app `waflo`. Work ONLY in the current directory (clean clone, branch `develop` @ 2167958).
+- Frappe 15.113.0. `frappe.cache()` IS a Redis client (RedisWrapper subclasses redis.Redis).
+- VisaGuy runs ONE site per bench — no site-prefixing, no cross-site isolation.
+- There is NO site available to run `bench run-tests`. Write tests, but do NOT claim they pass. Do not attempt to run bench.
+- DO NOT push. DO NOT touch any other repository. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections D1 and R6/N1, and the R2 body of processor.py.
+- ../02-triage.md — policies section.
+
+BRANCH: create `feat/waflo-correctness` off `develop` as your first action, and commit onto it.
+
+TASKS:
+
+A1. Fix D1. In `waflo/waflo/flow/processor.py`, function `process_whatsapp_message`, the call
+    `increment_rate_limit(doc.whatsapp_account, mobile_no)` references `doc`, which is not in
+    scope — it is not a parameter and is not otherwise bound. This raises NameError, which the
+    broad `except Exception` swallows, so `create_active_flow(...)` on the following line never
+    runs and no `WF Active Chat Flow` is ever created for a new conversation.
+
+    The account is needed. Thread it in properly: `process_whatsapp_message` must receive the
+    whatsapp account from its caller `_process_incoming_whatsapp_message`, which has `doc` and
+    therefore has `doc.whatsapp_account`. Add an explicit parameter. Update ALL call sites.
+
+    CRITICAL: do NOT change the call at the end of `send_default_message` — there, `doc` IS a
+    parameter and the call is correct.
+
+A2. Fix N1. Calls to `send_whatsapp_template` in `processor.py` pass arguments positionally and
+    are shuffled. The signature is:
+      send_whatsapp_template(mobile, template_name, body_params=None, header_params=None,
+                             button_url_map=None, ref_doctype=None, ref_name=None,
+                             use_flow=False, queue=False)
+    The calls pass (mobile_no, template, value, button_url_map, ref_doctype, ref_name), so
+    button_url_map lands in header_params, ref_doctype lands in button_url_map, ref_name lands
+    in ref_doctype, and ref_name is dropped.
+
+    Fix EVERY such call in processor.py to use KEYWORD arguments for everything after
+    template_name. This is a hard requirement — keyword args are how we prevent recurrence.
+
+A3. Make the failure visible. The broad `except Exception as e` in `process_whatsapp_message`
+    currently logs only `str(e)`. Change it to log the full traceback (use
+    `frappe.get_traceback()`), keeping the same log title. Do not narrow or restructure the
+    try block beyond this — that is out of scope for this phase.
+
+A4. Write a regression test proving D1 is fixed: a new inbound conversation results in exactly
+    one `WF Active Chat Flow` record, and the initial step template is sent exactly once.
+    Put it in `waflo/waflo/tests/` (create the package with __init__.py if needed) or alongside
+    the existing doctype test stubs — your choice, but be consistent and use FrappeTestCase.
+    Mock the outbound send; the test must not make network calls. Mock at
+    `waflo.waflo.messaging.send.make_post_request` or higher, whichever is cleaner.
+
+A5. Write a regression test proving N1 is fixed: assert `send_whatsapp_template` receives
+    button_url_map / ref_doctype / ref_name in the correct parameters when a flow step sends.
+
+POLICIES:
+- Preserve public function signatures where you can. If you must change
+  `process_whatsapp_message`'s signature (you will, for A1), give the new parameter a default
+  of None so any external caller does not break, and search the repo for other callers.
+- Do not fix D2/D4/D5 (rate limiter internals) in this phase — a later phase rewrites that file.
+- Do not fix send.py in this phase.
+- Keep the diff tight. No drive-by refactors, no reformatting of untouched code.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` succeeds on every .py file you modified.
+- `grep -n "doc\." waflo/waflo/flow/processor.py` shows no reference to a `doc` variable inside
+  `process_whatsapp_message`.
+- No conflict markers anywhere.
+- `git diff --stat` touches only processor.py and your new test file(s).
+
+COMMIT: one commit, message starting `fix(flow):`. Commit locally only.
+
+OUTPUT: write a detailed log to ../03a-d1-nameerror.md covering: what you changed and why, the
+new signature of process_whatsapp_message, every call site you updated, what the tests assert,
+and anything you were uncertain about.
+
+REPLY ONLY with this single line, nothing else:
+SHA=<commit sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> UNCERTAIN=<none|short phrase>
