@@ -122,7 +122,7 @@ D8–D11 in [FEAT-003](../waflo-correctness/README.md) touch the same file. Sequ
 
 | # | Change |
 |---|---|
-| M17 | Create a `WhatsApp Account` record per zone and bind it in `Whatsapp Default`. Record which Company legally owns each account — that mapping is needed for Meta billing and template approval but is deliberately not part of the lookup. |
+| M17 | Create one `WhatsApp Account` record per zone and bind it in `Whatsapp Default`. |
 | M18 | Create `Whatsapp Default` rows for each additional zone with templates and feedback images. `TVG India` needs none. |
 | M19 | Clean up the `TVG  India` double-space company name as data hygiene. No longer blocking once the lookup keys on Zone. |
 
@@ -164,9 +164,9 @@ D8–D11 in [FEAT-003](../waflo-correctness/README.md) touch the same file. Sequ
 
 1. ~~Zone vs Company as the configuration key.~~ **Resolved** by [ADR-006](../../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](../../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md): keyed on Zone.
 2. Should a zone inherit defaults from a parent configuration, or must every zone configure every event explicitly? Recommendation: explicit, with the M9 validation making gaps obvious. Inheritance across markets with different numbers invites accidental cross-market sends.
-3. Is one WhatsApp account per zone correct, or does a zone need several — for example one per destination? The current model assumes one. If this changes, the key becomes composite.
-4. What should happen when a lead's zone has WhatsApp disabled or no configuration? Silent skip is the current behaviour and is probably right, but it should be deliberate and logged.
-5. Where should the WhatsApp Account → owning Company mapping be recorded, given it is needed for Meta billing and template approval but is deliberately not part of the lookup?
+3. What should happen when a lead's zone has WhatsApp disabled or no configuration? Silent skip is the current behaviour and is probably right, but it should be deliberate and logged.
+
+**Settled, not open:** one WhatsApp account per zone. Multiple numbers per zone are out of scope and are not to be designed for — the revisit condition is recorded in ADR-007.
 
 ## Dependencies
 

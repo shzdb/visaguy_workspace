@@ -37,7 +37,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 
 - [`security-and-privacy.md`](security-and-privacy.md) — auth storage, CORS/guest access, PII/uploads, provider secrets, and recommended follow-up decisions.
 - [`risks-and-open-questions.md`](risks-and-open-questions.md) — evidence-backed risk register and unresolved questions.
-- [`decisions/`](../decisions/) — accepted architecture decision records.
+- [`decisions/README.md`](../decisions/README.md) — ADR index and running decision log. Start here, not with the individual files.
 
 ## Authority model
 

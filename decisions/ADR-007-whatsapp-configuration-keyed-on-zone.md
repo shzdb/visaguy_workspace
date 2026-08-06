@@ -22,22 +22,22 @@ That makes the answer concrete rather than abstract. A lead created by an Indian
 
 That is wrong operationally and wrong for the brand. The customer belongs to the UAE market and must hear from the UAE number, regardless of which office keyed in their details.
 
-A WhatsApp Business Account is nevertheless *owned* by a legal entity — Meta registers it to a company, and template approvals, quality rating, and billing attach there. So Company does appear in this model, but as the owner of the account, not as the lookup key.
+A WhatsApp Business Account is nevertheless *owned* by a legal entity — Meta registers it to a company. That ownership is a fact about the account held in Meta's console; it is not modelled in Frappe and is not part of this decision.
 
 ## Decision
 
 **`Whatsapp Default` is keyed on Zone.** Rename the `company` field to `zone` and retype it as Link → `Zone`.
 
-The `WhatsApp Account` bound to each zone's configuration is owned by whichever company legally holds that account. That ownership is a property of the account, not part of the configuration lookup.
+**One zone has exactly one WhatsApp account.** Multiple numbers per zone are explicitly out of scope and must not be designed for.
 
 Concretely:
 
-| Zone | Whatsapp Default | WhatsApp Account | Account owned by |
-|---|---|---|---|
-| `TVG` | one record | e.g. `Visaguy UAE` | `TVG` |
-| `TVG Qatar` | one record | its own | `TVG Qatar` |
-| `TVG Saudi` | one record | its own | `TVG Saudi` |
-| — | none needed | — | `TVG  India` (back office, no customers) |
+| Zone | Whatsapp Default | WhatsApp Account |
+|---|---|---|
+| `TVG` | one record | e.g. `Visaguy UAE` |
+| `TVG Qatar` | one record | its own |
+| `TVG Saudi` | one record | its own |
+| — | none needed | `TVG  India` is back office, no customers |
 
 `TVG India` needs no `Whatsapp Default` record. Its employees' messages go out under the zone of the lead they are working on, which is exactly the intended behaviour.
 
@@ -57,8 +57,6 @@ The `is_enabled(company, customer)` helper in `whatsapp_default.py` must have it
 
 - Requires a migration: rename and retype the field on `Whatsapp Default`, migrate the existing `TVG` record, and update five lookup sites plus `is_enabled`.
 - A zone with no `Whatsapp Default` record must fail cleanly and observably rather than silently sending nothing.
-- If a single zone ever needs multiple numbers — for example per destination — the key becomes composite. Tracked as FEAT-002 open question 3.
-- Account ownership by company is no longer visible in the configuration lookup, so the mapping from account to legal entity must be documented for compliance and billing purposes.
 
 ## Alternatives considered
 
@@ -77,4 +75,4 @@ The `is_enabled(company, customer)` helper in `whatsapp_default.py` must have it
 
 ## Revisit when
 
-A zone needs more than one WhatsApp number, or a back-office branch begins serving customers directly under its own identity.
+A zone needs more than one WhatsApp number — for example one per destination — which would make the key composite. Deliberately not designed for now. Or a back-office branch begins serving customers directly under its own identity.

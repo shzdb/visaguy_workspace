@@ -6,7 +6,7 @@ This repository is a project workspace, not an application-code repository.
 
 1. Read `README.md`.
 2. Read `.agents/rules/project-rules.md`.
-3. Read relevant documentation and accepted ADRs in `docs/` and `decisions/`.
+3. Read `decisions/README.md` — the ADR index and decision log — plus relevant documentation in `docs/`.
 4. Before changing behaviour in any app, read `docs/architecture/workflows.md` for the end-to-end code flow you are touching.
 5. Read the relevant feature document in `features/`.
 6. For implementation work, use only a task marked `ready` in `tasks/ready/`.
