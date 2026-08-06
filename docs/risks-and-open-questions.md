@@ -51,6 +51,22 @@ Each item uses the workspace evidence labels defined in `AGENTS.md`: **present**
 | 28 | PaddleOCR model availability to production workers is unconfirmed; no live OCR run recorded. Extraction remains source-wired, not runtime-verified. | Integration | configured-unverified |
 | 29 | No frontend repository is cloned on the active workstation, so all recorded frontend HEADs, versions, and risks (#3–#12) are unverified since 2026-07. | Quality | present |
 
+## WhatsApp messaging risks
+
+Found 2026-08-06 while assessing multi-company readiness. Planned in [FEAT-002](../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../features/planned/waflo-correctness/README.md).
+
+| # | Risk / open question | Category | Label |
+|---|---|---|---|
+| 30 | `waflo/flow/processor.py:61` raises `NameError` (`doc` out of scope), swallowed by a broad `except`. `create_active_flow` never runs, so new conversations get no `WF Active Chat Flow` and the initial step can be re-sent on every subsequent inbound message — a customer-visible message loop. | Functionality | source-wired |
+| 31 | The waflo rate limiter never increments on flow paths and is therefore inert whenever the flow engine is enabled. Outbound event messages are not rate limited at all. | Functionality | source-wired |
+| 32 | Rate limit check-then-act is non-atomic (`cache.get_value` then `set_value`), so concurrent workers can exceed the limit under exactly the burst conditions it targets. | Functionality | source-wired |
+| 33 | `waflo/messaging/send.py:29` always resolves the global default outgoing WhatsApp account; `send_whatsapp_template` has no account parameter. All companies would send from one number. | Architecture | runtime-verified |
+| 34 | WhatsApp configuration is looked up by passing `custom_zone` (Link → Zone) into `Whatsapp Default.company` (Link → Company). It resolves only because Zone and Company names currently coincide. Company `TVG  India` (double space) has no matching Zone. | Architecture | runtime-verified |
+| 35 | Six `[x for x in event_template if ...][0]` call sites raise `IndexError` for any company that has not configured every event type. | Functionality | source-wired |
+| 36 | `WF Settings.limit_after` is declared under the Rate Limiting tab but read by no code — a configuration surface that does nothing. | Configuration | source-wired |
+| 37 | `send.py:112` references `frappe.flags.integration_request` in an except block; when a send fails before the request is issued this raises `AttributeError` and masks the original error. | Quality | source-wired |
+| 38 | Rate limiting is scoped per `(account, mobile_no)` with no account-level ceiling, leaving fan-out unbounded against Meta tier limits. | Integration | source-wired |
+
 ## Notes
 
 - Do not mark a `present`, `source-wired`, or `configured-unverified` question as settled without the follow-up evidence required to answer it.

@@ -207,14 +207,41 @@ The full exclusion list and rationale are in [ADR-005](../../decisions/ADR-005-v
 
 ---
 
-## W9 — Inbound WhatsApp → conversational flow → retry
+## W9 — WhatsApp: inbound flows and outbound event messaging
 
-1. `frappe_whatsapp/utils/webhook.py` receives provider callbacks and creates `WhatsApp Message` records.
-2. `waflo` `doc_events` on `WhatsApp Message` route into `waflo/flow/processor.py:process_incoming_whatsapp_message`, which advances the active `WF Active Chat Flow` against `WF Settings`.
-3. `waflo` schedulers run flow expiry on a per-minute cron and retries hourly; `waflo/messaging/retry_message.py:retry_message` is the manual retry API.
-4. Outbound status messaging is separate: `the_visaguy/handlers/whatsapp_message.py:send_lead_updates` and `:send_process_file_updates`.
-5. `the_visaguy/handlers/receive_feedback.py:receive_feedback` captures quality feedback replies.
-6. `frappe_whatsapp` also registers a broad `*` server-script runner in `doc_events` — a wide surface worth auditing before upgrades.
+Two distinct paths share one send function. Traced in detail 2026-08-06.
+
+### W9a — Inbound: provider webhook → conversational flow
+
+1. `frappe_whatsapp/utils/webhook.py` receives provider callbacks and creates `WhatsApp Message` records. The inbound account is resolved by `phone_id` via `frappe_whatsapp/utils/__init__.py:get_whatsapp_account` — **inbound multi-account already works**.
+2. `waflo` `doc_events` on `WhatsApp Message` route into `waflo/flow/processor.py:process_incoming_whatsapp_message`, which enqueues `_process_incoming_whatsapp_message`.
+3. That worker checks `rate_limiting.py:is_rate_limited(account, mobile_no)`. If limited, it sets `custom_rate_limited` on the message and returns.
+4. If `WF Settings.enable_flow_engine` is off, it falls through to `send_default_message(doc)` using `WF Account Settings.default_template`.
+5. Otherwise `process_whatsapp_message` either starts the default `WF Message Flow` or advances the existing `WF Active Chat Flow` via `flow/triggers.py:match_step` and `flow/actions.py:eval_template_params`.
+6. Schedulers run flow expiry on a per-minute cron and retries hourly; `waflo/messaging/retry_message.py:retry_message` is the manual retry API.
+7. `the_visaguy/handlers/receive_feedback.py:receive_feedback` captures quality feedback replies.
+
+### W9b — Outbound: business event → auto message / feedback
+
+1. `doc_events` in `the_visaguy/hooks.py` fire `handlers/whatsapp_message.py:send_lead_updates` (Lead, CRM Lead) and `:send_process_file_updates` (PF Process File).
+2. Each checks `doc.has_value_changed(...)` on a trigger field — `custom_file_request_link_sent`, `custom_process_file_created`, `custom_payment_received`, or `workflow_state` — and enqueues a private `_send_*` worker with `enqueue_after_commit=True`.
+3. The worker calls `whatsapp_default.is_enabled(company, customer)`, which checks both the company's `Whatsapp Default.enabled` flag and the customer's `custom_enable_whatsapp_notifications` preference.
+4. It loads `Whatsapp Default` for the company and picks the template for the event from the `event_template` child table, plus a header image from `feedback_defaults` for feedback events.
+5. It calls `waflo/messaging/send.py:send_whatsapp_template`, which builds the Meta payload and posts to `{account.url}/{version}/{phone_id}/messages`, then logs via `messaging/logs.py:log_whatsapp_message`.
+
+Event types today: Lead Form, Process Form, Payment Success, Visa Completion (auto) and Payment Feedback, Completion Feedback (feedback, sent with `use_flow=True`).
+
+### Known defects in this workflow
+
+This path has open defects, planned in [FEAT-002](../../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../../features/planned/waflo-correctness/README.md). Read those before changing anything here.
+
+- **`send.py:29` always resolves the global default outgoing account.** `send_whatsapp_template` takes no account parameter, so every outbound message leaves from one number regardless of company. This is the multi-company blocker.
+- **`processor.py:61` raises `NameError`** (`doc` not in scope), which is swallowed by a broad `except`. `create_active_flow` on the next line never runs, so new conversations get no `WF Active Chat Flow` record and the initial step can be re-sent on every subsequent inbound message.
+- **The rate limiter never increments on flow paths**, so it is inert whenever the flow engine is enabled. W9b is not rate limited at all.
+- **Configuration lookup keys a Zone name into a Company field** (`{"company": doc.custom_zone}`), resolving only because the names currently coincide. See [ADR-006](../../decisions/ADR-006-whatsapp-company-configuration-key.md).
+- **Unconfigured event types raise `IndexError`** at six `[...][0]` call sites.
+
+`frappe_whatsapp` also registers a broad `*` server-script runner in `doc_events` — a wide surface worth auditing before upgrades.
 
 **Note.** FEAT-001 explicitly excludes WhatsApp conversational status retrieval. WhatsApp will only deep-link to the public tracker.
 
