@@ -225,8 +225,8 @@ Two distinct paths share one send function. Traced in detail 2026-08-06.
 
 1. `doc_events` in `the_visaguy/hooks.py` fire `handlers/whatsapp_message.py:send_lead_updates` (Lead, CRM Lead) and `:send_process_file_updates` (PF Process File).
 2. Each checks `doc.has_value_changed(...)` on a trigger field — `custom_file_request_link_sent`, `custom_process_file_created`, `custom_payment_received`, or `workflow_state` — and enqueues a private `_send_*` worker with `enqueue_after_commit=True`.
-3. The worker calls `whatsapp_default.is_enabled(company, customer)`, which checks both the company's `Whatsapp Default.enabled` flag and the customer's `custom_enable_whatsapp_notifications` preference.
-4. It loads `Whatsapp Default` for the company and picks the template for the event from the `event_template` child table, plus a header image from `feedback_defaults` for feedback events.
+3. The worker calls `whatsapp_default.is_enabled(company, customer)` — the parameter is named `company` but every caller passes `doc.custom_zone`, a **Zone**. It checks the `Whatsapp Default.enabled` flag and the customer's `custom_enable_whatsapp_notifications` preference.
+4. It loads `Whatsapp Default` for that zone and picks the template for the event from the `event_template` child table, plus a header image from `feedback_defaults` for feedback events.
 5. It calls `waflo/messaging/send.py:send_whatsapp_template`, which builds the Meta payload and posts to `{account.url}/{version}/{phone_id}/messages`, then logs via `messaging/logs.py:log_whatsapp_message`.
 
 Event types today: Lead Form, Process Form, Payment Success, Visa Completion (auto) and Payment Feedback, Completion Feedback (feedback, sent with `use_flow=True`).
@@ -238,7 +238,7 @@ This path has open defects, planned in [FEAT-002](../../features/planned/multi-c
 - **`send.py:29` always resolves the global default outgoing account.** `send_whatsapp_template` takes no account parameter, so every outbound message leaves from one number regardless of company. This is the multi-company blocker.
 - **`processor.py:61` raises `NameError`** (`doc` not in scope), which is swallowed by a broad `except`. `create_active_flow` on the next line never runs, so new conversations get no `WF Active Chat Flow` record and the initial step can be re-sent on every subsequent inbound message.
 - **The rate limiter never increments on flow paths**, so it is inert whenever the flow engine is enabled. W9b is not rate limited at all.
-- **Configuration lookup keys a Zone name into a Company field** (`{"company": doc.custom_zone}`), resolving only because the names currently coincide. See [ADR-006](../../decisions/ADR-006-whatsapp-company-configuration-key.md).
+- **Configuration lookup keys a Zone name into a Company field** (`{"company": doc.custom_zone}`), resolving only because the names currently coincide. The callers are right — WhatsApp is customer-facing and therefore Zone-scoped — and the field is wrong. See [ADR-006](../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md).
 - **Unconfigured event types raise `IndexError`** at six `[...][0]` call sites.
 
 `frappe_whatsapp` also registers a broad `*` server-script runner in `doc_events` — a wide surface worth auditing before upgrades.

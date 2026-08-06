@@ -45,6 +45,35 @@
 └─────────────────────────────┴─────────────────────────────┴──────────────────┘
 ```
 
+## Core domain axes — Zone and Company
+
+Read this before designing anything that scopes data. Getting it wrong is invisible in a single-market setup and expensive later. Full rationale in [ADR-006](../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md).
+
+**Zone and Company are independent axes carried on the same record. Neither derives from the other.**
+
+| | Zone | Company |
+|---|---|---|
+| Means | The operational **market** an employee works in | The **legal entity** employing the person |
+| Drives | Lead management, operations, permission scoping, currency, customer-facing identity | Invoicing, payroll, statutory and GST compliance, HR |
+| Example attribute | `Zone.currency` | Employment and financial records |
+| Set by | `visaguy_frappe_crm/functions/add_zone.py` from the session user's Employee | same function, independently |
+
+Current values: zones `TVG`, `TVG Qatar`, `TVG Saudi`; companies `TVG`, `TVG Qatar`, `TVG Saudi`, `TVG  India`.
+
+**`TVG India` is a back-office branch.** Its employees work in India but handle leads and operations belonging to the UAE or Qatar markets. So a Lead can legitimately carry `custom_zone = TVG` (UAE market) and `custom_company = TVG India` (the entity that employs whoever created it), and staff assigned to the `TVG` zone can access it.
+
+This is why there are four companies but three zones. **The missing `TVG India` zone is correct by design, not a data gap** — a back office serves other zones and has no customers of its own.
+
+Three of the four names coincide, which makes wrong code look right during development. Do not rely on name matching between the two axes. Note also that `TVG  India` contains a double space.
+
+### Routing rule
+
+- **Customer-facing → Zone.** WhatsApp numbers and messaging configuration, currency, market defaults, communication branding.
+- **Legal, financial, HR → Company.** Invoices, payroll, statutory compliance.
+- **Permission scoping → either, by configuration.** `visaguy_frappe_crm/functions/lead_restrictions.py` branches on `TVG User Restriction.lead_manager_company_restriction` versus `.lead_manager_zone_restriction`.
+
+When a question presents itself as "which company owns this", check whether it is really "which market is this customer in". If it is customer-visible, the answer is Zone.
+
 ## Trust boundaries and data flow
 
 | Boundary | From | To | Evidence | Status |

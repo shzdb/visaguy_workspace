@@ -13,6 +13,14 @@ This repository is a project workspace, not an application-code repository.
 7. Load the applicable workflow under `.agents/skills/` when present.
 8. For questions about libraries, frameworks, API references, or CLI commands, use the available Context7 integration first. If it is unavailable or returns no relevant documentation, state that and fall back to the product's official primary documentation or installed CLI help. Use `.agents/` for this workspace's canonical rules, skills, and templates.
 
+## Core domain rule
+
+**Zone and Company are independent axes.** Zone is the customer-facing market; Company is the employing legal entity. Neither derives from the other, and three of the four names coincide — so keying the wrong one looks correct until a back-office record passes through it.
+
+Customer-facing scoping uses **Zone**. Legal, financial, and HR scoping uses **Company**. Permission scoping may use either, by configuration.
+
+Read `docs/architecture/system-overview.md` § Core domain axes and `decisions/ADR-006` before designing anything that scopes data.
+
 ## Authority model
 
 - This workspace is authoritative for intent, decisions, status, risks, and open questions.
