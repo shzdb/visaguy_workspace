@@ -26,6 +26,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 - [`architecture/frontends.md`](architecture/frontends.md) — frontend architecture, auth models, and API contracts.
 - [`architecture/customizations.md`](architecture/customizations.md) — customization precedence, hooks, overrides, fixtures, schedulers, patches, and upgrade gates.
 - [`architecture/integrations.md`](architecture/integrations.md) — integration matrix using the four-level verification model.
+- [`architecture/frappe-whatsapp-upstream-gap.md`](architecture/frappe-whatsapp-upstream-gap.md) — 21 unmerged upstream commits, what they change, and whether they replace what we rebuilt in `waflo`.
 
 ### Operations
 
