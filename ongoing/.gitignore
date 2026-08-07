@@ -1,4 +1,7 @@
-# Executor clones hold application code and must never be committed here (ADR-001).
+# Executor worktrees and app clones hold application code and must never be committed here (ADR-001).
+# Clone directories are named after the app they contain, so list them explicitly.
 */worktree
+*/repo
 multi-zone-whatsapp/waflo
 multi-zone-whatsapp/the_visaguy
+visaguy-crm-trigger-fix/repo
