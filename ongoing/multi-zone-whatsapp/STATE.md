@@ -17,7 +17,7 @@ Verified 2026-08-06. Executors must not re-derive these.
 
 `waflo`'s FEAT-002 work sits **on top of** `feat/waflo-correctness` because M1–M4 restructure the same `send_whatsapp_template` that FEAT-003 rewrote. Branching off `develop` would guarantee conflicts in `send.py`.
 
-Consequence: **deploying FEAT-002 deploys FEAT-003 with it.** They can no longer ship independently. TASK-017's prerequisites therefore also gate FEAT-002.
+The coupling is **one-way**. `feat/multi-zone-whatsapp` contains all six FEAT-003 commits, so merging it into `develop` ships both features — FEAT-003 needs no separate merge. FEAT-002 cannot ship without FEAT-003. But `feat/waflo-correctness` remains a clean fast-forward from `develop` with no FEAT-002 code, so FEAT-003 can still ship alone if the risk is to be staged. TASK-017's prerequisites gate FEAT-002 either way.
 
 ## Owner decisions applied
 

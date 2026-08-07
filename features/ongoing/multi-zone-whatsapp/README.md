@@ -273,7 +273,15 @@ Plus a bound `whatsapp_account`. A zone cannot be enabled with any of these miss
 
 Implementation started 2026-08-06. The `waflo` work is branched off **`feat/waflo-correctness`**, not off `develop`, because M1–M4 restructure the same `send_whatsapp_template` that FEAT-003 rewrote. Branching off `develop` would guarantee conflicts in `send.py`.
 
-**Consequence: deploying FEAT-002 deploys FEAT-003 with it.** They can no longer ship independently, and [TASK-017](../../../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md)'s three prerequisites therefore gate this feature too:
+### The coupling is one-way
+
+`feat/multi-zone-whatsapp` contains **all six FEAT-003 commits**, so:
+
+- Merging `feat/multi-zone-whatsapp` into `develop` ships **both features**. FEAT-003 does **not** need a separate merge.
+- FEAT-002 **cannot** ship without FEAT-003.
+- But `feat/waflo-correctness` @ `56899f2` remains on the remote as a clean fast-forward from `develop` with no FEAT-002 code, so **FEAT-003 can still ship alone** if you want to stage the risk.
+
+One merge is simpler; two merges isolate which feature caused a regression. Either way, [TASK-017](../../../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md)'s three prerequisites gate this feature, because its changes ship regardless:
 
 1. No end-to-end retry test has run.
 2. `bench migrate` has not exercised the `limit_after` removal patch.

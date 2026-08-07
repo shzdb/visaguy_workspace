@@ -83,4 +83,10 @@ M7/M8 (extensible `Whatsapp Event Type` DocType) deferred per owner decision —
 
 ## Deployment coupling
 
-`waflo`'s branch sits on top of `feat/waflo-correctness`. **Deploying FEAT-002 deploys FEAT-003 with it**, so [TASK-017](../../blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md)'s prerequisites gate this feature too.
+`waflo`'s branch sits on top of `feat/waflo-correctness` and contains all six of its commits.
+
+- Merging `feat/multi-zone-whatsapp` into `develop` ships **both** features; FEAT-003 needs **no separate merge**.
+- FEAT-002 cannot ship without FEAT-003.
+- `feat/waflo-correctness` @ `56899f2` is still on the remote as a clean fast-forward from `develop` with no FEAT-002 code, so FEAT-003 **can** still ship alone if the risk is to be staged.
+
+[TASK-017](../../blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md)'s prerequisites gate this feature either way.

@@ -31,6 +31,19 @@ Promote `feat/waflo-correctness` into `develop` and then `main`, and deploy to s
 
 Pushed to `tridz-dev/waflo` as of 2026-08-06. Single repository — no cross-app merge ordering required, unlike FEAT-001.
 
+### Two ways to land this
+
+FEAT-002's `waflo` branch, `feat/multi-zone-whatsapp` @ `f81fe81`, was created off this branch and **contains all six of its commits**.
+
+| Option | What lands | Trade-off |
+|---|---|---|
+| Merge `feat/waflo-correctness` alone | FEAT-003 only | Smaller blast radius. A regression is unambiguously attributable. FEAT-002 merges later. |
+| Merge `feat/multi-zone-whatsapp` | FEAT-003 **and** FEAT-002 | One merge instead of two. **No separate FEAT-003 merge is needed.** A regression could come from either feature. |
+
+`feat/waflo-correctness` remains a clean fast-forward from `develop` carrying no FEAT-002 code, so both options stay open.
+
+**Recommended: land FEAT-003 alone first.** Its changes sit on the live send path for every message VisaGuy sends, and its riskiest gap — no end-to-end retry test — is easier to diagnose without multi-zone changes layered on top. FEAT-002 cannot go live before its own blocker anyway: no second `WhatsApp Account` exists yet ([TASK-018](../multi-zone-whatsapp/TASK-018-tvg-qatar-meta-prerequisites.md)).
+
 ## Blocking prerequisites
 
 These are not optional. Each is a gap TASK-016 recorded honestly rather than papering over.
