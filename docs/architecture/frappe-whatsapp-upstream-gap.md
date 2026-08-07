@@ -111,15 +111,54 @@ Worth knowing before anyone proposes deleting `waflo`'s send layer:
 - `notify()`'s `except` block calls `frappe.flags.integration_request.json()` unguarded — the same defect as FEAT-003 **D8**. When a send fails before the request is issued, this raises `AttributeError` and masks the original error.
 - **No rate limiting of any kind.** Anything calling `frappe_whatsapp` directly bypasses our limiter entirely, which is the known cost recorded in ADR-009.
 
+## "If we pull but don't use the new features, is there an issue?"
+
+Largely no. Verified against the live site, 2026-08-06.
+
+### Our coupling to `frappe_whatsapp` is one function
+
+```
+$ grep -rn "from frappe_whatsapp" apps/waflo apps/the_visaguy
+waflo/waflo/messaging/send.py:11: from frappe_whatsapp.utils import get_whatsapp_account
+```
+
+That is the **entire** code-level dependency. `the_visaguy` imports nothing. And `get_whatsapp_account` is **unchanged** across all 21 commits.
+
+### The new features are genuinely unused
+
+| Feature | Our usage |
+|---|---|
+| `WhatsApp Notification` (changed dispatcher, new account field) | **0 records** |
+| Bulk messaging (retry, `scheduled_time`, new scheduler job) | **0 records** |
+| Catalog / MPM | not used |
+| S3 media URLs | not used |
+| Upstream `send_template` button filtering (`5b874db`) | **not called** — `waflo` builds its own Meta payload |
+
+All 107 outgoing messages are `Template`/`text`, created by `waflo`'s own logger. Nothing routes through upstream's template sender.
+
+### What changes anyway — the honest residue
+
+Three things are not opt-in:
+
+1. **The inbound webhook path.** `webhook.py` (+28), `8441c38` (template status-update events no longer dropped), `87f48aa` (framework-managed columns in `data_fields`). **We do use inbound** — `waflo` processes incoming messages — so this is the one genuine exposure. `8441c38` in particular means *new* events start being processed that were previously discarded.
+2. **Schema.** `whatsapp_message.json` gains ~30 lines; `bench migrate` applies them. Additive, and a checkout does not undo it.
+3. **A new scheduler event**, `process_scheduled_bulk_messages`, on the `all` hook — runs every tick. With zero bulk messages it should be inert, but it is new recurring code executing unbidden.
+
+### Revised assessment
+
+The blast radius is **much smaller than a 21-commit diff suggests**, because our integration surface is one unchanged function and we use none of the new features. The residual risk is the inbound webhook path and additive schema.
+
+The **timing** argument still stands on its own: FEAT-002 and FEAT-003 are implemented and unmerged in this exact area. Pulling underneath them makes any regression ambiguous — not because the pull is dangerous, but because two large changes at once are hard to attribute.
+
 ## Proposed plan
 
 Sequenced so nothing collides with work already in flight. **`waflo` and `the_visaguy` currently have unmerged branches touching this exact area** (FEAT-002, FEAT-003), so timing matters more than usual.
 
-### Phase 0 — do not pull yet
+### Phase 0 — sequence, don't block
 
-FEAT-002 and FEAT-003 are implemented, verified, and **unmerged**. Pulling 21 upstream commits underneath them would mix two large changes and make any regression ambiguous.
+The pull itself is low risk (see the opt-in analysis above). The reason to wait is **attribution**, not danger: FEAT-002 and FEAT-003 are implemented and unmerged in this exact area, and landing two large changes together makes a regression hard to trace.
 
-**Land FEAT-003 (and optionally FEAT-002) first, let it settle, then take upstream.**
+**Land FEAT-003 first, let it settle, then take upstream.** If that ordering is inconvenient, pulling first is defensible — just don't do both in one deploy.
 
 ### Phase 1 — dry-run the pull in isolation
 
