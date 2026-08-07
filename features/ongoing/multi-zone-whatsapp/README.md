@@ -1,7 +1,7 @@
 ---
 id: FEAT-002
 title: Multi-zone configurable WhatsApp auto messages and feedback
-status: planned
+status: ongoing
 priority: high
 repositories:
   - the_visaguy
@@ -16,6 +16,23 @@ updated: 2026-08-06
 ---
 
 # Multi-zone configurable WhatsApp auto messages and feedback
+
+## Current status
+
+**Implemented and verified on the dev site. Not merged, not deployed, and multi-zone behaviour not yet proven with real accounts.**
+
+| Task | State |
+|---|---|
+| [TASK-018](../../../tasks/ready/multi-zone-whatsapp/TASK-018-tvg-qatar-meta-prerequisites.md) — Qatar WABA, number, templates | **ready — critical path, start now** |
+| [TASK-019](../../../tasks/completed/multi-zone-whatsapp/TASK-019-implement-zone-routing.md) — zone routing and config model | completed |
+| [TASK-020](../../../tasks/blocked/multi-zone-whatsapp/TASK-020-configure-tvg-qatar.md) — configure Qatar and prove routing | blocked |
+
+Branches: `waflo` `feat/multi-zone-whatsapp` @ `f81fe81`, `the_visaguy` @ `aa3ef89`. Both pushed.
+
+Verified on `visaguy`: `waflo` **28/28**, `the_visaguy` **13/13**, and `bench migrate` confirmed the Company→Zone backfill against real data.
+
+**What is not proven:** with only one `WhatsApp Account` configured, every runtime path still resolves to `Visaguy UAE`. Routing is exercised by mocks. TASK-020 is the first genuine multi-zone test.
+
 
 > **Terminology.** This feature is scoped by **Zone**, not Company. Per [ADR-006](../../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md), Zone is the customer-facing market and Company is the employing legal entity, and the two are independent. A customer must always hear from the WhatsApp number of the zone serving them, whichever office does the work. See [ADR-007](../../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md).
 

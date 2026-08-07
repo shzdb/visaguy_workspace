@@ -235,7 +235,7 @@ Event types today: Lead Form, Process Form, Payment Success, Visa Completion (au
 
 ### Known defects in this workflow
 
-This path has open defects, planned in [FEAT-002](../../features/planned/multi-company-whatsapp/README.md) and [FEAT-003](../../features/ongoing/waflo-correctness/README.md). Read those before changing anything here.
+This path has open defects, planned in [FEAT-002](../../features/ongoing/multi-zone-whatsapp/README.md) and [FEAT-003](../../features/ongoing/waflo-correctness/README.md). Read those before changing anything here.
 
 **The defects below describe the currently deployed system.** FEAT-003 fixes most of them on branch `feat/waflo-correctness` @ `56899f2` (20/20 tests pass), but that branch is **not merged and not deployed** — so this section stays as written until [TASK-017](../../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md) records both deployment gates. The FEAT-002 items (account routing, Zone keying, unconfigured event types) are not addressed by that branch at all.
 

@@ -2,7 +2,7 @@
 
 How to configure a new zone — TVG Qatar first — to send its own WhatsApp auto messages and feedback messages.
 
-**Prerequisite: FEAT-002 must be deployed.** Before it is, `waflo` resolves a single globally-flagged outgoing account and ignores per-zone configuration entirely. Configuring a zone early has no effect, and would push that zone's templates through the wrong WhatsApp Business Account — where they do not exist, so Meta rejects the send. See [FEAT-002](../../features/planned/multi-company-whatsapp/README.md).
+**Prerequisite: FEAT-002 must be deployed.** Before it is, `waflo` resolves a single globally-flagged outgoing account and ignores per-zone configuration entirely. Configuring a zone early has no effect, and would push that zone's templates through the wrong WhatsApp Business Account — where they do not exist, so Meta rejects the send. See [FEAT-002](../../features/ongoing/multi-zone-whatsapp/README.md).
 
 Keyed on **Zone**, not Company. Zone is the customer-facing market; Company is the employing legal entity. `TVG India` is back office — it serves other zones, has no zone of its own, and needs no WhatsApp configuration. See [ADR-006](../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md).
 

@@ -23,7 +23,7 @@ Verified against the remote bench on 2026-08-06.
 - **Active feature work**:
   - [FEAT-001 visa tracking and passport extraction](features/ongoing/visa-tracking/README.md) — backend complete on `feat/visa-tracker` in `the_visaguy`, `fileflo`, `passport_extractor`; pushed; SPA not started.
   - [FEAT-003 waflo correctness](features/ongoing/waflo-correctness/README.md) — implemented and verified on `feat/waflo-correctness` @ `56899f2`, 20/20 tests pass; three prerequisites before deployment.
-  - Planned: [FEAT-002 multi-zone WhatsApp](features/planned/multi-company-whatsapp/README.md), [FEAT-004 WhatsApp flow engine](features/planned/whatsapp-flow-engine/README.md).
+  - Planned: [FEAT-002 multi-zone WhatsApp](features/ongoing/multi-zone-whatsapp/README.md), [FEAT-004 WhatsApp flow engine](features/planned/whatsapp-flow-engine/README.md).
 - **Nothing is merged or deployed.** Every branch above is unmerged. Merging and deploying are manual and owner-only — see [ADR-008](decisions/ADR-008-deployment-authority-and-completion-gates.md).
 - **Environments**: `visaguy` on `erpcode.tridz.in` is a **development** site. Production is a separate server this project has no access to; do not infer production state from the dev bench.
 - **Known blockers before clean upgrades**: 5 dirty working trees (`insights`, `mansico_meta_integration`, `processflo`, `visaguy_frappe_crm`, `visaguy_raven`); several non-standard branches; overlapping CRM/helpdesk/HRMS/Raven customization layers; 3 unmerged FEAT-001 feature branches.

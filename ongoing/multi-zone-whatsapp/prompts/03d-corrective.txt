@@ -1,0 +1,90 @@
+CORRECTIVE MICRO-TASK. Commits 7ffaa26 and 280ec5e are otherwise accepted. Two defects found
+by actually running the suite and the migration on the `visaguy` dev site.
+
+GROUND FACTS (verified by the orchestrator on the live bench — do NOT re-derive, do NOT argue):
+
+- Work ONLY in the `the_visaguy/` clone. Branch `feat/multi-zone-whatsapp` @ 280ec5e.
+  DO NOT touch the `waflo/` clone.
+- The suite now RUNS. Command that works on this bench:
+      bench --site visaguy run-tests --app the_visaguy --skip-test-records
+  `--skip-test-records` is required because a pre-existing site customization makes
+  `custom_display_name` mandatory on Company, so Frappe's stock test-record bootstrap fails.
+  That is NOT your problem to fix.
+- Current result: **Ran 12 tests, FAILED (errors=2)**. Both errors are in YOUR TEST CODE,
+  not in the implementation.
+- `bench migrate` was run on `visaguy`. The zone backfill WORKED: the single row is now
+  name="TVG", zone="TVG", company="TVG", enabled=1. The patch is recorded in Patch Log.
+
+DEFECT 1 — test mocks use the wrong object type
+
+Both failures:
+    AttributeError: 'types.SimpleNamespace' object has no attribute 'get'
+    at receive_feedback.py:16  ->  if doc.get("whatsapp_account"):
+
+Failing tests, both in `the_visaguy/tests/test_whatsapp_handlers.py`:
+  - TestFeedbackZoneResolution.test_resolves_zone_from_inbound_whatsapp_account
+  - TestFeedbackZoneResolution.test_feedback_uses_zone_b_parent_not_tvg
+
+The IMPLEMENTATION is correct — a real Frappe Document supports `.get()`. The TEST is wrong:
+it passes a `types.SimpleNamespace`, which does not.
+
+Fix the tests, NOT the implementation. Do not weaken `receive_feedback.py` to accommodate a
+bad mock — for example, do not replace `doc.get("x")` with `getattr(doc, "x", None)` just to
+make a SimpleNamespace work. Use a mock that behaves like a Frappe Document: either
+`frappe._dict` (which supports both attribute and `.get()` access) or a small stub class that
+implements `get()`.
+
+Check EVERY test in that file for the same mistake, not only the two that happened to fail.
+
+DEFECT 2 — the migration leaves live configuration unsaveable
+
+After `bench migrate`, the live `Whatsapp Default` row is:
+    name="TVG", zone="TVG", company="TVG", whatsapp_account=NULL, enabled=1
+
+But the `validate` you added in 7ffaa26 REQUIRES `whatsapp_account` when `enabled = 1`.
+
+So the existing production-equivalent record now fails validation on its next save. Sending
+still works — the handler passes None and `waflo` falls back to the default outgoing account —
+but any edit to that record is rejected. A migration must not leave live configuration in a
+state that cannot be saved.
+
+Fix: extend `the_visaguy/the_visaguy/patches/backfill_whatsapp_default_zone.py` to ALSO
+backfill `whatsapp_account` for rows that have none, using the account currently flagged
+`is_default_outgoing`. That is the account those rows already send from in practice, so this
+preserves existing behaviour exactly.
+
+Requirements for the extension:
+  - only fill rows where `whatsapp_account` is empty — never overwrite a set value
+  - if no account is flagged `is_default_outgoing`, log loudly and leave it unset; do NOT guess
+  - remain idempotent and safe to re-run
+  - the patch has ALREADY RUN on `visaguy` and is recorded in Patch Log, so it will not re-run
+    there. Rename the patch module (and its `patches.txt` entry) so the corrected version
+    executes, OR add a second patch. Your choice — state which and why in your log.
+  - update the module docstring to describe both backfills
+
+TASKS:
+
+D1. Fix the test mocks (Defect 1). Sweep the whole test file.
+D2. Fix the migration (Defect 2), including the rename-or-add-second-patch decision.
+D3. Add a test asserting that after the backfill, an enabled row with no account gets the
+    default outgoing account, and that a row with an account already set is untouched.
+
+POLICIES:
+- Do NOT modify `receive_feedback.py`, `whatsapp_message.py`, or `whatsapp_default.py` logic.
+  The implementation is correct; only tests and the patch change.
+- Do NOT touch `waflo`.
+- Do NOT weaken the M9 validation to accommodate the null account — fix the data, not the rule.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- `grep -rn "SimpleNamespace" the_visaguy/the_visaguy/tests/` returns NOTHING.
+- `receive_feedback.py` still uses `doc.get(` — confirm you did not change it.
+- `git -C ../waflo status --porcelain` is empty.
+
+COMMIT: one commit, message starting `fix(whatsapp):`. Local only.
+
+OUTPUT: write to ../03d-corrective.md: what the mocks became, the patch rename/second-patch
+decision and why, and what the new test asserts.
+
+REPLY ONLY with this single line:
+SHA=<sha> MOCKS_FIXED=<count> PATCH_STRATEGY=<rename|second> TESTS_ADDED=<count> COMPILE=<pass|fail> UNCERTAIN=<none|short phrase>

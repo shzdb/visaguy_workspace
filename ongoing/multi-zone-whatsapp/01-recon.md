@@ -7,7 +7,7 @@ Read-only. Verified 2026-08-07 against local clones:
 | `waflo` | `feat/multi-zone-whatsapp` | `56899f2` | clean |
 | `the_visaguy` | `feat/multi-zone-whatsapp` | `e690b5b` | clean |
 
-Spec: `features/planned/multi-company-whatsapp/README.md` (FEAT-002). M7/M8 deferred per STATE.md.
+Spec: `features/ongoing/multi-zone-whatsapp/README.md` (FEAT-002). M7/M8 deferred per STATE.md.
 
 **Path note:** Actual send module is `waflo/waflo/waflo/messaging/send.py` (three `waflo` segments). Spec short form `waflo/waflo/messaging/send.py` maps to that file. Spec line numbers for M1–M4 are **stale** (pre–FEAT-003 rewrite); current lines below are authoritative.
 

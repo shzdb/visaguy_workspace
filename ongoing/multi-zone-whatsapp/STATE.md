@@ -2,7 +2,7 @@
 
 Verified 2026-08-06. Executors must not re-derive these.
 
-- Task: implement [FEAT-002](../../features/planned/multi-company-whatsapp/README.md), modifications M1–M6b and M9–M16.
+- Task: implement [FEAT-002](../../features/ongoing/multi-zone-whatsapp/README.md), modifications M1–M6b and M9–M16.
 - **Scoped by Zone, not Company.** Zone is the customer-facing market; Company is the employing legal entity. `TVG India` is back office and serves other zones. See [ADR-006](../../decisions/ADR-006-zone-and-company-as-distinct-domain-axes.md) and [ADR-007](../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md).
 - Repos and branches, both `feat/multi-zone-whatsapp`:
   - `waflo` @ `56899f2` — branched off `feat/waflo-correctness`, **not** off `develop`.
@@ -33,16 +33,20 @@ Consequence: **deploying FEAT-002 deploys FEAT-003 with it.** They can no longer
 
 | # | phase | output | status |
 |---|-------|--------|--------|
-| 1 | Recon across both repos | `01-recon.md` | pending |
-| 2 | Triage (orchestrator) | `02-triage.md` | pending |
-| 3a | `waflo` send path — M1–M4 | `03a-waflo-routing.md` | pending |
-| 3b | `the_visaguy` config model — M5, M6, M6b, M9 + migration | `03b-config-model.md` | pending |
-| 3c | `the_visaguy` handlers — M10–M16 | `03c-handlers.md` | pending |
-| 4 | Verify on `visaguy` | `04-verify.md` | pending |
-| 5 | Final report + workspace reconciliation | — | pending |
+| 1 | Recon across both repos | `01-recon.md` | done |
+| 2 | Triage (orchestrator) | `02-triage.md` | done |
+| 3a | `waflo` send path — M1–M4, F2, F3 | `03a-waflo-routing.md` | done — `f81fe81` |
+| 3b | `the_visaguy` config model — M5, M6, M6b, M9 + migration | `03b-config-model.md` | done — `7ffaa26` |
+| 3c | `the_visaguy` handlers — M10–M16, F1 | `03c-handlers.md` | done — `280ec5e` |
+| 3d | Corrective — test mocks, account backfill | `03d-corrective.md` | done — `aa3ef89` |
+| 4 | Verify on `visaguy` | `04-verify.md` | done — 28/28 + 13/13, migrate verified |
+| 5 | Final report + workspace reconciliation | `tasks/*/multi-zone-whatsapp/` | done |
 
 # Decisions log
 
 - 2026-08-06: `waflo` branched off `feat/waflo-correctness` rather than `develop`, accepting deployment coupling, because both features restructure `send_whatsapp_template`.
 - 2026-08-06: `the_visaguy` branched off `main`. Its unmerged `feat/visa-tracker` adds a separate `visa_tracking/` module and does not touch `handlers/whatsapp_message.py`, so the two branches are independent.
 - 2026-08-06: M7/M8 deferred; skip-with-warning on missing config; explicit per-zone configuration, no inheritance.
+- 2026-08-06: `bench migrate` on `visaguy` exposed a defect no unit test could: the first backfill left `whatsapp_account` NULL on an enabled row, which the new M9 validation requires, making live configuration unsaveable. Patch extended to backfill the default outgoing account and renamed so it re-executes. Verified by a successful save cycle.
+- 2026-08-06: First `the_visaguy` suite run failed on test mocks using `types.SimpleNamespace` (no `.get()`). Corrective explicitly forbade weakening `receive_feedback.py` to accommodate the bad mock. Nine mocks corrected.
+- 2026-08-06: `--skip-test-records` is required to run `the_visaguy` tests on this bench, due to a pre-existing mandatory `custom_display_name` on Company.
