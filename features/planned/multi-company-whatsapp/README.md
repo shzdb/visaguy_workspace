@@ -35,6 +35,27 @@ What actually blocks a second company is narrower and sharper:
 
 Verified against the remote bench on 2026-08-06. `the_visaguy` on `main` @ `e690b5b`, `waflo` on `develop` @ `2167958`, `frappe_whatsapp` on `master` @ `27f3438`.
 
+### Template records are per-account, and their names collide
+
+Found 2026-08-06 while scoping the TVG Qatar rollout. **Not previously in this plan.**
+
+`WhatsApp Templates` carries a `whatsapp_account` Link and is autonamed `format:{template_name}-{language_code}`. All seven existing records are bound to `Visaguy UAE`:
+
+`default_reply-en`, `hello_world-en_US`, `lead_form-en`, `payment_success-en`, `process_form-en`, `payment_completion_feedback-en`, `visa_completion_feedback-en` — all `APPROVED`.
+
+Meta approves templates **per WABA**, so each zone needs its own template records. But a second zone cannot create `lead_form-en` — the name is taken.
+
+**Resolution, without modifying `frappe_whatsapp`:** `template_name` is the Frappe-side identity and `actual_name` is the name sent to Meta (`send.py` looks up `actual_name` and puts that in the payload). So a zone suffix on `template_name` with an unchanged `actual_name` resolves the collision:
+
+| Zone | `template_name` | `actual_name` (Meta) | `whatsapp_account` |
+|---|---|---|---|
+| TVG | `lead_form` | `lead_form` | `Visaguy UAE` |
+| TVG Qatar | `lead_form_qatar` | `lead_form` | `Visaguy Qatar` |
+
+This must be a documented naming convention, applied consistently. `Whatsapp Default.event_template` links to the record, so each zone's rows point at its own templates and nothing else changes.
+
+Rejected alternative: changing the `WhatsApp Templates` autoname to include the account. That means modifying an app we do not maintain — see [ADR-009](../../../decisions/ADR-009-waflo-as-maintained-whatsapp-extension-layer.md).
+
 ### Current data state
 
 | Entity | Records |
@@ -130,7 +151,8 @@ D8–D11 in [FEAT-003](../../ongoing/waflo-correctness/README.md) touch the same
 
 | # | Task | Repository | Depends on |
 |---|---|---|---|
-| 1 | Preflight: branch setup, confirm line references | both | FEAT-003 task 1 |
+| 0 | [TASK-018](../../../tasks/ready/multi-zone-whatsapp/TASK-018-tvg-qatar-meta-prerequisites.md) — TVG Qatar WABA, number, template approval | external (Meta) | none — **ready now, critical path** |
+| 1 | Preflight: branch setup, confirm line references | both | FEAT-003 deployed |
 | 2 | Account routing through the send path — M1–M4 | `waflo` | 1 |
 | 3 | Rekey `Whatsapp Default` to Zone, with migration — M6, M6b | `the_visaguy` | 1 |
 | 4 | Config model: account binding, event types, validation — M5, M7, M8, M9 | `the_visaguy` | 3 |
