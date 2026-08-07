@@ -1,0 +1,120 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue):
+
+- Work ONLY in the `the_visaguy/` clone in the current directory. Branch
+  `feat/multi-zone-whatsapp` @ e690b5b, clean. DO NOT touch the `waflo/` clone.
+- **Zone and Company are INDEPENDENT axes.** Zone is the customer-facing market; Company is
+  the employing legal entity. `TVG India` is a back-office branch serving other zones — it has
+  no zone and needs no WhatsApp config. There are 4 companies and 3 zones, and that asymmetry
+  is CORRECT.
+- Live data: exactly ONE `Whatsapp Default` record, named `TVG`, with `company = "TVG"`,
+  `enabled = 1`. Zones are `TVG`, `TVG Qatar`, `TVG Saudi`. Companies are `TVG`, `TVG Qatar`,
+  `TVG Saudi`, `TVG  India` (note the double space).
+- Every caller ALREADY passes a zone value — they pass `doc.custom_zone` (a Link to Zone) into
+  a parameter/field named `company`. **The callers are right; the field and parameter names
+  are wrong.** This is why it works today: three zone names coincide with company names.
+- `the_visaguy` patches are FLAT under `the_visaguy/the_visaguy/patches/` with an `execute()`,
+  registered in `the_visaguy/the_visaguy/patches.txt` under `[post_model_sync]`.
+- `the_visaguy` has SIX test files, ALL empty `FrappeTestCase` stubs. There is NO regression
+  net. Write real tests.
+- You CANNOT run `bench`. Write tests; do NOT claim they pass; do NOT run migrate.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections R3, R4, R6, R7.
+- ../02-triage.md — policies.
+- ../../decisions/ADR-007-whatsapp-configuration-keyed-on-zone.md — the migration outline.
+
+TASKS:
+
+B1. (M5) Add a `whatsapp_account` Link field (→ `WhatsApp Account`) to `Whatsapp Default`, so
+    each zone binds to its own sending number.
+
+B2. (M6) Rekey `Whatsapp Default` from Company to Zone:
+    - add a `zone` field, Link → `Zone`, required, unique
+    - change `autoname` from `field:company` to `field:zone`
+    - KEEP the existing `company` field for this release, but mark it read-only and label it
+      clearly as deprecated/legacy. Do NOT delete it yet — dropping a populated field with no
+      test net in the same release as the rekey is an unnecessary risk. Removal is a follow-up.
+
+B3. Write the migration patch, following this app's flat convention:
+    - backfill `zone` from `company` for existing rows
+    - the single live row has `company = "TVG"` and a Zone named `TVG` exists, so this is an
+      exact match; do NOT assume that holds for every row — if a `company` value has no
+      matching Zone, log it loudly and leave `zone` unset rather than guessing
+    - the patch must be idempotent (safe to re-run)
+    - register it in `patches.txt` under `[post_model_sync]`
+
+    IMPORTANT: changing `autoname` does NOT rename existing documents. The existing record stays
+    named `TVG`, which is also its zone name, so nothing breaks. State in your log that you
+    verified this reasoning.
+
+B4. (M6b) Update `is_enabled` in
+    `the_visaguy/communications/doctype/whatsapp_default/whatsapp_default.py`:
+    - rename the `company` parameter to `zone`
+    - change its internal `frappe.db.exists("Whatsapp Default", {"company": ...})` to key on
+      `zone`
+    - update its 4 call sites in `handlers/whatsapp_message.py`
+
+B5. Update the 4 live `frappe.get_doc("Whatsapp Default", {"company": ...})` lookups in
+    `handlers/whatsapp_message.py` to key on `zone`. (Recon confirmed 4, not the 5 the spec
+    claims — the 5th is inside dead commented code. Do not revive dead code.)
+
+B6. (M9) Add a `validate` on `Whatsapp Default` that, when `enabled = 1`, rejects the save if:
+    - no `whatsapp_account` is bound, or
+    - any REQUIRED event template is missing from `event_template`, or
+    - any REQUIRED feedback default is missing from `feedback_defaults`
+
+    REQUIRED `event_template.event_type` values — exactly these five, confirmed by the owner
+    against the wired handlers:
+      Lead Form, Process Form, Payment Success, Payment Feedback, Completion Feedback
+
+    REQUIRED `feedback_defaults.feedback_type` values — exactly these two:
+      Payment Feedback, Completion Feedback
+
+    **`Visa Completion` is NOT required.** It remains a valid `event_type` Select option, but
+    no handler sends it — the visa completion message goes out together with the completion
+    feedback message. Do NOT demand it, and do NOT remove the Select option.
+
+    Define the required lists as named module-level constants so a future change is one edit,
+    not a hunt through validation logic.
+
+    The error must NAME what is missing, so an operator configuring TVG Qatar sees exactly
+    which rows to add. Do NOT allow inheriting from another zone — every zone configures
+    explicitly.
+
+B7. Tests in a new `the_visaguy/the_visaguy/tests/` package (create it with `__init__.py`;
+    there is no existing tests package, only per-doctype stubs):
+    - `is_enabled` returns True only for an enabled record matching the given ZONE
+    - a zone with no `Whatsapp Default` record returns False and does not raise
+    - enabling a record with a missing event template is rejected, and the message names it
+    - enabling with no bound `whatsapp_account` is rejected
+    - the migration patch backfills `zone` from `company` and is idempotent
+    Use `FrappeTestCase`.
+
+POLICIES:
+- Do NOT implement M7/M8 (an extensible `Whatsapp Event Type` DocType). Deferred.
+- Do NOT touch `handlers/receive_feedback.py` — a later phase owns it.
+- Do NOT change the `[...][0]` index sites — a later phase owns those.
+- Do NOT touch `waflo`.
+- Two Insights fixtures SQL-join `tabWhatsapp Feedback Defaults` / `tabWhatsApp Default
+  Templates` by parent name. Since document names do not change, they stay valid — but CHECK
+  them and say so in your log.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- `python -c "import json;json.load(open('the_visaguy/communications/doctype/whatsapp_default/whatsapp_default.json'))"` succeeds.
+- The `zone` field appears in BOTH `field_order` and `fields` in the DocType JSON — miss one
+  and the DocType will not load.
+- `grep -rn '"company": doc.custom_zone\|"company": lead.custom_zone' the_visaguy/` returns
+  nothing.
+- `git -C ../waflo status --porcelain` is empty.
+- No conflict markers.
+
+COMMIT: one commit, message starting `feat(whatsapp):`. Local only.
+
+OUTPUT: write to ../03b-config-model.md: the new DocType field list, the patch you wrote and
+why it is idempotent, your B3 autoname reasoning, the validation rules and their messages,
+the Insights fixture check, what each test asserts, and anything uncertain.
+
+REPLY ONLY with this single line:
+SHA=<sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> JSON_VALID=<yes|no> PATCH_IDEMPOTENT=<yes|no> LOOKUPS_REKEYED=<count> UNCERTAIN=<none|short phrase>

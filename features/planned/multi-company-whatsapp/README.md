@@ -220,11 +220,33 @@ Once a second account exists, a Qatar message deferred by FEAT-003's rate limite
 
 **This path is live.** With the flow engine off, `send_default_message` handles inbound messages — so a Qatar customer messaging the Qatar number would receive their default reply **from the UAE number**. Unlike the dormant flow-engine defects, this breaks the moment a second account exists.
 
-### F4 — `Visa Completion` has no handler (flagged, not implemented)
+### F4 — `Visa Completion` — **resolved, not a gap**
 
-`Visa Completion` is an `event_type` option and appears in this document's acceptance criteria as one of "four auto message types", but **nothing sends it**. The wired events are Lead Form, Process Form, Payment Success, Payment Feedback, and Completion Feedback — and Completion Feedback is a different thing.
+Recon found that `Visa Completion` is an `event_type` option with no handler, and flagged it as a possible gap in the acceptance criteria.
 
-This is a product gap, not a defect. Implementing an unspecified message would be inventing scope. **The acceptance criteria below need amending**: either specify what Visa Completion should send and when, or drop it. Owner decision required.
+**Owner confirmed it is not required.** The visa completion message goes out **together with the completion feedback message**, so there is no separate send to implement. The Select option stays; nothing demands it.
+
+This settles what "fully configured" means for a zone.
+
+### Required configuration per zone
+
+Derived from the wired handlers and confirmed by the owner. M9 validation enforces exactly this when a zone is enabled — no more, no less.
+
+| `event_template.event_type` | Required |
+|---|---|
+| Lead Form | yes |
+| Process Form | yes |
+| Payment Success | yes |
+| Payment Feedback | yes |
+| Completion Feedback | yes |
+| Visa Completion | **no** — covered by Completion Feedback |
+
+| `feedback_defaults.feedback_type` | Required |
+|---|---|
+| Payment Feedback | yes |
+| Completion Feedback | yes |
+
+Plus a bound `whatsapp_account`. A zone cannot be enabled with any of these missing, and the validation error names what is absent.
 
 ### Test reality
 

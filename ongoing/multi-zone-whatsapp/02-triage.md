@@ -32,11 +32,13 @@ Inbound handling reads `doc.whatsapp_account` for rate-limit accounting and for 
 
 **This path is live.** With the flow engine off, `send_default_message` handles inbound messages. So a Qatar customer messaging the Qatar number would receive their default reply **from the UAE number**. Not dormant like D1/N1 — this breaks the moment a second account exists.
 
-### F4 — `Visa Completion` has no handler — **flagged, not implemented**
+### F4 — `Visa Completion` — **resolved by the owner, not a gap**
 
-`Visa Completion` is an `event_type` Select option and appears in FEAT-002's acceptance criteria as one of "four auto message types". No handler sends it. The wired events are Lead Form, Process Form, Payment Success, Payment Feedback, Completion Feedback — and Completion Feedback is not the same thing.
+Recon flagged `Visa Completion` as an `event_type` option with no handler, and therefore a possible hole in the acceptance criteria.
 
-This is a **product gap, not a defect**: implementing a message nobody specified would be inventing scope. Surfaced to the owner; FEAT-002's acceptance criteria need amending either way.
+**Owner confirmed it is not required**: the visa completion message goes out together with the completion feedback message, so there is no separate send. The Select option stays; nothing demands it.
+
+This defined the required-configuration list that M9 validation enforces — five event templates (Lead Form, Process Form, Payment Success, Payment Feedback, Completion Feedback), two feedback defaults (Payment Feedback, Completion Feedback), and a bound account.
 
 ## Execution order
 
