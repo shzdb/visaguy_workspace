@@ -190,6 +190,26 @@ D8–D11 in [FEAT-003](../../ongoing/waflo-correctness/README.md) touch the same
 
 **Settled, not open:** one WhatsApp account per zone. Multiple numbers per zone are out of scope and are not to be designed for — the revisit condition is recorded in ADR-007.
 
+## Deployment coupling with FEAT-003
+
+Implementation started 2026-08-06. The `waflo` work is branched off **`feat/waflo-correctness`**, not off `develop`, because M1–M4 restructure the same `send_whatsapp_template` that FEAT-003 rewrote. Branching off `develop` would guarantee conflicts in `send.py`.
+
+**Consequence: deploying FEAT-002 deploys FEAT-003 with it.** They can no longer ship independently, and [TASK-017](../../../tasks/blocked/waflo-correctness/TASK-017-staging-and-live-deployment.md)'s three prerequisites therefore gate this feature too:
+
+1. No end-to-end retry test has run.
+2. `bench migrate` has not exercised the `limit_after` removal patch.
+3. `max_replies_per_window` needs a deliberate value.
+
+`the_visaguy` is branched off `main` and stays independent — its unmerged `feat/visa-tracker` adds a separate `visa_tracking/` module and does not touch `handlers/whatsapp_message.py`.
+
+## Scope decisions for the first implementation run
+
+| Decision | Choice |
+|---|---|
+| M7/M8 — extensible `Whatsapp Event Type` DocType | **Deferred.** Qatar uses the same six event types; only the templates differ per zone. Dropping it removes a schema migration from this run. |
+| Missing or disabled zone configuration | **Skip, but log a warning.** Not silent — a misconfigured zone must not look identical to a working one. Never fall back to the default account: a Qatar customer must never receive a UAE-numbered message. |
+| Template inheritance between zones | **None.** Every zone configures all six explicitly; M9 validation rejects enabling a zone with gaps. |
+
 ## Dependencies
 
 - [FEAT-003](../../ongoing/waflo-correctness/README.md) — the rate limiter must actually count before traffic is fanned out to more numbers.

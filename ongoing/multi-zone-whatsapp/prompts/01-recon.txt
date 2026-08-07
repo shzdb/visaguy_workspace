@@ -1,0 +1,68 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue):
+
+- Two Frappe app clones sit side by side in the current directory: `waflo/` and `the_visaguy/`.
+  Both are on branch `feat/multi-zone-whatsapp`, both clean.
+- `waflo` is branched off `feat/waflo-correctness`, which ALREADY contains a large refactor of
+  `waflo/waflo/messaging/send.py` (rate limiting, retry deferral, hardening). Read the CURRENT
+  state of that file — do not assume the version described in older docs.
+- Goal of this project: make WhatsApp auto messages and feedback work per **Zone** (the
+  customer-facing market), not per Company. Zone and Company are independent axes.
+- DO NOT create branches. DO NOT commit. DO NOT edit any file. READ-ONLY reconnaissance.
+
+READ FIRST:
+- ../../features/planned/multi-company-whatsapp/README.md — the specification, modifications
+  M1 through M19. Note M7 and M8 are DEFERRED and out of scope; ignore them.
+- ../STATE.md — ground facts and owner decisions.
+
+TASKS:
+
+R1. In `waflo/waflo/messaging/send.py`, report the CURRENT exact signature and full body of
+    `send_whatsapp_template` and `_send_whatsapp_template`. State precisely:
+    - where the outgoing WhatsApp account is resolved, and the exact line
+    - where the template language code is set in the Meta payload
+    - where `log_whatsapp_message` and any pending-retry logger are called, and which account
+      value each receives
+    - every place a new `whatsapp_account` parameter would need to be threaded, INCLUDING the
+      `queue=True` enqueue branch
+
+R2. List EVERY caller of `send_whatsapp_template` across BOTH clones, with file and line.
+    For each, say whether it currently could know which zone/account it should send from.
+
+R3. In `the_visaguy`, report the full current content of:
+    - `the_visaguy/handlers/whatsapp_message.py`
+    - `the_visaguy/communications/doctype/whatsapp_default/whatsapp_default.py`
+    - the field list of `whatsapp_default.json`, `whatsapp_default_templates.json`,
+      `whatsapp_feedback_defaults.json` (fieldname, fieldtype, options, autoname, istable)
+
+R4. Find EVERY site that looks up `Whatsapp Default` or calls `is_enabled`. Give file and line
+    and the exact expression used as the key. The spec claims there are 5 lookup sites plus
+    `is_enabled`; verify that number.
+
+R5. Find EVERY `[x for x in ... if ... ][0]` style indexing over `event_template` or
+    `feedback_defaults`. The spec claims 6. Verify and list them with file and line.
+
+R6. Report whether `the_visaguy` has any other reference to `custom_zone`, `custom_company`, or
+    `Whatsapp Default` outside `handlers/whatsapp_message.py` — including hooks, fixtures,
+    patches, and JS.
+
+R7. Report the app's existing patch conventions: does `the_visaguy/patches.txt` exist, what is
+    in it, and where do patch modules live? Same question for `waflo`.
+
+R8. Report any existing tests in `the_visaguy` — location, framework, and whether any exercise
+    the WhatsApp handlers.
+
+R9. Report any OTHER defect or landmine you notice in the WhatsApp path in either repo that the
+    spec does not list. Be specific and terse. Real bugs only, not style.
+
+POLICIES:
+- If the spec and the code disagree, the CODE is the truth. Report the discrepancy.
+- Do not fix anything.
+
+GATES (must hold when you finish):
+- `git -C waflo status --porcelain` and `git -C the_visaguy status --porcelain` both produce NO
+  output. You changed nothing.
+
+OUTPUT: write full findings to ../01-recon.md, one section per task ID.
+
+REPLY ONLY with this single line, nothing else:
+LOOKUP_SITES=<count> INDEX_SITES=<count> SEND_CALLERS=<count> THREAD_POINTS=<count> NEW_ISSUES=<count> TESTS_EXIST=<yes|no> VERDICT=<one short sentence>

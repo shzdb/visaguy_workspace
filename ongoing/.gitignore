@@ -1,2 +1,4 @@
-# Executor worktrees hold application code and must never be committed here (ADR-001).
+# Executor clones hold application code and must never be committed here (ADR-001).
 */worktree
+multi-zone-whatsapp/waflo
+multi-zone-whatsapp/the_visaguy
