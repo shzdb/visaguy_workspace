@@ -34,7 +34,8 @@ Canonical map and reading paths for the VisaGuy workspace.
 - [`operations/bench-operations.md`](operations/bench-operations.md) — site inspection, migrate/build/restart/update/backup procedures.
 - [`operations/deployment.md`](operations/deployment.md) — deployment topology, release sequence, rollback, and validation checkpoints.
 - [`operations/zone-whatsapp-onboarding.md`](operations/zone-whatsapp-onboarding.md) — configuring a new zone to send its own WhatsApp messages.
-- [`operations/whatsapp-manual-test-plan.md`](operations/whatsapp-manual-test-plan.md) — manual test plan for WhatsApp zone routing, rate limiting, and retry on the dev site.
+- [`operations/whatsapp-manual-test-plan.md`](operations/whatsapp-manual-test-plan.md) — manual test plan for multi-zone WhatsApp routing (FEAT-002).
+- [`operations/waflo-correctness-test-plan.md`](operations/waflo-correctness-test-plan.md) — manual test plan for waflo rate limiting, retry, and send hardening (FEAT-003), designed around a Meta test number.
 
 ### Security, risks, and decisions
 
