@@ -1,0 +1,104 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue):
+
+- Work ONLY in the `the_visaguy/` clone. Branch `feat/multi-zone-whatsapp` @ 7ffaa26, clean.
+  DO NOT touch the `waflo/` clone.
+- Phase 3b already landed: `Whatsapp Default` is now keyed on `zone` (Link → Zone, required,
+  unique, `autoname: field:zone`), has a `whatsapp_account` Link field, and `is_enabled(zone,
+  customer)` keys on zone. The legacy `company` field is retained but read-only/deprecated.
+  All 4 `get_doc` lookups already pass `{"zone": ...}`. Build on this; do not revert it.
+- Phase 3a already landed in `waflo`: `send_whatsapp_template(...)` now accepts a
+  `whatsapp_account` parameter at the END of its signature. When supplied it sends from that
+  account; when a supplied account name does not exist it THROWS rather than falling back.
+- **Zone is the customer-facing market. A Qatar customer must NEVER receive a UAE-numbered
+  message.** Never fall back to the default account to "make it work".
+- You CANNOT run `bench`. Write tests; do NOT claim they pass.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections R3, R5, R6, R9 item 1.
+- ../02-triage.md — policies.
+
+TASKS:
+
+C1. **THE CRITICAL WIRING.** `Whatsapp Default` now has a `whatsapp_account` field, but nothing
+    passes it to `send_whatsapp_template`. Until it does, every zone still sends from the
+    global default and this entire feature does nothing.
+    In `the_visaguy/handlers/whatsapp_message.py`, every `send_whatsapp_template(...)` call must
+    pass `whatsapp_account=whatsapp_default.whatsapp_account`.
+    Find and update EVERY call. State the count in your log.
+
+C2. (M10) There are **7** `[x for x in ... if ...][0]` indexings that raise `IndexError` when a
+    zone has not configured that row — 5 over `event_template`, 2 over `feedback_defaults`.
+    (The spec says 6; recon counted 7. The payment path alone has three.)
+    Replace all 7 with a safe lookup helper returning None, then **skip and log a warning**
+    naming the zone and the missing event/feedback type.
+    NOT a silent skip. A misconfigured zone must not look identical to a working one.
+
+C3. (M11) The 4 `frappe.get_doc("Whatsapp Default", {"zone": ...})` lookups raise
+    `DoesNotExistError` for a zone with no record. Guard them: skip and log a warning naming
+    the zone. Do NOT substitute another zone's configuration.
+
+C4. (M12) In `_send_payment_received`, `frappe.get_doc("Sales Invoice", {...})` raises when no
+    match exists, so the following `if not sales_invoice:` guard is unreachable dead code.
+    Replace with an existence check that actually works.
+
+C5. (M13) Remove the dead `COMPANY = "TVG"` constant and the commented-out
+    `send_default_message` block. Do not revive them.
+
+C6. (M14) Replace the hardcoded `TEMP_HOST_NAME = "https://visaguy.erpcode.tridz.in"` with
+    configuration (a site config key is fine). Keep the existing development-mode behaviour.
+
+C7. (M15) Remove `frappe.log_error("Sales invoice for sending in whatsapp message",
+    sales_invoice)` and the `file_url` log. They fire on every payment and pass a whole
+    Document as the log body.
+
+C8. (M16) `clean_mobile_no` only strips `"+"`. For multi-country operation it needs real
+    normalisation: strip spaces, dashes, and parentheses too, and reject an obviously invalid
+    result rather than sending it to Meta. Keep it conservative — do NOT invent country-code
+    rewriting.
+
+C9. (F1 — recon finding, NOT in the original spec) `the_visaguy/handlers/receive_feedback.py`
+    hard-codes `COMPANY = "TVG"` and resolves `Whatsapp Feedback Defaults` with
+    `parenttype="Whatsapp Default"`, `parent=COMPANY`. A Qatar customer replying to a feedback
+    message would be matched against **TVG's** configuration.
+    Make it zone-aware. Preferred resolution, in order:
+      1. the inbound `WhatsApp Message.whatsapp_account` → the `Whatsapp Default` whose
+         `whatsapp_account` matches → its `zone`. Each zone binds one account, so the inbound
+         number identifies the zone.
+      2. fall back to the referenced Lead/CRM Lead's `custom_zone` if the account lookup yields
+         nothing.
+    If neither resolves, skip and log a warning. Do NOT default to TVG.
+
+C10. Tests in the existing `the_visaguy/the_visaguy/tests/` package (3b created it):
+    - a send for a zone uses that zone's bound `whatsapp_account`
+    - a zone missing an event template logs and skips, and does NOT raise
+    - a zone with no `Whatsapp Default` record logs and skips, and does NOT raise
+    - feedback for an inbound message on zone B resolves zone B's config, not TVG's
+    - `clean_mobile_no` strips the characters you added and rejects an invalid number
+    Use `FrappeTestCase`. Mock `send_whatsapp_template` — no network.
+
+POLICIES:
+- Do NOT implement M7/M8 (extensible event types) — deferred.
+- Do NOT implement a `Visa Completion` send — the owner confirmed it ships with the completion
+  feedback message; there is no separate send.
+- Do NOT change the 3b config model or `is_enabled`.
+- Do NOT touch `waflo`.
+- Keep the diff tight. No drive-by refactors.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- `grep -rn 'COMPANY = "TVG"' the_visaguy/` returns NOTHING.
+- `grep -rn 'visaguy.erpcode.tridz.in' the_visaguy/` returns NOTHING.
+- `grep -c 'whatsapp_account=' the_visaguy/handlers/whatsapp_message.py` is at least as large
+  as the number of `send_whatsapp_template` calls in that file.
+- No `[0]` indexing over `event_template` or `feedback_defaults` remains.
+- `git -C ../waflo status --porcelain` is empty.
+- No conflict markers.
+
+COMMIT: one commit, message starting `feat(whatsapp):`. Local only.
+
+OUTPUT: write to ../03c-handlers.md: the C1 call count, the safe-lookup helper, every warning
+message you added, your C9 zone-resolution logic, what each test asserts, and anything uncertain.
+
+REPLY ONLY with this single line:
+SHA=<sha> FILES=<count> SEND_CALLS_WIRED=<count> INDEX_SITES_FIXED=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> FEEDBACK_ZONED=<yes|no> UNCERTAIN=<none|short phrase>

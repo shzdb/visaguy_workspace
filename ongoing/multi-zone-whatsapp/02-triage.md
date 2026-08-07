@@ -58,7 +58,7 @@ Sequenced so `the_visaguy` consumes a `waflo` that already accepts an account, a
 3. **Skip with a logged warning**, never a silent skip. A misconfigured zone must not look identical to a working one.
 4. New parameters go at the **end** of existing signatures with defaults — `the_visaguy` and `retry_message` both import `send_whatsapp_template`.
 5. Do not implement M7/M8 (extensible event types) — deferred.
-6. Do not implement `Visa Completion` (F4) — product gap, not ours to invent.
+6. Do not implement `Visa Completion` (F4) — the owner confirmed it ships with the completion feedback message, so there is no separate send.
 7. `the_visaguy` patches are flat under `the_visaguy/the_visaguy/patches/`; `waflo` uses a versioned `patches/v1_0/` package. Follow each app's own convention.
 
 ## Verification reality

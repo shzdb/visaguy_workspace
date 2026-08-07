@@ -32,6 +32,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 - [`operations/local-development.md`](operations/local-development.md) — safe local setup, build, lint, and test commands.
 - [`operations/bench-operations.md`](operations/bench-operations.md) — site inspection, migrate/build/restart/update/backup procedures.
 - [`operations/deployment.md`](operations/deployment.md) — deployment topology, release sequence, rollback, and validation checkpoints.
+- [`operations/zone-whatsapp-onboarding.md`](operations/zone-whatsapp-onboarding.md) — configuring a new zone to send its own WhatsApp messages.
 
 ### Security, risks, and decisions
 
