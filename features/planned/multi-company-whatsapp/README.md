@@ -190,6 +190,46 @@ D8–D11 in [FEAT-003](../../ongoing/waflo-correctness/README.md) touch the same
 
 **Settled, not open:** one WhatsApp account per zone. Multiple numbers per zone are out of scope and are not to be designed for — the revisit condition is recorded in ADR-007.
 
+## Findings from implementation recon (2026-08-06)
+
+Reconnaissance against the code corrected two counts and found four issues this plan had missed. Three of them break Qatar.
+
+### Corrected counts
+
+| This plan said | Code says |
+|---|---|
+| 5 `Whatsapp Default` lookup sites (M6) | **4** live `get_doc` — a 5th is inside dead commented code |
+| 6 `[...][0]` index sites (M10) | **7** — 5 over `event_template`, 2 over `feedback_defaults` |
+| `send.py` line references in M1–M4 | Pre-FEAT-003; that file has since been restructured |
+
+### F1 — `receive_feedback.py` hardcodes `COMPANY = "TVG"` (in scope)
+
+It resolves `Whatsapp Feedback Defaults` with `parent = COMPANY`. A Qatar customer replying to a feedback message would be matched against **TVG's** feedback configuration.
+
+This plan covered only the outbound half of feedback. F1 is the inbound half, and without it Qatar feedback collection silently uses the wrong zone's config.
+
+### F2 — `retry_message` drops `whatsapp_account` (in scope)
+
+The `WhatsApp Message` record stores `whatsapp_account`, but `retry_message` never reads it, so the send re-resolves the default outgoing account.
+
+Once a second account exists, a Qatar message deferred by FEAT-003's rate limiter is **retried from the UAE number** — where Qatar's template does not exist, so Meta rejects it. A direct interaction between FEAT-003's deferral and multi-account.
+
+### F3 — inbound replies leave from the wrong account (in scope)
+
+`processor.py` reads `doc.whatsapp_account` for rate-limit accounting and `WF Account Settings`, but its sends do not pass it.
+
+**This path is live.** With the flow engine off, `send_default_message` handles inbound messages — so a Qatar customer messaging the Qatar number would receive their default reply **from the UAE number**. Unlike the dormant flow-engine defects, this breaks the moment a second account exists.
+
+### F4 — `Visa Completion` has no handler (flagged, not implemented)
+
+`Visa Completion` is an `event_type` option and appears in this document's acceptance criteria as one of "four auto message types", but **nothing sends it**. The wired events are Lead Form, Process Form, Payment Success, Payment Feedback, and Completion Feedback — and Completion Feedback is a different thing.
+
+This is a product gap, not a defect. Implementing an unspecified message would be inventing scope. **The acceptance criteria below need amending**: either specify what Visa Completion should send and when, or drop it. Owner decision required.
+
+### Test reality
+
+`the_visaguy` has six test files, **all empty `FrappeTestCase` stubs**. Nothing exercises the WhatsApp handlers or the send path. Coverage for the config model and the Company→Zone migration is being written from zero, with no pre-existing regression net. `waflo` does have real tests (20 passing from FEAT-003).
+
 ## Deployment coupling with FEAT-003
 
 Implementation started 2026-08-06. The `waflo` work is branched off **`feat/waflo-correctness`**, not off `develop`, because M1–M4 restructure the same `send_whatsapp_template` that FEAT-003 rewrote. Branching off `develop` would guarantee conflicts in `send.py`.

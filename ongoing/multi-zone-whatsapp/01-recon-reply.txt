@@ -1,0 +1,1 @@
+LOOKUP_SITES=4 INDEX_SITES=7 SEND_CALLERS=10 THREAD_POINTS=5 NEW_ISSUES=4 TESTS_EXIST=yes VERDICT=Spec counts are stale (4 lookups not 5; 7 index sites not 6); send.py already FEAT-003-hardened and needs account threading at five points.

@@ -1,0 +1,92 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT argue):
+
+- Work ONLY in the `waflo/` clone in the current directory. Branch `feat/multi-zone-whatsapp`
+  @ 56899f2, clean. DO NOT touch the `the_visaguy/` clone in this phase.
+- `waflo` is branched off `feat/waflo-correctness`, which already contains rate limiting,
+  retry deferral, and send hardening. Read the CURRENT `send.py`; older docs describe an
+  older version.
+- `frappe.cache()` IS a Redis client. One site per bench — no key prefixing.
+- No delayed-enqueue on this bench. Do NOT add sleeps, RQ scheduler use, or crons.
+- There IS a working test suite (20 tests). You may write tests but CANNOT run `bench`.
+  Do not claim tests pass.
+- DO NOT push. DO NOT merge.
+
+READ FIRST:
+- ../01-recon.md — sections R1, R2, R9 (items 2 and 3).
+- ../02-triage.md — policies.
+
+GOAL: let every outbound WhatsApp send specify WHICH account it goes out from, so a second
+zone (TVG Qatar) sends from its own number. Today everything resolves the single globally
+flagged `is_default_outgoing` account.
+
+TASKS:
+
+A1. (M1) Add a `whatsapp_account` parameter to `send_whatsapp_template` and
+    `_send_whatsapp_template`. Place it at the END of the signature with a default of None so
+    existing callers do not break — `the_visaguy` and `retry_message` both import this.
+    When supplied, resolve and use THAT account. When not supplied, fall back to the current
+    default-outgoing behaviour exactly as today.
+    Accept an account NAME (string). Resolve it to the WhatsApp Account document.
+    If the named account does not exist, fail fast with a clear error — do NOT silently fall
+    back to the default. A Qatar customer must never receive a UAE-numbered message.
+
+A2. (M2) Thread the parameter through the `queue=True` enqueue branch. That branch currently
+    lists kwargs explicitly, so a new parameter would be silently dropped. Verify by reading
+    it — a dropped kwarg here would mean queued sends ignore the account and this whole
+    feature fails only for queued messages, which is the hardest kind of bug to notice.
+
+A3. (M3) The Meta payload hardcodes the template language as `"en"`. `WhatsApp Templates` has
+    a `language_code` field. Read the language from the template record instead of hardcoding.
+    Fall back to `"en"` only if the template has no language_code.
+
+A4. (M4) The account passed to the message loggers must be the account actually used, not a
+    re-resolved default. Check BOTH `log_whatsapp_message` and the pending-retry logger added
+    by FEAT-003. Attributing a message to the wrong number would corrupt the retry path.
+
+A5. (F2 — recon finding, not in the original spec) `waflo/waflo/messaging/retry_message.py`
+    reconstructs a send from a stored `WhatsApp Message`. That record HAS a `whatsapp_account`
+    field, but retry never reads it, so `send_whatsapp_template` re-resolves the default.
+    Consequence once a second account exists: a Qatar message deferred by the rate limiter is
+    retried FROM THE UAE NUMBER, where Qatar's template does not exist, so Meta rejects it.
+    Read `whatsapp_account` off the stored record and pass it through.
+
+A6. (F3 — recon finding, not in the original spec) In `waflo/waflo/flow/processor.py`, inbound
+    handling already knows the account via `doc.whatsapp_account` — it uses it for rate-limit
+    accounting and to load `WF Account Settings`. But its sends do not pass it, so replies go
+    out via the default outgoing account.
+    **This path is LIVE**: with the flow engine off, `send_default_message` handles inbound
+    messages. A Qatar customer messaging the Qatar number would get a reply from the UAE
+    number. Pass the inbound account through to every send in that file.
+    Note `process_whatsapp_message` already takes a `whatsapp_account` parameter from an
+    earlier fix — reuse it rather than adding another.
+
+A7. Tests in `waflo/waflo/tests/`:
+    - an explicit account is used instead of the default
+    - an unknown account name fails fast and does NOT fall back to the default
+    - the account survives the `queue=True` enqueue path
+    - a retry re-sends from the account stored on the original message
+    - an inbound reply goes out via the inbound account
+    - the template's language_code is used, with "en" as fallback
+    Mock `frappe.cache()`, `make_post_request`, `frappe.enqueue`, and account lookups.
+    Use FrappeTestCase. Follow the style of the existing tests in that directory.
+
+POLICIES:
+- Preserve existing parameter ORDER. New parameters at the end, with defaults.
+- Do NOT change the rate limiting or retry-deferral design from FEAT-003.
+- Do NOT edit `the_visaguy`.
+- Keep the diff tight — no drive-by refactors, no reformatting untouched code.
+
+GATES (all must pass before you commit):
+- `python -m py_compile` passes on every modified .py file.
+- The `queue=True` branch passes `whatsapp_account` — verify by reading it, and say so in your log.
+- No conflict markers.
+- `git -C ../the_visaguy status --porcelain` is empty (you did not touch the other clone).
+
+COMMIT: one commit, message starting `feat(routing):`. Local only.
+
+OUTPUT: write to ../03a-waflo-routing.md: the new signature, every threading point, how you
+resolve and validate an account name, your A5 and A6 changes, what each test asserts, and
+anything uncertain.
+
+REPLY ONLY with this single line:
+SHA=<sha> FILES=<count> TESTS_ADDED=<count> COMPILE=<pass|fail> QUEUE_THREADED=<yes|no> RETRY_ACCOUNT=<yes|no> INBOUND_ACCOUNT=<yes|no> UNCERTAIN=<none|short phrase>
