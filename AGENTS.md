@@ -39,6 +39,27 @@ Read `docs/architecture/system-overview.md` § Core domain axes and `decisions/A
 
 ## Commit authorship — hard rule
 
+**Always commit as the repository's configured author. Never set, override, or guess it.**
+
+The author comes from `user.name` / `user.email` in git config, local or global. The
+project owner sets these. An agent must not set them, must not pass `--author`, and must
+not work around them.
+
+**Before the first commit in any repository, check both are set:**
+
+```bash
+git config user.name && git config user.email
+```
+
+If either is missing, **stop and ask** — do not commit. Git does not fail on a missing
+identity; it fabricates one from the system username and hostname, producing an address
+like `user@Hostname.local` that belongs to nobody and that GitHub cannot attribute. The
+commit looks fine locally and is wrong everywhere else.
+
+This has already happened once: every commit made from the local clones on 2026-08-06–07
+carries a fabricated `.local` identity, because no git identity was configured on that
+machine while the bench had the correct one.
+
 **Never add an AI agent as an author, co-author, or attributed contributor to any commit.**
 
 Applies to every repository this workspace touches, and to every form of attribution:
