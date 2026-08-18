@@ -1,9 +1,9 @@
 VERIFY ONLY. Do not modify canonical files, use SSH/network, create helpers, commit, or push.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/initialization-checklist.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/04-initialization.md
+- /home/fasil/Tridz/constitution/skills/workspace-initializer/references/initialization-checklist.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/04-initialization.md
 - All canonical files listed in 04-initialization.md.
 
 TASKS:
@@ -18,6 +18,6 @@ TASKS:
 - V9. Record defects and severity. Do not fix them.
 
 OUTPUT:
-- Write the verification report only to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/05-verification.md.
+- Write the verification report only to /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/05-verification.md.
 - Reply only with:
 `<checklist pass count>/<total>, <broken link count>, <consistency defect count>, <secret finding count>, <verdict>`

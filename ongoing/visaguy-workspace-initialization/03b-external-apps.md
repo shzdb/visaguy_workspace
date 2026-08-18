@@ -1,6 +1,6 @@
 # EA — External app and dependency inventory
 
-Generated: 2026-07-20. Source: accepted reconnaissance in `01b-remote-bench.md` and `STATE.md`; read-only against `/home/shahzad/bench`.
+Generated: 2026-07-20. Source: accepted reconnaissance in `01b-remote-bench.md` and `STATE.md`; read-only against `/home/fasil/fasil-bench-v15`.
 
 ## Executive summary
 

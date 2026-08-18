@@ -11,7 +11,7 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 ## Current implementation snapshot
 
 - **Runtime baseline**: Frappe 15.113.0, ERPNext 15.106.0, HRMS 15.45.2, Payments 0.0.1, Python 3.10.12.
-- **Bench**: 29 app repositories available; 27 installed on site `visaguy`; 2 bench-only (`employee_self_service`, `mansico_meta_integration`).
+- **Bench**: 33 app repositories available; 29 installed on site `visaguy-hrms`; 5 apps bench-only (`huf`, `gada_electronics`, `library_management`, `rehbar_crm`, `huf` ).
 - **Ownership**: 18 internally maintained repositories under `tridz-dev` or `tvgglobal`; 11 external/upstream repositories.
 - **Frontends**: 3 independent web frontends:
   1. Public visa eligibility checker (React 19 + Vite 7 + FastAPI/OpenAI companion).
@@ -29,8 +29,7 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 
 ## Repository boundaries
 
-- Workspace: `/home/shzd/Projects/workspaces/visaguy_workspace`
-- Local frontends: `/home/shzd/Projects/tridz/visa_eligibility_checker`, `/home/shzd/Projects/tridz/visaguy_business_client`, `/home/shzd/Projects/tridz/visaguy-website-client`
-- Remote bench: `/home/shahzad/bench` on `erpcode.tridz.in:2257`
+- Workspace: `/home/fasil/Tridz/`
+- Remote bench: `/home/fasil/fasil-bench-v15` on `erpcode.tridz.in:2257`
 
 Do not write application code, secrets, or production data into this workspace.

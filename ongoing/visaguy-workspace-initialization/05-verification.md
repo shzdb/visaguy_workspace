@@ -25,7 +25,7 @@ Scope: read-only verification of the canonical workspace initialized in Phase 4 
 
 ## V1 — Initialization checklist verification
 
-Source: `/home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/initialization-checklist.md`
+Source: `/home/fasil/Tridz/constitution/skills/workspace-initializer/references/initialization-checklist.md`
 
 | # | Item | Evidence | Status |
 |---|---|---|---|
@@ -60,7 +60,7 @@ Source list: `04-initialization.md` §Created files.
 
 Total: 30 content files + 8 `.gitkeep` files = 38 files.
 
-Template copy verification against `/home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/assets/`:
+Template copy verification against `/home/fasil/Tridz/constitution/skills/workspace-initializer/assets/`:
 
 | Template | Diff against asset | Status |
 |---|---|---|

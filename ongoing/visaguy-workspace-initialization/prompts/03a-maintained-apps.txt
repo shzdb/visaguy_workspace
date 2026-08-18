@@ -1,6 +1,6 @@
 GROUND FACTS (already verified — do not re-derive):
-- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
-- Read-only remote bench: ssh -p 2257 shahzad@erpcode.tridz.in, /home/shahzad/bench
+- Workspace: /home/fasil/Tridz/visaguy_workspace
+- Read-only remote bench: ssh -p 2257 fasil@erpcode.tridz.in, /home/fasil/fasil-bench-v15
 - Organizations tridz-dev and tvgglobal are internally maintained.
 - Maintained apps (18): crm, fileflo, frappe_conversions_api, frappe_notifier, helpdesk, otp_authentication, payment_integrations, processflo, quick_kanban, the_visaguy, visaguy_business, visaguy_crm, visaguy_frappe_crm, visaguy_helpdesk, visaguy_hrms, visaguy_raven, visaguy_website, waflo.
 - All maintained apps are installed on site visaguy.
@@ -8,9 +8,9 @@ GROUND FACTS (already verified — do not re-derive):
 - Do not read secrets, config values, databases, logs, uploads, private files, or production records.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
 
 TASKS:
 - MA1. For every maintained app, establish its primary responsibility, users/actors, domain entities/DocTypes, public/whitelisted interfaces, hooks/events/permissions/overrides, fixtures/workflows/roles, scheduled jobs, patches/install hooks, frontend assets, tests, and explicit dependencies. Cite exact remote files/symbols.
@@ -26,7 +26,7 @@ POLICIES:
 - Treat source/manifests as statically verified; label runtime activation/configuration as unverified unless proven by the installed-app list or static wiring.
 - Settings DocType presence proves a configuration surface, not that the provider is configured.
 - Keep exhaustive raw inventories out of the report; synthesize responsibilities and interfaces for readers.
-- Cite evidence as /home/shahzad/bench/<path>:<line> or a precise symbol.
+- Cite evidence as /home/fasil/fasil-bench-v15/<path>:<line> or a precise symbol.
 
 GATES:
 - All 18 maintained apps covered exactly once in the responsibility catalog.
@@ -36,11 +36,11 @@ GATES:
 
 SCOPE GUARDS:
 - Read only checked-in source/config/docs for the 18 maintained app directories.
-- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- Write only /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
 - Do not modify, install, build, migrate, restart, commit, push, query databases, or call external provider APIs.
 
 OUTPUT:
-- Write the detailed synthesized report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- Write the detailed synthesized report to /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
 
 REPLY ONLY WITH:
 `<18/18 coverage>, <workflow count>, <interface count>, <risk count>, <verdict>`

@@ -1,16 +1,16 @@
 GROUND FACTS (already verified — do not re-derive):
 - Corrective continuation: prior executor was stopped because it wrote remote /tmp reference files and exposed dirty filenames in console.
-- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
+- Workspace: /home/fasil/Tridz/visaguy_workspace
 - Remote host/bench must now remain strictly read-only.
 - External apps (11): employee_self_service, erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, mansico_meta_integration, non_profit, payments, raven.
 - Site-installed: 9; bench-only: employee_self_service and mansico_meta_integration.
 - Dirty repositories: insights and mansico_meta_integration. State counts only; do not state dirty filenames or inspect diffs.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/prompts/03b-external-apps.txt
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/prompts/03b-external-apps.txt
 
 TASKS:
 - Complete EA1 through EA5 from 03b-external-apps.txt.
@@ -30,10 +30,10 @@ GATES:
 
 SCOPE GUARDS:
 - Remote read-only; local final report write only.
-- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- Write only /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
 
 OUTPUT:
-- Write /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- Write /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
 
 REPLY ONLY WITH:
 `<11/11 coverage>, <9 installed/2 bench-only>, <compatibility risk count>, <verdict>`

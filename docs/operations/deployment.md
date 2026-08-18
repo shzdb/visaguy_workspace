@@ -5,7 +5,7 @@
 ## Evidenced topology
 
 - Remote bench host: `erpcode.tridz.in:2257`
-- Bench root: `/home/shahzad/bench`
+- Bench root: `/home/fasil/fasil-bench-v15`
 - Site: `visaguy`
 - Process manager: Supervisor (or systemd, per `common_site_config.json` keys)
 - Business client deploys via Docker Compose + Jenkins + GitHub Actions.
@@ -18,7 +18,7 @@
 bench --site visaguy backup --with-files
 
 # 2. Record HEADs
-cd /home/shahzad/bench
+cd /home/fasil/fasil-bench-v15
 for app in apps/*/; do
   echo "$app: $(git -C "$app" rev-parse HEAD)"
 done

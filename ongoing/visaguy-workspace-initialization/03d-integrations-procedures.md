@@ -145,7 +145,7 @@ Legend:
 
 **Procedure:**
 
-1. Change to the bench root (e.g., `/home/shahzad/bench`).
+1. Change to the bench root (e.g., `/home/fasil/fasil-bench-v15`).
 2. Record baseline:
    ```bash
    bench --version

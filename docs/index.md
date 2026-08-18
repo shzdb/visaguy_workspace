@@ -27,6 +27,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 
 ### Operations
 
+- [`operations/environment.md`](operations/environment.md) — server and bench environment configurations.
 - [`operations/local-development.md`](operations/local-development.md) — safe local setup, build, lint, and test commands.
 - [`operations/bench-operations.md`](operations/bench-operations.md) — site inspection, migrate/build/restart/update/backup procedures.
 - [`operations/deployment.md`](operations/deployment.md) — deployment topology, release sequence, rollback, and validation checkpoints.

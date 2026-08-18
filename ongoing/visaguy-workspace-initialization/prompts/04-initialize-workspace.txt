@@ -1,14 +1,14 @@
 INITIALIZE CANONICAL WORKSPACE DOCUMENTATION. Use only local accepted evidence and supplied initializer assets. No SSH, network, application-repository reads, helper files, raw extraction, commits, or pushes.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
-- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/workspace-structure.md
-- /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/references/initialization-checklist.md
-- Templates under /home/shzd/Projects/workspaces/constitution/skills/workspace-initializer/assets/
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
+- /home/fasil/Tridz/constitution/skills/workspace-initializer/references/workspace-structure.md
+- /home/fasil/Tridz/constitution/skills/workspace-initializer/references/initialization-checklist.md
+- Templates under /home/fasil/Tridz/constitution/skills/workspace-initializer/assets/
 
 AUTHORITY / CONTENT RULES:
 - Workspace is authoritative for intent, architecture understanding, decisions, procedures, risks, open questions, and status.
@@ -83,7 +83,7 @@ GATES:
 - No extra files are created.
 
 WRITE SCOPE:
-- Write only the exact files listed above inside /home/shzd/Projects/workspaces/visaguy_workspace.
+- Write only the exact files listed above inside /home/fasil/Tridz/visaguy_workspace.
 
 REPLY ONLY WITH:
 `<created file count>, <repository count check>, <link count>, <verdict>`

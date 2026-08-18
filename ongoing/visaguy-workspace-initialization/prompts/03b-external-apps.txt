@@ -1,6 +1,6 @@
 GROUND FACTS (already verified — do not re-derive):
-- Workspace: /home/shzd/Projects/workspaces/visaguy_workspace
-- Read-only remote bench: ssh -p 2257 shahzad@erpcode.tridz.in, /home/shahzad/bench
+- Workspace: /home/fasil/Tridz/visaguy_workspace
+- Read-only remote bench: ssh -p 2257 fasil@erpcode.tridz.in, /home/fasil/fasil-bench-v15
 - External/upstream apps (11): employee_self_service, erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, mansico_meta_integration, non_profit, payments, raven.
 - Site-installed external apps (9): erpnext, frappe, frappe_whatsapp, hrms, india_compliance, insights, non_profit, payments, raven.
 - Bench-only external apps (2): employee_self_service, mansico_meta_integration.
@@ -8,9 +8,9 @@ GROUND FACTS (already verified — do not re-derive):
 - Do not read secrets, config values, databases, logs, uploads, private files, or production records.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
 
 TASKS:
 - EA1. Produce a concise catalog for all 11 external apps: owner/origin, version/branch/SHA, site-installed status, role in VisaGuy, direct maintained-app dependencies/integration points, and verification level.
@@ -33,11 +33,11 @@ GATES:
 
 SCOPE GUARDS:
 - Read only checked-in source/config/docs for the 11 external app directories.
-- Write only /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- Write only /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
 - Do not modify, install, build, migrate, restart, commit, push, query databases, or call external provider APIs.
 
 OUTPUT:
-- Write the synthesized report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- Write the synthesized report to /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
 
 REPLY ONLY WITH:
 `<11/11 coverage>, <9 installed/2 bench-only>, <compatibility risk count>, <verdict>`

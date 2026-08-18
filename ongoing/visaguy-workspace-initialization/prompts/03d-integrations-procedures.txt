@@ -1,12 +1,12 @@
 SYNTHESIS ONLY. Do not use SSH, network, application repositories, or new extraction. Read only the accepted local phase reports listed below and write only the requested output.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/02-triage.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03a-maintained-apps.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03b-external-apps.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03c-frontends.md
 
 TASKS:
 - IP1. Produce an end-to-end system topology across the three frontends, FastAPI/OpenAI companion, Frappe site, 18 maintained apps, 9 installed external apps, 2 bench-only external apps, Redis/workers/scheduler, and external providers.
@@ -30,7 +30,7 @@ GATES:
 - No new files besides the output.
 
 OUTPUT:
-- Write /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
+- Write /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/03d-integrations-procedures.md
 
 REPLY ONLY WITH:
 `<topology complete>, <integration count>, <runbook count>, <risk count>, <verdict>`

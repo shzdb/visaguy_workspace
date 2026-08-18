@@ -1,15 +1,15 @@
 GROUND FACTS (already verified — do not re-derive):
-- Read-only SSH endpoint: ssh -p 2257 shahzad@erpcode.tridz.in
-- Remote bench: /home/shahzad/bench
-- Site directory: /home/shahzad/bench/sites/visaguy
-- The 29 app directories and ownership classification are recorded in /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md.
+- Read-only SSH endpoint: ssh -p 2257 fasil@erpcode.tridz.in
+- Remote bench: /home/fasil/fasil-bench-v15
+- Site directory: /home/fasil/fasil-bench-v15/sites/visaguy
+- The 29 app directories and ownership classification are recorded in /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md.
 - Primary remotes are commonly named `upstream`; use `upstream` then `origin` when identifying provenance.
 - Organizations tridz-dev and tvgglobal are internally maintained; all other owners are external/upstream for this project.
 - All investigation is read-only on the remote server. Only the local workspace output file may be written.
 - Never read or reproduce secrets, credentials, tokens, cookies, private keys, personal data, production records, database contents, logs containing user data, or environment variable values.
 
 READ FIRST:
-- /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
+- /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/STATE.md
 
 TASKS:
 - RB1. Confirm bench/Frappe/ERPNext versions, Python/Node package metadata, app installation order, site name, and deployment/process topology using safe checked-in/config metadata. Record config KEY NAMES only; never values.
@@ -23,26 +23,26 @@ TASKS:
 
 POLICIES:
 - Prefer bounded remote commands such as `find` with exact app paths/maxdepth, `rg`, `git`, and `sed` over broad scans.
-- Never run an unrestricted `find` over /home/shahzad, sites/visaguy/private, logs, backups, database files, or user-upload directories.
-- Cite remote evidence as `/home/shahzad/bench/<path>:<line>` or symbol.
+- Never run an unrestricted `find` over /home/fasil, sites/visaguy/private, logs, backups, database files, or user-upload directories.
+- Cite remote evidence as `/home/fasil/fasil-bench-v15/<path>:<line>` or symbol.
 - Treat code/config/manifests as evidence; label inferences explicitly.
 - Do not infer active production behavior from merely installed packages, examples, commented code, or optional hooks.
 - Do not run bench commands that mutate state, install dependencies, build assets, migrate, restart services, query the database, or access production records.
 - If a file may contain secrets (site_config.json, common_site_config.json, .env, auth configs), inspect key names only with a command that redacts values; do not print raw content.
 
 GATES:
-- `git -C /home/shahzad/bench/apps/<app> status --short` must not be changed by this phase.
+- `git -C /home/fasil/fasil-bench-v15/apps/<app> status --short` must not be changed by this phase.
 - All 29 apps must appear in the report with maintained/external classification.
 - Every material architecture/customization/integration claim must have source evidence or be labeled inference.
 - Output must contain no secret values, credentials, private/production data, or raw logs.
 
 SCOPE GUARDS:
-- Read ONLY checked-in source/config/documentation under /home/shahzad/bench plus redacted configuration key names.
-- Write ONLY /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- Read ONLY checked-in source/config/documentation under /home/fasil/fasil-bench-v15 plus redacted configuration key names.
+- Write ONLY /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
 - DO NOT modify the remote server or application repos. DO NOT install, build, migrate, restart, commit, push, or access databases/private files.
 
 OUTPUT:
-- Write a detailed evidence-backed report to /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
+- Write a detailed evidence-backed report to /home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01b-remote-bench.md
 
 REPLY ONLY WITH:
 `<bench/app HEAD summary>, <29 app coverage count>, <dirty repo count>, <integration count>, <verdict>`

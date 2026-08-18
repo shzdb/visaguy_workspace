@@ -3,9 +3,9 @@
 ## Scope & Methodology
 
 - Repositories inspected read-only:
-  1. `/home/shzd/Projects/tridz/visa_eligibility_checker` — `tvgglobal/visa_eligibility_checker`
-  2. `/home/shzd/Projects/tridz/visaguy_business_client` — `tridz-dev/visaguy_business_client`
-  3. `/home/shzd/Projects/tridz/visaguy-website-client` — `tvgglobal/visaguy-website-client`
+  1. `/home/fasil/Tridz/visa_eligibility_checker` — `tvgglobal/visa_eligibility_checker`
+  2. `/home/fasil/Tridz/visaguy_business_client` — `tridz-dev/visaguy_business_client`
+  3. `/home/fasil/Tridz/visaguy-website-client` — `tvgglobal/visaguy-website-client`
 - Evidence sources: `package.json`, lockfiles, `README.md`, source tree, checked-in config/docs, and source-level greps.
 - No application code was modified. No secrets or values from `.env`/`.env.local` were read or recorded; only environment variable **names** are listed.
 - Git status remained clean for all three repositories throughout the phase.
@@ -561,6 +561,6 @@ Implemented, evidenced by source:
 
 ## Workspace Status
 
-- Output written to: `/home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md`
+- Output written to: `/home/fasil/Tridz/visaguy_workspace/ongoing/visaguy-workspace-initialization/01a-local-frontends.md`
 - Git status of all three frontend repositories: **clean**.
 - No secrets, credentials, `.env` values, build artifacts, or dependency trees were read or recorded.

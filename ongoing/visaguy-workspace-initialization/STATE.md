@@ -1,17 +1,17 @@
 # Ground facts
 
 - Project: VisaGuy.
-- Workspace: `/home/shzd/Projects/workspaces/visaguy_workspace`.
+- Workspace: `/home/fasil/Tridz/visaguy_workspace`.
 - Workspace role: documentation, architecture, decisions, procedures, planning, and status; it must not contain application code, secrets, or production data.
 - Maintained Git organizations: `tridz-dev` and `tvgglobal`.
-- Local frontend repository: `/home/shzd/Projects/tridz/visa_eligibility_checker` (`tvgglobal/visa_eligibility_checker`).
-- Local frontend repository: `/home/shzd/Projects/tridz/visaguy_business_client` (`tridz-dev/visaguy_business_client`).
-- Local frontend repository: `/home/shzd/Projects/tridz/visaguy-website-client` (`tvgglobal/visaguy-website-client`).
-- Remote environment: `ssh -p 2257 shahzad@erpcode.tridz.in`; Frappe bench verified at `/home/shahzad/bench`.
+- Local frontend repository: `/home/fasil/Tridz/visa_eligibility_checker` (`tvgglobal/visa_eligibility_checker`).
+- Local frontend repository: `/home/fasil/Tridz/visaguy_business_client` (`tridz-dev/visaguy_business_client`).
+- Local frontend repository: `/home/fasil/Tridz/visaguy-website-client` (`tvgglobal/visaguy-website-client`).
+- Remote environment: `ssh -p 2257 fasil@erpcode.tridz.in`; Frappe bench verified at `/home/fasil/fasil-bench-v15`.
 - Executor: Kimi Code CLI (`kimi -p`).
 - SSH public-key authentication and remote command execution were verified on 2026-07-20. The initial delay was caused by an overly broad home-directory scan, not authentication.
 - Remote bench contains 29 app directories; all 29 are listed in `sites/apps.txt`.
-- Remote site directory: `/home/shahzad/bench/sites/visaguy` (do not read secrets or production data from it).
+- Remote site directory: `/home/fasil/fasil-bench-v15/sites/visaguy` (do not read secrets or production data from it).
 - `bench --site visaguy list-apps` confirms 27 installed apps. `employee_self_service` and `mansico_meta_integration` are bench-only, not installed on this site.
 - All investigation is read-only against application repositories and the remote server. Only this workspace may be edited.
 
