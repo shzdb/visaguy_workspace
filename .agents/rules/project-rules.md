@@ -30,6 +30,10 @@ Use these labels consistently when reporting evidence:
 
 This audit runtime-verified SSH access, installed apps, versions, and CLI help; it did not verify provider traffic or production workflows.
 
+## App placement rules
+
+- All HR/HRMS-related custom code and customizations must be placed in the `visaguy_hrms` app. This includes hooks, doc_events, class overrides, server scripts, client scripts, and fixtures that extend or modify HRMS, Employee, Leave, Payroll, or related doctypes.
+
 ## Decision and planning discipline
 
 - Record significant architecture decisions as ADRs in `decisions/`.
