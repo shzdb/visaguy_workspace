@@ -27,7 +27,7 @@ expected_files:
   - ongoing/visa-tracking-implementation/10-task-010-planning.md
   - ongoing/visa-tracking-implementation/11-task-010-evidence.md
 created: 2026-07-21
-updated: 2026-07-22
+updated: 2026-07-23
 ---
 
 # TASK-010: End-to-end verification and rollout
@@ -263,3 +263,63 @@ Stop this task and record a workspace decision request if any of the following o
 ## Completion notes
 
 TASK-010 is the final FEAT-001 gate. It does not implement feature code; it verifies that TASK-002 through TASK-009 are internally consistent, runtime-validated on an isolated test site, and ready for human-approved rollout. If the isolated test site remains unavailable because the bench lacks a configured `root_password`, the exact blocker is recorded and the task stays `ready` until the environment is unblocked.
+
+
+## Progress and scope deviation (2026-07-23)
+
+**Status remains `in-progress`.** Substantial evidence now exists, but this task
+was executed outside its own stated constraints and its isolation guarantee is
+weakened. Do not close it without reading this section.
+
+### Authorised deviation from the stated scope
+
+This task states it "must not edit application code, push commits, deploy to
+production, run migrations or tests on site `visaguy`". During 2026-07-22/23 the
+project owner explicitly authorised, and the work performed:
+
+- deploying `feat/visa-tracker` to site `visaguy` and migrating it;
+- editing application code in four repositories to fix defects found at runtime;
+- adding a fifth repository, `visaguy_crm`, to the feature.
+
+The owner also clarified that `visaguy` is a **development bench**, not
+production — the premise behind the original prohibition was inaccurate. See
+**ADR-006**, which records the deviation, the rollback points, and the database
+backup taken beforehand. Commits remain **local and unpushed** in every
+repository.
+
+### What is now verified
+
+- Schema on `visaguy`: 4/4 tracking tables, **zero drift** against
+  `visa-tracker-test.localhost` (`tabVisa Tracking Application`, 29 columns
+  both), 6/6 status fixtures loaded, 3 whitelisted endpoints present, custom
+  fields present on Lead / CRM Lead / Customer / PF Process File.
+- The full chain is **runtime-verified end to end** on real form traffic:
+  form save -> `field_id` preserved -> extension event -> RQ inspection job ->
+  `Passport Extraction` (OCR + MRZ parsed correctly from a real passport) ->
+  `Visa Tracking Application` created and linked to the lead.
+- Suites: `passport_extractor` 63/63, `fileflo` 8/8. Both re-verified by
+  reverting each fix and confirming the new tests fail.
+- CORS: preflight and actual request both correct from the local frontend
+  origin after ADR-008.
+
+### What is NOT yet verified
+
+- **The public lookup has never succeeded end to end.** The first application
+  (`VTA-2026-00575`) was created before the lookup HMAC key existed, so its
+  `verification_lookup_hash` is NULL and `tracking_enabled` is 0. It cannot be
+  repaired in place; a fresh run is required. This is the immediate next step.
+- **Automatic verification (ADR-007) has no tests.** The code compiles and is
+  deployed but its behaviour is unproven — see TASK-011.
+- E2E matrix item 19, browser leg: wire conformance is proven, but no browser
+  has driven the full flow against the live backend.
+- `the_visaguy` suite (248 baseline) has not been re-run since the
+  `response_service` CORS change.
+- Rollout plan and rollback rehearsal remain unwritten.
+
+### Blockers to closing this task
+
+1. One clean end-to-end public lookup against a freshly created application.
+2. TASK-011 (auto-verification tests).
+3. A decision on risk 18 (rate-limit enumeration), which is **live and now
+   reachable** — see TASK-012.
+4. Owner decision on pushing four repositories of unpushed commits.

@@ -7,14 +7,18 @@ repositories:
   - the_visaguy
   - fileflo
   - passport_extractor
+  - visaguy_crm
   - visa_tracker
 owners: []
 depends_on:
   - ADR-003
   - ADR-004
   - ADR-005
+  - ADR-006
+  - ADR-007
+  - ADR-008
 created: 2026-07-20
-updated: 2026-07-21
+updated: 2026-07-23
 ---
 
 # Visa application tracking and passport extraction
@@ -128,7 +132,13 @@ Public API returns approved, minimal status information
 
 - WhatsApp conversational status retrieval. WhatsApp only links to the public tracker website.
 - Sending passport files or passport data to an LLM or external OCR API.
-- Automatic use of unverified extraction data.
+- ~~Automatic use of unverified extraction data.~~ **Superseded 2026-07-23 by
+  ADR-007.** Automatic verification is now enabled when
+  `require_manual_verification` is unset. `Extracted` is already the
+  high-confidence terminal state (check digits, required fields and the
+  confidence threshold have all passed), but this does hand the
+  public-credential decision to OCR. Keep the setting **set** in any real
+  production environment.
 - Full FileFlo autofill. The data model and APIs must enable it later, but autofill is a follow-up feature.
 - Client-visible document downloads, authority documents, internal comments, payments, employee names, or operational notes.
 - Fuzzy public passport matching.
@@ -283,7 +293,7 @@ It must not include DOB, full passport number, passport files, extracted MRZ, in
 Implementation must follow this order. A junior developer must not skip ahead when a dependency is incomplete.
 
 1. [TASK-001](../../../tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md) — completed preflight, local repository setup, and exact integration evidence.
-2. [TASK-002](../../../tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — in-progress extraction-history model in the new app.
+2. [TASK-002](../../../tasks/completed/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — in-progress extraction-history model in the new app.
 3. [TASK-003](../../../tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — completed PaddleOCR/MRZ pipeline; runtime OCR verification is deferred to TASK-010.
 4. [TASK-004](../../../tasks/in-progress/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — in-progress FileFlo event and queued matching.
 5. [TASK-005](../../../tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — completed settings, tracking DocTypes, custom fields, and fixtures; runtime migration is deferred to TASK-010.
@@ -291,7 +301,63 @@ Implementation must follow this order. A junior developer must not skip ahead wh
 7. [TASK-007](../../../tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md) — secure public APIs.
 8. [TASK-008](../../../tasks/completed/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — completed local Vite design system and shared visual shell.
 9. [TASK-009](../../../tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md) — form, verification, status, timeline, errors.
-10. [TASK-010](../../../tasks/ready/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
+10. [TASK-010](../../../tasks/in-progress/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
+
+## Implementation reality (2026-07-23)
+
+Recorded after the feature was deployed and exercised end to end on bench site
+`visaguy`. These correct the architecture as written; read them before planning
+further work.
+
+### The live integration seam is `visaguy_crm`, not `fileflo`
+
+The data-collection form calls
+`visaguy_crm.data_collecting_form.add_form_data`, a diverged fork of
+`fileflo.data_collection.add_form_data`. FEAT-001 was integrated into the
+fileflo original, so the integration point was bypassed entirely and could never
+have fired. `visaguy_crm` is now a participating repository (ADR-006), and the
+duplication is a standing drift risk (risk 21).
+
+### The chain, and every stage that has failed in practice
+
+```
+form save  ->  field_id preserved on the uploaded FF File Collection File row
+           ->  fileflo post-persistence extension event dispatched
+           ->  the_visaguy.enqueue_fileflo_inspection (RQ, short queue)
+           ->  passport rows matched BY field_id
+           ->  Passport Extraction (OCR + MRZ)
+           ->  status Verified  (auto per ADR-007, else manual)
+           ->  Visa Tracking Application, keyed by verification_lookup_hash
+```
+
+Defects found and fixed, all of which a green test suite had missed:
+
+| # | Defect | Where | Fix |
+|---|---|---|---|
+| 1 | `field_id` destroyed for multi-upload fields: replacement rows appended without it, then the template-derived row holding it deleted. Single-upload fields were unaffected because that path mutates in place. | `fileflo` and, decisively, `visaguy_crm` | `fileflo c7244a4`, `visaguy_crm b573e2c` |
+| 2 | The FileFlo extension event was never dispatched by the live endpoint. | `visaguy_crm` | `b573e2c` |
+| 3 | MRZ detection rejected valid passports: a closed whitelist `("P<", "PV", "PC")` where ICAO 9303 fixes only position 1 as `P`. A South African `PM` passport failed as `NO_MRZ_FOUND`. `PD`/`PS`/`PP` too. | `passport_extractor` | `0216829` |
+| 4 | Duplicated `Access-Control-Allow-Origin` (app + Frappe, `extend` appends) — rejected by browsers, invisible to `curl`. | `the_visaguy` | ADR-008 |
+| 5 | Nothing implemented the `Extracted -> Verified` transition; `require_manual_verification` was inert config. | `the_visaguy` | ADR-007 |
+
+Configuration gaps that fail **silently**, with no error or log:
+
+- `visa_tracker_lookup_hmac_key` absent -> no `verification_lookup_hash` ->
+  `tracking_enabled = 0` -> every public lookup fails though the application
+  exists. This is unrepairable in place (risk 22).
+- `passport_field_ids` not matching a real `FF File Collection File.field_id`.
+- No `field_id` on the `FF File Template File` row. **No template in the system
+  had one populated**, so the selector the feature relies on was empty across
+  all real data.
+
+See `docs/operations/visa-tracking-runbook.md` for the diagnostic order.
+
+### Testing lesson
+
+Five runtime defects survived a fully green static suite, because the tests
+mocked or constructed exactly the seams that were broken — every MRZ fixture
+used a `P<` prefix; no test exercised the multi-upload `field_id` round-trip.
+**Trust runtime evidence over in-process test counts on this feature.**
 
 ## Supporting specifications
 

@@ -1,0 +1,155 @@
+GROUND FACTS (already verified by prior read-only recon — do NOT re-derive):
+
+- SSH: ssh -p 2257 shahzad@erpcode.tridz.in . Bench root: /home/shahzad/bench .
+- Use bare `bench` with an explicit `--site`. NEVER run `which bench`,
+  `bench --version`, or `bench --help`.
+- erpcode.tridz.in is a SHARED host. Other users run `bench serve` there.
+  Do NOT kill, restart, or signal ANY process you did not start. Do NOT run
+  `bench restart`, `sudo supervisorctl restart`, or anything that restarts
+  services globally.
+- Current bench app checkout state (all clean, 0 dirty lines):
+    /home/shahzad/bench/apps/the_visaguy          branch main               HEAD e690b5b
+    /home/shahzad/bench/apps/passport_extractor   branch develop            HEAD 07b8cab
+    /home/shahzad/bench/apps/fileflo              branch fix/mandatory-file HEAD 6683010
+- Target commits (branch `feat/visa-tracker`, currently checked out in linked
+  worktrees under /home/shahzad/visa-tracker-worktrees/):
+    the_visaguy         910914e
+    passport_extractor  3486fcc
+    fileflo             fa1d6b3
+- VERIFIED: for all three apps the current bench HEAD is an ANCESTOR of the
+  target commit. Moving to the target is a pure fast-forward in content — no
+  commits are lost.
+- The branch name `feat/visa-tracker` is CHECKED OUT IN THE LINKED WORKTREE, so
+  `git checkout feat/visa-tracker` in the bench app WILL FAIL. You must check
+  out the target SHA in DETACHED HEAD state instead. Do NOT remove, move, or
+  prune the worktrees under /home/shahzad/visa-tracker-worktrees/ — they are
+  the test environment and must survive intact.
+- All three apps are ALREADY installed on site `visaguy`. Do NOT run
+  `bench install-app` for them.
+- Site `visaguy` currently has 0 of the 4 visa tracking DocType tables.
+  Site `visa-tracker-test.localhost` has 4/4 and is the known-good reference.
+
+AUTHORIZATION: The user has explicitly authorized deploying this feature to the
+production site `visaguy`, having been told it changes live code, writes to the
+production database, and ships a known rate-limit gap. Proceed.
+
+SCOPE GUARDS:
+- Touch ONLY: the three bench app checkouts, and site `visaguy`.
+- Do NOT push anything to any git remote.
+- Do NOT modify /home/shahzad/visa-tracker-worktrees/* .
+- Do NOT modify or migrate any site other than `visaguy`.
+- Do NOT edit application source code. If a code change appears necessary,
+  STOP and report instead.
+- Do NOT restart shared services (see ground facts).
+
+READ FIRST:
+  /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracker-branch-switch/01-recon.md
+  /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/HANDOFF.md
+
+TASKS — execute strictly in order. If any task fails its gate, STOP
+immediately, do NOT continue to later tasks, and jump to the ROLLBACK section.
+
+D0. Take a database backup of `visaguy` BEFORE any change:
+      cd /home/shahzad/bench && bench --site visaguy backup
+    Record the exact backup file path(s) printed. This is the recovery point.
+    GATE: a backup file path is printed and the file exists on disk with
+    non-zero size. If no backup is produced, STOP — do not proceed.
+
+D1. Record rollback state: for each of the three apps write down the current
+    branch name and full HEAD sha (use `git rev-parse HEAD`, full 40 chars).
+    Put these in the output log under a clearly marked "ROLLBACK POINTS" heading.
+
+D2. Check out the target commits in DETACHED HEAD state:
+      git -C /home/shahzad/bench/apps/the_visaguy        checkout 910914e
+      git -C /home/shahzad/bench/apps/passport_extractor checkout 3486fcc
+      git -C /home/shahzad/bench/apps/fileflo            checkout fa1d6b3
+    GATE: after each, `git -C <path> rev-parse --short HEAD` matches the target
+    and `git -C <path> status --porcelain` is empty. Report all three.
+
+D3. Check whether Python dependencies changed between the old and new commits:
+      git -C <path> diff <old-sha> <new-sha> -- requirements.txt pyproject.toml setup.py
+    for each app. Report the diff (or "no dependency change").
+    If and only if dependencies changed, install them into the bench virtualenv:
+      /home/shahzad/bench/env/bin/pip install -e /home/shahzad/bench/apps/<app>
+    Report the pip outcome. If pip fails, STOP and go to ROLLBACK.
+
+D4. Report the list of pending schema patches BEFORE migrating so we know what
+    else the migrate will apply beyond this feature. Do this read-only:
+    query the `tabPatch Log` table for the visaguy database and compare against
+    the union of `patches.txt` across installed apps, OR simply record the count
+    of rows in `tabPatch Log` and the tail of each app's patches.txt. Read
+    db credentials from /home/shahzad/bench/sites/visaguy/site_config.json.
+    Read-only SQL only (SELECT/SHOW). Report what you find; if you cannot
+    determine this cleanly, say "UNKNOWN" and continue — this is informational.
+
+D5. Migrate production:
+      cd /home/shahzad/bench && bench --site visaguy migrate
+    Capture the FULL output. GATE: exit code 0. If migrate fails, STOP,
+    capture the complete traceback, and go to ROLLBACK.
+
+D6. Build assets if the feature ships any:
+      cd /home/shahzad/bench && bench build --app the_visaguy
+    If this fails, report it but do NOT roll back for an asset-build failure
+    alone — note it as a non-blocking issue.
+
+D7. VERIFY (this is the point of the whole exercise). Report each explicitly:
+    a) `bench --site visaguy list-apps` — full verbatim output. Confirm
+       the_visaguy / passport_extractor / fileflo appear and note the branch
+       label shown (it may read as a sha or blank due to detached HEAD — that
+       is expected and is NOT an error).
+    b) The 4 visa tracking DocType tables now exist in the `visaguy` database.
+       Determine the DocType names from
+       /home/shahzad/bench/apps/the_visaguy/visa_tracking/ (its doctype folder)
+       and check each with a read-only `SHOW TABLES LIKE ...`. Report
+       present/absent per table. Also confirm the `Visa Tracker Settings`
+       Single DocType exists as a row in `tabSingles` / `tabDocType`.
+    c) Confirm the visa tracking module is registered: read-only query
+       `SELECT name, app_name FROM tabModule Def WHERE module_name LIKE '%Visa%'`
+       (adjust column names to the real schema if needed) — report rows found.
+    d) Compare against the known-good reference site
+       `visa-tracker-test.localhost`: same table check there, and report any
+       table present on the test site but MISSING on visaguy.
+    e) Confirm the whitelisted public API endpoints exist in the deployed code:
+       grep for `@frappe.whitelist` in
+       /home/shahzad/bench/apps/the_visaguy/visa_tracking/api/ and list the
+       exported function paths found.
+
+D8. Post-deploy sanity: confirm no OTHER site on the bench was migrated or
+    modified by you (list what you ran per site). Confirm the three worktrees
+    under /home/shahzad/visa-tracker-worktrees/ are still intact, on branch
+    feat/visa-tracker, and clean.
+
+ROLLBACK (only if a gate above failed):
+- Restore each app to its recorded D1 branch:
+    git -C /home/shahzad/bench/apps/<app> checkout <original-branch>
+- If D5 (migrate) had already partially run, do NOT attempt an automatic
+  database restore. Instead STOP, report the exact failure, the backup path
+  from D0, and the restore command that WOULD be used
+  (`bench --site visaguy restore <path>`), and let the human decide.
+- Report clearly which rollback steps you performed and which you deliberately
+  did not.
+
+POLICIES:
+- Never edit application code to make a step pass.
+- If observed behavior disagrees with these instructions, STOP and report
+  evidence rather than improvising.
+- Report the truth about failures. A partially-completed deploy reported
+  honestly is far better than a "success" that is not one.
+- Use synthetic data only if you test anything; never real passport data.
+
+OUTPUT: write a full log — every command and its raw output — to
+/home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracker-branch-switch/03-switch.md
+with one section per task ID (D0..D8), plus ROLLBACK POINTS and any rollback
+actions taken. Write the file on the LOCAL machine.
+
+REPLY ONLY with these lines, nothing else:
+  BACKUP_PATH: <path or FAILED>
+  CHECKOUTS: <the_visaguy=<sha>, passport_extractor=<sha>, fileflo=<sha>>
+  DEPS_CHANGED: <yes: which | no>
+  MIGRATE_EXIT: <0 | nonzero + one-line reason>
+  BUILD: <ok | failed: reason | skipped>
+  VISAGUY_TRACKING_TABLES: <present>/<expected>
+  API_ENDPOINTS_FOUND: <count>
+  WORKTREES_INTACT: <yes|no>
+  ROLLED_BACK: <no | yes: what>
+  VERDICT: <one line>

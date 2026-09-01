@@ -1,4 +1,24 @@
-# FEAT-001 Visa Tracking — START HERE (handoff as of 2026-07-22, end of day)
+# FEAT-001 Visa Tracking — SUPERSEDED (handoff as of 2026-07-22, end of day)
+
+> **SUPERSEDED 2026-07-23. Read `ongoing/visa-tracker-branch-switch/STATE.md`
+> and the feature's "Implementation reality" section first.**
+>
+> Two statements in §8 below are WRONG and have already caused an execution
+> agent to refuse an authorised task:
+>
+> - **"Site `visaguy` is production and READ-ONLY; never migrate or test against
+>   it."** `visaguy` is a **development bench** (owner, 2026-07-23), served at
+>   `https://visaguy.erpcode.tridz.in`. FEAT-001 is deployed and migrated there.
+>   See ADR-006.
+> - **"Synthetic data only ... never real passport data."** Scoped by the owner
+>   on 2026-07-23 to shared and production sites. A real document was
+>   deliberately retained on `visaguy`, which is the owner's own site. Synthetic
+>   data remains the rule for automated tests and probes.
+>
+> The repository/branch table below is also stale — all five repositories have
+> moved on. §4 (rate limiting) remains accurate and open; it is now tracked as
+> TASK-012 and risk 18.
+
 
 You are picking up an in-flight feature. Read this file first, then `STATE.md`
 in this directory (the decisions log at the bottom is the authoritative

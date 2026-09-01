@@ -2,7 +2,7 @@
 id: TASK-002
 feature: FEAT-001
 title: Passport extractor scaffold and DocType
-status: in-progress
+status: completed
 repository: passport_extractor
 owners: []
 depends_on:
@@ -21,7 +21,7 @@ expected_files:
   - passport_extractor/README.md
   - passport_extractor/license.txt
 created: 2026-07-21
-updated: 2026-07-21
+updated: 2026-07-23
 ---
 
 # TASK-002: Passport extractor scaffold and DocType
@@ -297,3 +297,31 @@ Stop this task and record a workspace decision request if any of the following o
 
 - Ready to start implementation from base SHA `07b8cab40cd4054b39a78f23a271d7201e71baa0` in `/home/shahzad/visa-tracker-worktrees/passport_extractor`.
 - TASK-002 depends on TASK-001 and ADR-004.
+
+
+## Completion notes (2026-07-23)
+
+- The runtime blocker recorded against this task — no dedicated test site,
+  because the bench lacked a configured database `root_password` — is resolved.
+  `visa-tracker-test.localhost` exists and is migrated.
+- `Passport Extraction` is present and migrated on both
+  `visa-tracker-test.localhost` and `visaguy`, and has been exercised with real
+  documents end to end (records `PEX-2026-00001` through `PEX-2026-00003`).
+- One defect in this repository was found and fixed after the scaffold landed:
+  MRZ detection rejected valid state-specific document subtypes. See ADR-006 and
+  the feature's "Implementation reality" section.
+
+## Completion evidence (2026-07-23)
+
+- Suite: **63/63 pass** on `visa-tracker-test.localhost`
+  (`bench run-tests --app passport_extractor --skip-test-records`), comprising
+  the 61-test baseline plus 2 regression tests added for the MRZ subtype defect.
+- Reverting the MRZ fix fails the new test for subtypes `M`, `D`, `S`, `P`
+  (4 failures, `AssertionError: 0 != 1`), confirming the test detects the defect
+  rather than merely passing alongside it.
+- `passport_extractor` remains dependency-free; the automatic-verification logic
+  required by ADR-007 was deliberately placed in `the_visaguy` to preserve the
+  ADR-003 dependency direction.
+- Repository state: branch `feat/visa-tracker` at `0216829`, working tree clean.
+  **Not pushed.**
+- Evidence: `ongoing/visa-tracker-branch-switch/STATE.md`.

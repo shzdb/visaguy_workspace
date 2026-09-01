@@ -1,0 +1,106 @@
+GROUND FACTS (already verified — do NOT re-derive, do NOT re-test):
+
+- SSH into the bench host with: ssh -p 2257 shahzad@erpcode.tridz.in
+- Bench root: /home/shahzad/bench . Apps live in /home/shahzad/bench/apps/<app>.
+- Use bare `bench` with an explicit `--site`. NEVER run `which bench`,
+  `bench --version`, or `bench --help` (they hang/are useless here).
+- The FEAT-001 "visa tracking" code currently lives in SEPARATE remote git
+  worktrees, NOT in the bench app checkouts:
+    /home/shahzad/visa-tracker-worktrees/the_visaguy          HEAD 910914e
+    /home/shahzad/visa-tracker-worktrees/passport_extractor   HEAD 3486fccd
+    /home/shahzad/visa-tracker-worktrees/fileflo              HEAD fa1d6b38
+  All on branch `feat/visa-tracker`. These commits have NEVER been pushed.
+- A dedicated test site `visa-tracker-test.localhost` exists and was migrated
+  against the_visaguy @ 910914e.
+- Site `visaguy` is PRODUCTION.
+- erpcode.tridz.in is a SHARED host used by other people.
+
+ABSOLUTE SCOPE GUARDS — violating any of these is a task failure:
+- This phase is STRICTLY READ-ONLY. Make NO changes of any kind.
+- Do NOT run `git checkout`, `git switch`, `git pull`, `git fetch`, `git stash`,
+  `git merge`, or any command that mutates a repository.
+- Do NOT run `bench migrate`, `bench install-app`, `bench build`,
+  `bench --site ... console`, or anything that writes to a database.
+- Do NOT push anything anywhere.
+- Do NOT start, restart, or kill ANY process on the shared host.
+- Do NOT touch the `visaguy` production database.
+
+READ FIRST (on the local machine, for context only, do not modify):
+  /home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracking-implementation/HANDOFF.md
+
+TASKS (report findings for every ID):
+
+R1. For each of the three bench app checkouts
+    /home/shahzad/bench/apps/the_visaguy, .../passport_extractor,
+    .../fileflo (report if any does not exist):
+      - current branch (`git -C <path> rev-parse --abbrev-ref HEAD`)
+      - HEAD sha (short)
+      - whether the working tree is dirty (`git -C <path> status --porcelain`,
+        report the COUNT of lines and the first 10)
+      - whether the branch `feat/visa-tracker` exists locally
+        (`git -C <path> branch --list feat/visa-tracker`) and remotely
+        (`git -C <path> branch -r --list '*feat/visa-tracker*'`)
+      - the configured remote URL(s) (`git -C <path> remote -v`)
+
+R2. For each of the three worktrees under /home/shahzad/visa-tracker-worktrees/:
+      - confirm it exists, its branch, HEAD sha, and dirty-line count.
+      - `git -C <path> log --oneline -5`
+      - Confirm whether the worktree branch commits are reachable from the
+        corresponding bench checkout's current HEAD, i.e. run
+        `git -C /home/shahzad/bench/apps/<app> merge-base --is-ancestor <worktree-HEAD> HEAD; echo $?`
+        and report the exit code. Also report the reverse direction.
+
+R3. Determine which apps are installed on the PRODUCTION site `visaguy`:
+      run `bench --site visaguy list-apps` from /home/shahzad/bench .
+      Report the full list verbatim. State explicitly whether `the_visaguy`,
+      `passport_extractor`, and `fileflo` each appear.
+
+R4. Same for the test site: `bench --site visa-tracker-test.localhost list-apps`.
+    Report the full list verbatim.
+
+R5. Read-only migration/schema probe for the visa tracking DocTypes.
+    The feature's DocTypes live under
+    /home/shahzad/visa-tracker-worktrees/the_visaguy/visa_tracking/ —
+    first LIST the DocType directory names found there (look for a
+    `doctype/` folder), then for each DocType name determine whether its table
+    exists in the `visaguy` production database WITHOUT using bench console.
+    Use a direct read-only SQL query via the site's own credentials, e.g.:
+      cd /home/shahzad/bench/sites && \
+      mysql -u <db_user> -p<db_password> <db_name> -e "SHOW TABLES LIKE 'tab%';"
+    reading db_name/db_password from /home/shahzad/bench/sites/visaguy/site_config.json.
+    ONLY SELECT/SHOW statements. No writes. If you cannot read site_config.json
+    or connect, say so plainly and move on — do not improvise a workaround that
+    writes anything.
+    Report: which visa tracking tables exist on `visaguy` and which do not.
+
+R6. Repeat R5's table check for `visa-tracker-test.localhost` so we have a
+    known-good comparison.
+
+R7. Report whether an `apps.txt` / `sites/apps.txt` on the bench lists the three
+    apps, and cat /home/shahzad/bench/sites/apps.txt if present.
+
+POLICIES:
+- If a command fails, record the exact error and continue with the remaining
+  tasks. Do not retry destructively.
+- Report facts only. Do not recommend or perform remediation.
+- Never guess. If something is unknown, write "UNKNOWN — <reason>".
+
+GATES (must hold when you finish):
+- `git -C <each of the 6 repos> status --porcelain` output is IDENTICAL to what
+  you observed at the start. Re-check and confirm this explicitly in your log.
+- No bench write command was run.
+
+OUTPUT: write a detailed findings log to
+/home/shzd/Projects/workspaces/visaguy_workspace/ongoing/visa-tracker-branch-switch/01-recon.md
+with one clearly-headed section per task ID (R1..R7), including raw command
+output. Write the file on the LOCAL machine.
+
+REPLY ONLY with these lines, nothing else (no file contents, no prose):
+  APPS_ON_VISAGUY_HAS_FEATURE: <yes|no|partial: which>
+  BENCH_CHECKOUT_BRANCHES: <the_visaguy=..., passport_extractor=..., fileflo=...>
+  BENCH_CHECKOUTS_DIRTY: <app=N, app=N, app=N>
+  WORKTREE_COMMITS_IN_CHECKOUTS: <yes|no per app>
+  VISAGUY_TRACKING_TABLES: <count present>/<count expected>
+  TESTSITE_TRACKING_TABLES: <count present>/<count expected>
+  BLOCKERS: <one line>
+  VERDICT: <one line>
