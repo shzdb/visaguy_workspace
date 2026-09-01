@@ -10,10 +10,19 @@ depends_on:
   - ADR-006
 blocked_by: owner decision on approach; deliberately deferred 2026-07-23
 created: 2026-07-23
-updated: 2026-07-23
+updated: 2026-09-01
 ---
 
 # TASK-013: Consolidate the duplicated FileFlo upload logic
+
+## Tracking note (2026-09-01)
+
+The owner is tracking this task as a GitHub issue, to be picked up later.
+Filing an issue tracks the work; it does not decide the consolidation
+approach (Option 1 / 2 / 3 below), which is what actually blocks this task.
+Status remains `blocked` for that reason.
+
+Issue URL: _(not yet filed — paste here once created)_
 
 ## Blocker
 
