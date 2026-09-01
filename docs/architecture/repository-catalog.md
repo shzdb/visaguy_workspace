@@ -55,6 +55,18 @@ This catalog lists all 32 repositories: 29 Frappe bench apps and 3 frontend repo
 | 31 | `visaguy_business_client` | `tridz-dev/visaguy_business_client` | frontend | Next.js 15.2.8 | `6c3d365a` / 2026-03-27 | B2B business portal |
 | 32 | `visaguy-website-client` | `tvgglobal/visaguy-website-client` | frontend | Next.js 15.3.5 | `3b066f6b` / 2025-08-10 | Consumer website/e-commerce |
 
+### Note: `visa_tracker` (FEAT-001) not yet catalogued (2026-09-01)
+
+`visa_tracker`, the FEAT-001 public tracking SPA, now has a Git remote
+(`git@tridz:tvgglobal/visa_tracker.git`, in sync at `a6a07a9` on `main`) —
+it did not when this catalog was last compiled and so is absent from the
+32-repository count and the frontend table above. Adding it as a full row
+needs the same reconnaissance depth (owner/class verification, dependency
+audit) as the rest of this catalog, which is out of scope for this
+reconciliation pass; recorded here so the omission is not mistaken for the
+repository not existing. See `features/ongoing/visa-tracking/README.md`
+"Reconciliation (2026-09-01)" for the source finding.
+
 ## Dirty working trees
 
 The following repositories have uncommitted changes. Their diffs were not inspected.

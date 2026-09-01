@@ -1,9 +1,52 @@
 # FEAT-001 Visa Tracking — SUPERSEDED (handoff as of 2026-07-22, end of day)
 
-> **SUPERSEDED 2026-07-23. Read `ongoing/visa-tracker-branch-switch/STATE.md`
-> and the feature's "Implementation reality" section first.**
+> **DOUBLY SUPERSEDED. This entire file is a point-in-time snapshot from
+> 2026-07-22. Do not act on any specific fact below — repository state,
+> paths, environment, and blocker status have all moved on twice since. Read,
+> in order:**
 >
-> Two statements in §8 below are WRONG and have already caused an execution
+> 1. `ongoing/visa-tracker-branch-switch/STATE.md` (2026-07-23 reconciliation,
+>    itself further reconciled 2026-09-01 — read its own latest section too),
+> 2. `features/ongoing/visa-tracking/README.md` "Implementation reality" and
+>    "Reconciliation (2026-09-01)" sections,
+> 3. `tasks/in-progress/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md`
+>    "Blocker 1 closed and repository state update (2026-09-01)".
+>
+> Known-wrong statements below, do not rely on any of them:
+>
+> - §2's repository table and every "NOTHING PUSHED" claim in this file. As of
+>   2026-09-01 all five feature repositories (`the_visaguy`, `passport_extractor`,
+>   `fileflo`, `visaguy_crm`, `visa_tracker`) have their `feat/visa-tracker`
+>   work on a remote; only `the_visaguy` and `visaguy_crm` have one unpushed
+>   commit each (a `main` merge), not four repositories of unpushed feature work.
+> - §3's test counts are stale (2026-07-22) and have not been re-run since; a
+>   fresh suite run is in progress elsewhere as of 2026-09-01. Treat every
+>   number in §3 as pending re-verification, not current fact.
+> - §4 (rate-limit enumeration) remains accurate and open; it is tracked as
+>   TASK-012 and risk 18. This is the one part of this file still safe to trust.
+> - §5's "workspace closure" bullet is stale: TASK-002 and TASK-004/006/007/009
+>   are already in `tasks/completed/`; TASK-010 stays `in-progress` for reasons
+>   that have changed (see the TASK-010 update above), not the ones listed here.
+> - §8's environment facts are from the old Linux machine. Development has
+>   since moved to macOS (`/Users/shzd/...`). The worktrees under
+>   `/home/shahzad/visa-tracker-worktrees/` **no longer exist**; feature
+>   branches now live directly in the bench app checkouts at `~/bench/apps/<app>`.
+>   Do not use the worktree-first `PYTHONPATH` instruction in §8.
+> - §8's "Site `visaguy` is production and READ-ONLY; never migrate or test
+>   against it" was already corrected once (below) to "development bench,
+>   deployed and migrated there" — that correction still stands.
+> - §8's "Synthetic data only ... never real passport data" was already scoped
+>   by the owner to shared/production sites — that correction still stands too.
+>
+> §6 ("why this feature needed so many corrective phases") and §7 ("how to
+> work here") remain valuable and are not known to be wrong.
+>
+> ---
+>
+> **SUPERSEDED 2026-07-23 (first pass).** Read `ongoing/visa-tracker-branch-switch/STATE.md`
+> and the feature's "Implementation reality" section first.
+>
+> Two statements in §8 below were WRONG and had already caused an execution
 > agent to refuse an authorised task:
 >
 > - **"Site `visaguy` is production and READ-ONLY; never migrate or test against

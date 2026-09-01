@@ -6,16 +6,24 @@ and that all code and migrations are in place.
 
 ## Ground facts (verified — do not re-derive)
 
+> **Superseded 2026-09-01 — see "Reconciliation (2026-09-01)" at the end of
+> this file before relying on anything in this section.** The worktree paths
+> below no longer exist, the local paths are no longer current (machine
+> changed), and "nothing has ever been pushed" is no longer true.
+
 - Executor: `claude -p "$(cat prompts/<file>)" --model sonnet --permission-mode bypassPermissions --add-dir /home/shzd/Projects/workspaces/visaguy_workspace`
 - SSH: `ssh -p 2257 shahzad@erpcode.tridz.in`. Bench: `/home/shahzad/bench`.
   Use bare `bench` with an explicit `--site`. Never `which bench` /
   `bench --version` / `bench --help`.
-- FEAT-001 code lives in REMOTE WORKTREES, not in the bench's app checkouts:
+- FEAT-001 code lived in REMOTE WORKTREES, not in the bench's app checkouts,
+  **as of 2026-07-22 — this is no longer the layout, see the 2026-09-01
+  reconciliation below**:
   - `/home/shahzad/visa-tracker-worktrees/the_visaguy` @ `910914e`
   - `/home/shahzad/visa-tracker-worktrees/passport_extractor` @ `3486fccd`
   - `/home/shahzad/visa-tracker-worktrees/fileflo` @ `fa1d6b38`
   - frontend LOCAL `/home/shzd/Projects/tridz/visa_tracker` @ `a6a07a9a`
-  All on branch `feat/visa-tracker`. **Nothing has ever been pushed.**
+  All on branch `feat/visa-tracker`. ~~Nothing has ever been pushed.~~
+  **No longer true as of 2026-09-01.**
 - Dedicated test site `visa-tracker-test.localhost` is migrated at `910914e`.
 - Site `visaguy` is PRODUCTION. Read-only unless the user explicitly authorizes
   a change. `erpcode.tridz.in` is a SHARED host — other users' `bench serve`
@@ -265,3 +273,61 @@ Run one fresh lead + form after restarting `bench start`. The first application
 (`VTA-2026-00575`) predates the HMAC key and has a NULL
 `verification_lookup_hash`, so the public lookup has still never succeeded
 end to end. That is the one remaining unproven link in the chain.
+
+## Reconciliation (2026-09-01)
+
+The "immediate next action" above has been completed. Direct query of site
+`visaguy` shows the `Visa Tracker Audit Log` with `verification_succeeded` x5,
+`status_fetched` x25, and `session_closed` x2, all successful, all with origin
+`http://localhost:5173`, most recent 2026-08-01. `VTA-2026-00611` has a
+populated `verification_lookup_hash` and `tracking_enabled = 1`. The older
+`VTA-2026-00575` still has a NULL hash and `tracking_enabled = 0` — it predates
+the HMAC key and remains unrepairable in place, as documented above. TASK-010
+blocker 1 is now closed; see its own file for the full record.
+
+**Environment moved to a new machine.** Local paths are now macOS
+`/Users/shzd/...`, not the Linux `/home/shzd/...` and `/home/shahzad/...`
+paths used throughout this file. Specifically:
+
+- Workspace: `/Users/shzd/Projects/tridz/workspaces/visaguy_workspace`.
+- Frontend: `/Users/shzd/Projects/tridz/visa_tracker`.
+- The remote worktrees under `/home/shahzad/visa-tracker-worktrees/` **no
+  longer exist**. Feature branches now live directly in the bench app
+  checkouts at `~/bench/apps/<app>`. Any instruction in this file to use those
+  worktrees, or to set a worktree-first `PYTHONPATH` pointing at them, is
+  wrong and will mislead — use the plain app checkout paths instead.
+
+**Push state.** All five repositories now have their `feat/visa-tracker` work
+on a remote:
+
+| Repo | Local HEAD | Remote `upstream/feat/visa-tracker` | Note |
+|---|---|---|---|
+| `the_visaguy` | `4192e36` | `8254f93` | 1 commit unpushed (merge of `main`) |
+| `passport_extractor` | `0216829` | `0216829` | in sync |
+| `fileflo` | `c7244a4` | `c7244a4` | in sync |
+| `visaguy_crm` | `b492a34` | `b573e2c` | 1 commit unpushed (merge of `main`) |
+| `visa_tracker` (frontend) | `a6a07a9` on `main` | in sync with `origin/main` | remote is `git@tridz:tvgglobal/visa_tracker.git` |
+
+`the_visaguy 4192e36` (2026-09-01, "resolve conflicts in hooks.py") merges
+`main` (`153eb96`) into `feat/visa-tracker`, bringing in unrelated WhatsApp
+multi-zone, PF process file timer, and insights work; all five `visa_tracking`
+hook entries survive the conflict resolution intact, and the diff against
+`8254f93` is otherwise purely the merged-in unrelated content. `visaguy_crm`
+was likewise merged with its `main` today at `b492a34`.
+
+**ADR-007 (automatic verification) is committed and deployed** as `the_visaguy
+8254f93` (2026-08-06, "feat: auto verify extraction"), touching
+`handlers/passport_extraction_handlers.py`, `visa_tracking/jobs.py`
+(`auto_verify_extraction`), `visa_tracking/utils/constants.py`, and
+`visa_tracking/services/response_service.py`. Live on `visaguy`:
+`Visa Tracker Settings.require_manual_verification = 0`. Still zero tests —
+TASK-011 covers that and stays `ready`.
+
+Entry points for a fresh agent are unchanged in kind, updated in detail: see
+`features/ongoing/visa-tracking/README.md` "Reconciliation (2026-09-01)" and
+`tasks/in-progress/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md`
+"Blocker 1 closed and repository state update (2026-09-01)".
+
+Still open, unchanged: TASK-011 (auto-verification tests, being written in a
+parallel effort), TASK-012 (rate-limit enumeration, `blocked`), TASK-013
+(upload-logic consolidation, `blocked`). FEAT-001 stays `status: ongoing`.

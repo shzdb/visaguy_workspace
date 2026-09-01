@@ -65,10 +65,11 @@ collection and otherwise throws "Document Already Exists".
 1. Back up first: `bench --site <site> backup`.
 2. Check out `feat/visa-tracker` in each of the five repositories
    (`the_visaguy`, `fileflo`, `passport_extractor`, `visaguy_crm`,
-   plus the `visa_tracker` frontend).
-   - If a worktree under `/home/shahzad/visa-tracker-worktrees/` holds the
-     branch, `git -C <worktree> checkout --detach` first to free the name.
-     Otherwise the checkout can only be done detached.
+   plus the `visa_tracker` frontend). As of 2026-09-01 these are the plain
+   bench app checkouts at `~/bench/apps/<app>` — there are no separate
+   worktrees to detach first. (An earlier layout held the branch in dedicated
+   worktrees under `/home/shahzad/visa-tracker-worktrees/`; that directory no
+   longer exists.)
 3. `bench --site <site> migrate`. Note this migrates **all installed apps**, not
    only FEAT-001's.
 4. `bench --site <site> clear-cache`.
