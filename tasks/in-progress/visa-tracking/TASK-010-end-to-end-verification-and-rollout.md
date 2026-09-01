@@ -27,7 +27,7 @@ expected_files:
   - ongoing/visa-tracking-implementation/10-task-010-planning.md
   - ongoing/visa-tracking-implementation/11-task-010-evidence.md
 created: 2026-07-21
-updated: 2026-07-23
+updated: 2026-09-01
 ---
 
 # TASK-010: End-to-end verification and rollout
@@ -59,19 +59,27 @@ TASK-010 is the final gate. It reconciles the status of every preceding task, un
 - `decisions/ADR-004-passport-extraction-app-and-async-processing-boundary.md`
 - `decisions/ADR-005-public-tracking-security-and-privacy-model.md`
 - `tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md`
-- `tasks/in-progress/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md`
-- `tasks/ready/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md`
-- `tasks/ready/visa-tracking/TASK-004-fileflo-queued-passport-detection.md`
-- `tasks/ready/visa-tracking/TASK-005-tracking-data-model-and-settings.md`
-- `tasks/ready/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md`
-- `tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md`
-- `tasks/ready/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md`
-- `tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md`
-- Feature worktrees on the remote bench:
-  - `/home/shahzad/visa-tracker-worktrees/the_visaguy` on branch `feat/visa-tracker`
-  - `/home/shahzad/visa-tracker-worktrees/fileflo` on branch `feat/visa-tracker`
-  - `/home/shahzad/visa-tracker-worktrees/passport_extractor` on branch `feat/visa-tracker`
-- Local frontend repository: `/home/shzd/Projects/tridz/visa_tracker`
+- `tasks/completed/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md`
+- `tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md`
+- `tasks/completed/visa-tracking/TASK-004-fileflo-queued-passport-detection.md`
+- `tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md`
+- `tasks/completed/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md`
+- `tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md`
+- `tasks/completed/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md`
+- `tasks/completed/visa-tracking/TASK-009-frontend-tracking-flow.md`
+- Feature branches, as of 2026-09-01, on the remote bench (macOS local paths;
+  the old worktrees below no longer exist — see "Environment note" in the
+  progress section):
+  - `~/bench/apps/the_visaguy` on branch `feat/visa-tracker`
+  - `~/bench/apps/fileflo` on branch `feat/visa-tracker`
+  - `~/bench/apps/passport_extractor` on branch `feat/visa-tracker`
+  - `~/bench/apps/visaguy_crm` on branch `feat/visa-tracker`
+  - ~~`/home/shahzad/visa-tracker-worktrees/the_visaguy`~~,
+    ~~`/home/shahzad/visa-tracker-worktrees/fileflo`~~,
+    ~~`/home/shahzad/visa-tracker-worktrees/passport_extractor`~~ — superseded,
+    directory no longer exists.
+- Local frontend repository: `/Users/shzd/Projects/tridz/visa_tracker`
+  (was `/home/shzd/Projects/tridz/visa_tracker` before the machine move)
 - Remote Frappe bench: `/home/shahzad/bench` on `erpcode.tridz.in:2257`
 - Active site (read-only reference): `visaguy`
 - Dedicated test site (create only when safe): `visa-tracker-test.localhost`
@@ -318,8 +326,102 @@ repository.
 
 ### Blockers to closing this task
 
-1. One clean end-to-end public lookup against a freshly created application.
+1. ~~One clean end-to-end public lookup against a freshly created
+   application.~~ **CLOSED 2026-09-01** — see below.
 2. TASK-011 (auto-verification tests).
 3. A decision on risk 18 (rate-limit enumeration), which is **live and now
    reachable** — see TASK-012.
-4. Owner decision on pushing four repositories of unpushed commits.
+4. Owner decision on pushing repositories of unpushed commits. **Reduced
+   2026-09-01** — see below; two merge commits remain, not four repositories
+   of feature work.
+
+## Blocker 1 closed and repository state update (2026-09-01)
+
+**The public lookup has succeeded end to end.** Queried live from site
+`visaguy`: `Visa Tracker Audit Log` contains `verification_succeeded` x5,
+`status_fetched` x25, and `session_closed` x2, all successful, all with origin
+`http://localhost:5173` (the Vite dev server), most recent 2026-08-01.
+`VTA-2026-00611` has a populated `verification_lookup_hash` and
+`tracking_enabled = 1`. The older `VTA-2026-00575` still has a NULL hash and
+`tracking_enabled = 0`, as previously documented — it predates the HMAC key and
+remains unrepairable in place (risk 22).
+
+Because that traffic's recorded origin is `http://localhost:5173`, the BROWSER
+leg of E2E matrix item 19 is also effectively closed — a real browser drove the
+full flow against the live backend. Label this `runtime-verified`, with the
+caveat that the evidence is the recorded origin field, not a screenshot or a
+captured browser session.
+
+**Repository/push state, superseding the "Deploy facts" table above and the
+worktree paths in "Inputs":**
+
+| Repo | Local HEAD | Remote `upstream/feat/visa-tracker` | Note |
+|---|---|---|---|
+| `the_visaguy` | `4192e36` | `8254f93` | 1 commit unpushed — the merge of `main` into the feature branch |
+| `passport_extractor` | `0216829` | `0216829` | in sync |
+| `fileflo` | `c7244a4` | `c7244a4` | in sync |
+| `visaguy_crm` | `b492a34` | `b573e2c` | 1 commit unpushed — same kind of merge |
+| `visa_tracker` (frontend) | `a6a07a9` on `main` | in sync with `origin/main` | remote is `git@tridz:tvgglobal/visa_tracker.git` |
+
+`the_visaguy 4192e36` (2026-09-01, "resolve conflicts in hooks.py") merges
+`main` (`153eb96`) into `feat/visa-tracker`, bringing in unrelated WhatsApp
+multi-zone, PF process file timer, and insights work; all five `visa_tracking`
+hook entries were verified to survive the conflict resolution intact, and the
+diff against `8254f93` is otherwise purely the merged-in unrelated content.
+`visaguy_crm` was likewise merged with its `main` today at `b492a34`.
+
+**Environment note:** development moved to a new machine. Local paths are now
+macOS `/Users/shzd/...`. The git worktrees under
+`/home/shahzad/visa-tracker-worktrees/` no longer exist; feature branches now
+live directly in the bench app checkouts at `~/bench/apps/<app>`. Do not follow
+the worktree-first `PYTHONPATH` instructions in superseded phase reports.
+
+ADR-007 (automatic verification) is committed and deployed as `the_visaguy
+8254f93` (2026-08-06, "feat: auto verify extraction"), touching
+`handlers/passport_extraction_handlers.py`, `visa_tracking/jobs.py`
+(`auto_verify_extraction`), `visa_tracking/utils/constants.py`, and
+`visa_tracking/services/response_service.py`. Live on `visaguy`:
+`Visa Tracker Settings.require_manual_verification = 0`. It still has zero
+tests — TASK-011 covers that and stays `ready`; this task's blocker 2 is
+unaffected.
+
+Blockers 2 and 3 remain fully open. This task stays `in-progress`; do not
+close it or set FEAT-001 to `completed`. The rollout and rollback plans
+required by §8 are still unwritten.
+
+## Blocker status update (2026-09-01, second pass)
+
+**TASK-010 stays `in-progress`.** Blockers 2 and 3 have moved but neither is
+closed; two new items take their place as the actual remaining work.
+
+- **Blocker 2 (TASK-011, auto-verification tests) — IMPLEMENTED, not closed.**
+  15 new tests exist, all nine required behaviours are covered and each is
+  mutation-proven; full suite re-run 276 green. The work is uncommitted in
+  `the_visaguy`. See TASK-011's own "Completion evidence" section. This
+  blocker converts from "no tests exist" to "tests exist but are
+  uncommitted" — it does not disappear until committed.
+- **Blocker 3 (risk 18 product decision) — DECIDED AND IMPLEMENTED, not
+  deployed.** The owner decided the two-counter design 2026-09-01 (ADR-009);
+  TASK-012 implements it and it is runtime-proven on
+  `visa-tracker-test.localhost` (298 green; live-HTTP proof of the exact
+  regression this exists to fix). It is uncommitted in `the_visaguy` and
+  **not deployed to `visaguy`**, so the live gap described in risk 18 remains
+  live in reality. See TASK-012's "Completion evidence" section and risk 18's
+  updated entry in `docs/risks-and-open-questions.md`.
+
+**Blockers remaining, in order:**
+
+1. **The rollout/rollback plan required by TASK-010 §8 is still unwritten.**
+   Nothing in today's session produced `10-task-010-planning.md`'s required
+   content — pre-rollout checklist, install/migration order, queue-worker
+   restart requirements, or rollback steps for the newly added settings
+   fields and rate-limit keys. This remains open.
+2. **Owner decision on the unpushed commits** (TASK-010's 2026-09-01
+   repository-state table: `the_visaguy` and `visaguy_crm` each carry one
+   unpushed merge commit) is still outstanding, and today's TASK-011/TASK-012
+   work adds further local, uncommitted changes on top of that same
+   unresolved question. Commit and push authorisation for all of it should be
+   sought together, not piecemeal.
+
+Full session narrative for today's work:
+`ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md`.

@@ -17,8 +17,9 @@ depends_on:
   - ADR-006
   - ADR-007
   - ADR-008
+  - ADR-009
 created: 2026-07-20
-updated: 2026-07-23
+updated: 2026-09-01
 ---
 
 # Visa application tracking and passport extraction
@@ -293,14 +294,14 @@ It must not include DOB, full passport number, passport files, extracted MRZ, in
 Implementation must follow this order. A junior developer must not skip ahead when a dependency is incomplete.
 
 1. [TASK-001](../../../tasks/completed/visa-tracking/TASK-001-preflight-and-branch-setup.md) — completed preflight, local repository setup, and exact integration evidence.
-2. [TASK-002](../../../tasks/completed/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — in-progress extraction-history model in the new app.
+2. [TASK-002](../../../tasks/completed/visa-tracking/TASK-002-passport-extractor-scaffold-and-doctype.md) — completed extraction-history model in the new app.
 3. [TASK-003](../../../tasks/completed/visa-tracking/TASK-003-passport-ocr-and-mrz-pipeline.md) — completed PaddleOCR/MRZ pipeline; runtime OCR verification is deferred to TASK-010.
-4. [TASK-004](../../../tasks/in-progress/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — in-progress FileFlo event and queued matching.
+4. [TASK-004](../../../tasks/completed/visa-tracking/TASK-004-fileflo-queued-passport-detection.md) — completed FileFlo event and queued matching.
 5. [TASK-005](../../../tasks/completed/visa-tracking/TASK-005-tracking-data-model-and-settings.md) — completed settings, tracking DocTypes, custom fields, and fixtures; runtime migration is deferred to TASK-010.
-6. [TASK-006](../../../tasks/ready/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md) — Lead, Customer, and Process File lifecycle.
-7. [TASK-007](../../../tasks/ready/visa-tracking/TASK-007-public-api-and-security-controls.md) — secure public APIs.
+6. [TASK-006](../../../tasks/completed/visa-tracking/TASK-006-tracking-lifecycle-and-status-sync.md) — completed Lead, Customer, and Process File lifecycle.
+7. [TASK-007](../../../tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md) — completed secure public APIs.
 8. [TASK-008](../../../tasks/completed/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — completed local Vite design system and shared visual shell.
-9. [TASK-009](../../../tasks/ready/visa-tracking/TASK-009-frontend-tracking-flow.md) — form, verification, status, timeline, errors.
+9. [TASK-009](../../../tasks/completed/visa-tracking/TASK-009-frontend-tracking-flow.md) — completed form, verification, status, timeline, errors.
 10. [TASK-010](../../../tasks/in-progress/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
 
 ## Implementation reality (2026-07-23)
@@ -358,6 +359,34 @@ Five runtime defects survived a fully green static suite, because the tests
 mocked or constructed exactly the seams that were broken — every MRZ fixture
 used a `P<` prefix; no test exercised the multi-upload `field_id` round-trip.
 **Trust runtime evidence over in-process test counts on this feature.**
+
+## Reconciliation (2026-09-01)
+
+Recorded after a documentation drift pass against live evidence. The "Task
+order" list above previously linked TASK-004, TASK-006, TASK-007, and TASK-009
+to `tasks/in-progress/` or `tasks/ready/`; all four have been in
+`tasks/completed/visa-tracking/` for some time and the links/prose above are
+now corrected. TASK-002's prose said "in-progress"; it is completed.
+
+Other changes since the 2026-07-23 reconciliation, verified directly:
+
+- **Pushed remotes.** The "no remote required" scope decision for `visa_tracker`
+  reflected a decision for the *first release*, not a permanent constraint. All
+  five repositories now have `feat/visa-tracker` work on a remote:
+  `passport_extractor`, `fileflo`, and `visa_tracker` (on `main`, its own
+  workflow) are in sync with their remotes; `the_visaguy` and `visaguy_crm` each
+  have exactly one unpushed commit — the merge of their respective `main`
+  branches into `feat/visa-tracker`, done 2026-09-01 (see TASK-010's progress
+  section for SHAs).
+- **TASK-010 blocker 1 is closed.** A clean end-to-end public lookup has
+  succeeded; see TASK-010 for the audit-log evidence. TASK-010 itself remains
+  `in-progress` — blockers 2-4 are still open.
+- **ADR-007 (automatic verification) is committed and deployed**, `the_visaguy
+  8254f93`. It still has zero tests; TASK-011 covers that gap and stays `ready`.
+- **Development environment moved to a new machine.** Paths are now macOS
+  `/Users/shzd/...`. The Linux worktrees under `/home/shahzad/visa-tracker-worktrees/`
+  referenced throughout earlier phase reports no longer exist; feature
+  branches now live directly in the bench app checkouts at `~/bench/apps/<app>`.
 
 ## Supporting specifications
 
