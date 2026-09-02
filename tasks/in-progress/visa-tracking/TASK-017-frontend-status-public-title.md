@@ -2,7 +2,7 @@
 id: TASK-017
 feature: FEAT-001
 title: Render derived status public_title through the frontend wire contract
-status: ready
+status: in-progress
 repository: visa_tracker
 owners: []
 depends_on:
@@ -17,6 +17,10 @@ expected_files:
 created: 2026-09-01
 updated: 2026-09-03
 ---
+
+<!-- moved to in-progress 2026-09-03: both `title` and `dependants` halves
+implemented and committed in visa_tracker; see "Completion evidence
+(2026-09-03)" below for why status is not `completed`. -->
 
 # TASK-017: Render derived status public_title through the frontend wire contract
 
@@ -266,3 +270,83 @@ and should not attempt to — render it exactly as any other status response.
 - Lint, typecheck, and build all pass.
 - Evidence recorded in this task file or a linked report before moving to
   `completed`.
+
+## Completion evidence (2026-09-03)
+
+**Status moves to `in-progress`, not `completed`.** Both halves of this
+task's required behaviour are implemented, in the `visa_tracker` repository,
+on `main`, **committed but not pushed** (`main` is 4 commits ahead of
+`origin/main`). This section records what was verified personally by the
+owner; the agent recording this evidence does not have the `visa_tracker`
+repository in scope and has not independently re-verified the commit SHAs
+or test counts below — they are taken as given.
+
+### Delivered
+
+- **`title`** (item 5 of "Required behaviour") — commits `b25df4a` (wire
+  contract and types: `title: string` added to `StatusResponse` and
+  `StatusTimelineItem` in `src/types/tracking.ts`, `wireContract.ts`
+  fixtures updated) and `204f563` (rendering: `title` displayed as the
+  client-facing headline in the status summary card and on each timeline
+  entry, each falling back to the operational label when empty).
+- **`dependants`** (item 7 of "Required behaviour") — commits `dc3ba23`
+  (wire contract, types — a new `DependantSummary`-style type, contract-
+  conformance tests) and `f773f93` (a new `DependantsList` component and
+  its wiring into `StatusPage`).
+
+### Presentation choice (dependants)
+
+Dependants render as a compact one-row-per-person list — masked name,
+applicant type, a `statusTone`-driven `Badge`, then that entry's own `title`
+and `public_message` — inside a single bordered list under a real `<h2>`.
+This was chosen deliberately over a status-card-per-person layout: the
+temporary backend display-layer override (ADR-010's "Amendment
+(2026-09-03)") currently makes every dependant entry show the *primary's*
+status, so repeating full hero-style status blocks per dependant would read
+as visibly broken (identical hero blocks side by side). A single-row list
+reads correctly whether entries agree or diverge. Every field is read from
+that dependant's own object, never inferred from the primary, so the layout
+requires no change when the override is eventually lifted and per-dependant
+statuses actually diverge.
+
+### Empty state (dependants)
+
+An empty `dependants` array renders nothing at all — no heading, no
+placeholder — and the component does not branch on *why* the array is
+empty. This preserves ADR-010's deliberate indistinguishability between a
+standalone applicant's lookup and a dependant's own separate lookup (both
+return `dependants: []`).
+
+### Validation — runtime-verified by the owner
+
+`npm run verify` green: lint clean apart from one pre-existing, unrelated
+`SessionContext.tsx` fast-refresh warning; `tsc --noEmit` clean; **64 tests
+across 9 files**, all passing (up from the 41-test baseline this task
+started from, and further up from a 60-test intermediate baseline reached
+before the `dependants` half landed); production build succeeds.
+
+### Outstanding — why this task is not `completed`
+
+1. **Nobody has visually verified the rendering.** `StatusPage` is reachable
+   only past a real verification flow requiring a live backend token, and
+   MSW mocking in this repository is test-only, not available for manual
+   browsing — so the page has not been rendered and looked at by a human.
+   Correctness of the `title`/`dependants` UI rests on component tests
+   against the real wire fixtures (`wireContract.ts`), not on anyone seeing
+   it render. This is a visual, design-sensitive change (new list layout,
+   badge tones, masked-name display), so this gap is recorded as an
+   outstanding check, not swept under "tests pass."
+2. **Deployment ordering constraint.** The backend change
+   (`the_visaguy` `7ec522f`, `219907d`) is additive and backward-compatible,
+   but the frontend now *consumes* `dependants` from the wire payload, so
+   the backend must be deployed before the frontend. Neither is deployed;
+   the backend commits are themselves committed but not pushed (see
+   TASK-016's "What remains").
+3. **Frontend work is committed but unpushed** — `visa_tracker` `main` is 4
+   commits ahead of `origin/main` (`b25df4a`, `204f563`, `dc3ba23`,
+   `f773f93`).
+
+This workspace's standing convention is not to close a task whose result
+nobody has seen running end to end. This task is held `in-progress` for
+these specific, recoverable reasons — push, deploy (backend first), and a
+human visual check — not for lack of progress.

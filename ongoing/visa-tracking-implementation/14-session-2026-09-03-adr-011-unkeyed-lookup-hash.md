@@ -134,3 +134,35 @@ the test name and the exact failure output before doing anything else.
    must also cover the two newly found tests.
 4. TASK-018 (`visaguy_crm` unconditional commit) is unblocked and now has
    confirmed, named call sites to fix, per the updated risk 26.
+
+## 6. TASK-017 moved to in-progress (frontend `title` + `dependants`)
+
+`tasks/ready/visa-tracking/TASK-017-frontend-status-public-title.md` moved
+to `tasks/in-progress/visa-tracking/` this session. Both halves of its
+required behaviour are implemented in `visa_tracker`, on `main`, committed
+but not pushed: `title` (commits `b25df4a`, `204f563`) and `dependants`
+(commits `dc3ba23`, `f773f93` — a new `DependantsList` component rendering
+one row per dependant, masked name / type / status-toned badge / that
+entry's own title and message, nothing rendered when the array is empty).
+`npm run verify` reported green by the owner: 64 tests across 9 files (up
+from the 41-test baseline), lint clean bar one pre-existing unrelated
+warning, typecheck clean, build succeeds. Full detail, including the
+presentation rationale for the dependants list layout, is recorded in
+TASK-017's own "Completion evidence (2026-09-03)" section.
+
+Two outstanding checks kept the task at `in-progress` rather than
+`completed`, matching this workspace's standing practice of not closing on
+implementation evidence alone:
+
+- **No human has visually verified the rendering.** `StatusPage` requires a
+  live backend token to reach and MSW mocking is test-only in this repo, so
+  the new `title`/`dependants` UI has never actually been looked at
+  on-screen — only exercised through component tests against the wire
+  fixtures. Flagged explicitly because this is a visual, design-sensitive
+  change.
+- **Deployment ordering.** The backend `dependants` payload
+  (`the_visaguy` `7ec522f`, `219907d`, also committed-not-pushed) is
+  additive/backward-compatible, but the frontend now consumes it, so the
+  backend must deploy before the frontend. Neither is deployed, and the
+  frontend itself is still unpushed on `visa_tracker` `main` (4 commits
+  ahead of `origin/main`).
