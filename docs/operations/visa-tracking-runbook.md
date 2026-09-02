@@ -113,6 +113,99 @@ Beware self-matching process polls: `pgrep -f "site <x> migrate"` matches the
 polling shell itself, so a wait loop never terminates. This produced a false
 "still running" report during the 2026-07-22 deploy.
 
+## Updating a staging or live site
+
+This section covers deploying the dependant-status-display change (ADR-010
+"Amendment (2026-09-03)", TASK-016) and, more generally, any change spanning
+this feature's five repositories. It references rather than duplicates the
+"Deploy / update procedure" above and the test-site rebuild recipe below —
+read both first.
+
+**Apps to update:** `the_visaguy`, `visaguy_crm`, `fileflo`,
+`passport_extractor`, plus the `visa_tracker` frontend. `processflo` is
+unchanged by this feature and needs no action.
+
+**Check out the branch in each app, then run `bench migrate` ONCE** — per
+step 3 of "Deploy / update procedure" above, this migrates *all* installed
+apps on the site, not only these five, so there is no per-app migrate step
+to repeat.
+
+### What `bench migrate` brings automatically (fixtures)
+
+`bench migrate` syncs DocType schema, runs patches, then syncs fixtures, in
+that order. The following are shipped as fixtures in the relevant app and
+therefore load **automatically** on migrate — no separate action needed:
+
+- **`the_visaguy`:** custom fields (present in both `custom_field.json` and
+  `custom_fields.json` — see risk 29 in
+  `docs/risks-and-open-questions.md`, both currently load), **custom
+  docperms**, **property setters**, roles, client scripts, workspace,
+  Insights charts/queries, and the `visa_tracking_status` fixture (the six
+  status records, including `public_title`).
+- **`visaguy_crm`:** custom fields, **custom docperms**, **property
+  setters**, roles, **workflows plus workflow states/actions**, client
+  scripts, email templates, print formats, reports, workspace.
+
+Custom fields and permissions are called out explicitly here because this
+was the owner's specific question: yes, both custom fields and permission
+(docperm/property setter) fixtures sync automatically with `bench migrate`
+on both apps — no manual field-by-field or permission-by-permission
+restoration is needed on a clean deploy. (Contrast with `visaguy` in its
+*current* state, where three of these Custom Fields are missing not because
+fixture sync failed, but because they were deleted out-of-band afterward —
+see risk 25. A fresh `bench migrate` restores them; the missing state on
+`visaguy` today is drift to be corrected by running migrate, not evidence
+that fixture sync itself is unreliable.)
+
+**`fileflo` and `passport_extractor` ship no fixtures** — their schema lives
+entirely in DocType JSON, so `bench migrate`'s schema-sync step (not its
+fixture-sync step) is what brings their changes in. No fixture-related
+action is needed for either app.
+
+### What is NOT automatic — manual, per site
+
+- **`Visa Tracker Settings`** — a Single; its field values are
+  configuration, not fixtures, and are never synced by migrate. Set by hand
+  per site (see "Required `Visa Tracker Settings`" above, and the
+  environment-specific values table under "Rebuilding the dedicated test
+  site" below for what differs between `visaguy` and a test site).
+- **`visa_tracker_lookup_hmac_key`** in `sites/<site>/site_config.json` —
+  generate per site (see "Required server-side configuration" above).
+  **Never rotate an existing site's key** — every stored
+  `verification_lookup_hash` derives from it and there is no recompute path;
+  rotating it silently breaks every existing application's public lookup.
+- **`allow_cors`** in `sites/<site>/site_config.json` — required since
+  ADR-008; without it the application emits no CORS headers and breaks
+  every browser client (see "Required server-side configuration" above).
+- **`field_id`** on `FF File Template File` rows — this is data, not a
+  fixture, and is not brought in by migrate (see "FileFlo template
+  prerequisite" above).
+- **The frontend build** — `visa_tracker` is a standalone SPA; deploying it
+  is a separate build/publish step from the bench-side `bench migrate`, not
+  covered by it.
+
+### Sequence for this deployment
+
+1. Follow "Deploy / update procedure" above (backup, check out branches in
+   all five repositories, `bench migrate` once, `clear-cache`, **restart
+   `bench start`**, verify).
+2. Confirm the manual, per-site items above are already set on the target
+   site (they should already be present from the original FEAT-001 rollout;
+   this deployment does not introduce any new manual per-site value — the
+   dependant-display change is entirely fixture/code, no new settings
+   field).
+3. Run "Post-deploy verification" above, plus a targeted check that a
+   primary with dependants returns a non-empty `dependants` array and that
+   a dependant's own lookup returns `dependants: []` with status fields
+   matching their primary's current status (see ADR-010's "Amendment
+   (2026-09-03)" for the exact payload shape to expect).
+4. Frontend: deploy `visa_tracker` separately once its `title` rendering
+   (already shipped, commits `b25df4a`/`204f563`) and — once complete —
+   its `dependants` rendering (TASK-017, not yet started) are ready. The
+   backend change is independently deployable and does not require the
+   frontend to be updated first; until the frontend ships `dependants`
+   rendering, the SPA will silently ignore the new array in the response.
+
 ## Rebuilding the dedicated test site
 
 The site `visa-tracker-test.localhost` was dropped on 2026-09-01 (`bench.log`
