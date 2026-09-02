@@ -27,7 +27,7 @@ expected_files:
   - ongoing/visa-tracking-implementation/10-task-010-planning.md
   - ongoing/visa-tracking-implementation/11-task-010-evidence.md
 created: 2026-07-21
-updated: 2026-09-01
+updated: 2026-09-02
 ---
 
 # TASK-010: End-to-end verification and rollout
@@ -409,19 +409,39 @@ closed; two new items take their place as the actual remaining work.
   live in reality. See TASK-012's "Completion evidence" section and risk 18's
   updated entry in `docs/risks-and-open-questions.md`.
 
-**Blockers remaining, in order:**
-
-1. **The rollout/rollback plan required by TASK-010 §8 is still unwritten.**
-   Nothing in today's session produced `10-task-010-planning.md`'s required
-   content — pre-rollout checklist, install/migration order, queue-worker
-   restart requirements, or rollback steps for the newly added settings
-   fields and rate-limit keys. This remains open.
-2. **Owner decision on the unpushed commits** (TASK-010's 2026-09-01
-   repository-state table: `the_visaguy` and `visaguy_crm` each carry one
-   unpushed merge commit) is still outstanding, and today's TASK-011/TASK-012
-   work adds further local, uncommitted changes on top of that same
-   unresolved question. Commit and push authorisation for all of it should be
-   sought together, not piecemeal.
-
 Full session narrative for today's work:
 `ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md`.
+
+## Rollout/rollback plan written (2026-09-02)
+
+**TASK-010 stays `in-progress`.** The §8 rollout and rollback plan is now
+written in full — `ongoing/visa-tracking-implementation/10-task-010-planning.md`
+(rewritten to replace the stale 2026-07-22 version, which predated the deploy
+to `visaguy`, ADR-006, ADR-009, and ADR-010). It covers the pre-rollout
+checklist, install/migration order including both new schema changes, the
+status-record replacement's practical consequences for existing rows, the
+hourly-reconciliation-sweep first-run risk at ~3,866 Process Files with a
+concrete mitigation (disable the scheduler entry, run the sweep once
+manually under observation, spot-check across workflow-state buckets, then
+re-enable), queue worker restart requirements, the frontend/backend deploy
+ordering constraint for TASK-017, post-rollout smoke tests, and a rollback
+plan covering the `enabled`/`enable_public_tracking` kill switch, per-app code
+reversion (including the specific hazard of reverting `the_visaguy` past
+ADR-010), Redis key clearing (including the new `visa_tracker:failed_scope:*`
+family from ADR-009), and approval authority. It does not authorise any push,
+deploy, or release.
+
+**Blockers remaining, in order:**
+
+1. ~~The rollout/rollback plan required by TASK-010 §8 is still unwritten.~~
+   **CLOSED 2026-09-02** — see above.
+2. **Owner decision to commit TASK-011/TASK-012/TASK-016** in `the_visaguy`
+   (all three remain uncommitted on disk) **and to push** the resulting
+   branch, plus the already-pending `the_visaguy`/`visaguy_crm` merge
+   commits, is still outstanding. This is now the only remaining blocker
+   before deploy/push, both of which stay owner decisions outside this
+   task's authority per its own constraints and per the plan's §9
+   non-authorisations.
+
+Deploy and push execution themselves are not TASK-010 activities; they are
+the owner's to schedule once the commit/push decision above is made.
