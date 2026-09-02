@@ -57,7 +57,7 @@ decides to execute them.
 | 6 | Repository state reconciled | See table below — this is the actual current state, superseding every earlier SHA table in this file and in TASK-010 |
 | 7 | Dedicated-site runtime evidence | 342/342 (`the_visaguy`), 63/63 (`passport_extractor`), 8/8 (`fileflo`) on the rebuilt `visa-tracker-test.localhost` — see the runbook's rebuild recipe. Rebuild is now known to require `visaguy_crm` and `hrms` (risk 27); a rebuild that omits them produces a false-green suite |
 | 8 | Human visual design-parity approval | Provisionally accepted 2026-07-22; beautification/polish deferred |
-| 9 | `visa_tracker_lookup_hmac_key` configured on `visaguy` | **Already set and in active use** on `visaguy` (runbook §"Required server-side configuration") — this is a re-deploy, not a first deploy; **do not rotate this key** (risk 22 — no recompute seam, rotation silently invalidates every existing application's lookup) |
+| 9 | `visa_tracker_lookup_hmac_key` configured on `visaguy` | **No longer required.** As of ADR-011 (2026-09-03), `verification_lookup_hash` is unkeyed and this key is not a prerequisite for the public lookup on any site — gate removed from this checklist. `visaguy` may still have a value set from before this change; it is harmless to leave in place (it is still optionally consulted by rate limiting and audit IP hashing, both with a safe fallback) or to remove. `bench migrate` in step 3 below runs the `recompute_lookup_hash_unkeyed` patch automatically, which migrates existing applications off the old keyed scheme regardless of whether the key is left configured. See ADR-011 and risk 22 (resolved). |
 | 10 | `allow_cors` configured on `visaguy` | Already set; required per ADR-008 |
 | 11 | Redis available, queues configured, workers running | `bench start` on `visaguy` is **currently NOT running** after a maintenance reboot — see §2 step 0, this is a hard precondition, not a post-step |
 | 12 | PaddleOCR models preloaded | Runtime-verified present (user-level `~/.paddlex`, survives site operations) |
@@ -136,6 +136,17 @@ way to sequence them independently within one `migrate` invocation:
   `.scope_lockout_minutes` (new fields, ADR-009). Both may be left unset
   after migration — their getters fall back to the safe defaults 20 and 60 —
   but confirm they exist as fields rather than assuming it.
+
+This same `migrate` run also executes the `recompute_lookup_hash_unkeyed`
+patch (ADR-011, registered in `patches.txt`), which recomputes
+`verification_lookup_hash` for every existing `Visa Tracking Application` on
+`visaguy` from its linked `Passport Extraction` — migrating rows off the old
+keyed-HMAC scheme and repairing any pre-existing NULL-hash rows (the
+`VTA-2026-00575`-style failure) in the same pass. It requires no separate
+invocation or flag; it runs as part of this step. It is idempotent, and any
+row with no resolvable linked extraction is counted and skipped rather than
+guessed at. Confirm the reported skip count is 0 or explainable before
+treating this step as clean.
 
 Remember the field-add-to-Single hazard already surfaced during TASK-012
 (ADR-009 "Consequences — Negative"): a newly added `Int` field on an existing

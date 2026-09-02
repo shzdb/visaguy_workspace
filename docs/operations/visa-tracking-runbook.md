@@ -10,20 +10,38 @@ no error, no log — when they are absent.
 
 | Key | Location | Required | Consequence if missing |
 |---|---|---|---|
-| `visa_tracker_lookup_hmac_key` | `sites/<site>/site_config.json` | **Yes** | `verification_lookup_hash` is never computed, so `tracking_enabled` is forced to `0` and **every public lookup fails** with the generic failure message. This exact gap broke `visaguy`. |
-| `visa_tracker_audit_hash_key` | `sites/<site>/site_config.json` | No | Falls back to the lookup HMAC key for hashing client IPs in audit records. |
+| `visa_tracker_lookup_hmac_key` | `sites/<site>/site_config.json` | No (see below) | Not required for the public lookup as of ADR-011 (2026-09-03). Still consulted, with a safe fallback, by `rate_limit_service` (cache-key bucketing) and the audit path (hashing client IPs) — see "What this key still affects" below. |
+| `visa_tracker_audit_hash_key` | `sites/<site>/site_config.json` | No | Falls back to the lookup key (if set) or a safe default for hashing client IPs in audit records. |
 | `allow_cors` | `sites/<site>/site_config.json` | **Yes** | With ADR-008 the application no longer emits CORS headers. Removing this breaks **every** browser client of the tracker. |
 | `visa_tracker_allow_localhost_origins` | `sites/<site>/site_config.json` | No | Development-only escape hatch for localhost origins. Not set on `visaguy`. |
 
 Record key **names** only. Never commit values (`.agents/rules/project-rules.md`).
 
-> **The lookup HMAC key must never change.** Every stored
-> `verification_lookup_hash` derives from it. Rotating it silently invalidates
-> the public lookup for every existing application, with no error and no
-> migration path — only `lifecycle_service.py:243` writes that hash, and only at
-> creation. There is no recompute seam.
+### `visa_tracker_lookup_hmac_key` is no longer a lookup prerequisite (ADR-011, 2026-09-03)
 
-Generate without echoing the value:
+`verification_lookup_hash` is now an **unkeyed** hash over the same canonical
+passport-number + DOB input. This key does **not** need to be generated or
+configured before creating tracking applications on any site, and its
+absence no longer forces `tracking_enabled` to `0` or fails the lookup. The
+"generate without echoing the value" step below is therefore no longer part
+of new-site setup or of the "Rebuilding the dedicated test site" recipe.
+
+**What this key still affects, if set:** `rate_limit_service` uses it for
+cache-key bucketing, and the audit path uses it (falling back to
+`visa_tracker_audit_hash_key`, then a safe default) to hash client IPs before
+writing `Visa Tracker Audit Log` rows. Both consumers already tolerate its
+absence. Adding, removing, or changing this key on an already-running site
+changes the derived bucketing/hash values those two consumers produce going
+forward — this harmlessly resets in-flight rate-limit counters, and means
+audit rows written under the old derived value are no longer matched by a
+teardown/cleanup filter keyed on it. Neither consequence affects the public
+lookup. See ADR-011 for the full decision and the recompute patch
+(`the_visaguy/patches/recompute_lookup_hash_unkeyed.py`) that migrated
+existing applications off the old keyed scheme and repaired pre-existing
+NULL-hash rows on `bench migrate`.
+
+If you still want to set this key (e.g. to pin rate-limit bucketing or audit
+IP hashing to a stable value), generate it without echoing the value:
 
 ```bash
 cd /home/shahzad/bench
@@ -162,6 +180,17 @@ entirely in DocType JSON, so `bench migrate`'s schema-sync step (not its
 fixture-sync step) is what brings their changes in. No fixture-related
 action is needed for either app.
 
+**`the_visaguy` also runs a patch on migrate: `recompute_lookup_hash_unkeyed`
+(ADR-011).** Patches run before fixture sync in `bench migrate`'s sequence.
+This one recomputes `verification_lookup_hash` for every existing `Visa
+Tracking Application` from its linked `Passport Extraction`, migrating rows
+off the old keyed-HMAC scheme and repairing any pre-existing NULL-hash rows
+(the `VTA-2026-00575`-style failure) in the same pass. It is idempotent and
+requires no manual invocation — it runs automatically as part of the
+`bench migrate` already required by step 3 of "Deploy / update procedure"
+above. A row with no resolvable linked extraction is counted and skipped,
+not guessed at.
+
 ### What is NOT automatic — manual, per site
 
 - **`Visa Tracker Settings`** — a Single; its field values are
@@ -170,10 +199,11 @@ action is needed for either app.
   environment-specific values table under "Rebuilding the dedicated test
   site" below for what differs between `visaguy` and a test site).
 - **`visa_tracker_lookup_hmac_key`** in `sites/<site>/site_config.json` —
-  generate per site (see "Required server-side configuration" above).
-  **Never rotate an existing site's key** — every stored
-  `verification_lookup_hash` derives from it and there is no recompute path;
-  rotating it silently breaks every existing application's public lookup.
+  **no longer required for the public lookup** (ADR-011, 2026-09-03); nothing
+  to generate or set per site for tracking to work. It is still optionally
+  consulted, with a safe fallback, by rate limiting and audit IP hashing —
+  see "Required server-side configuration" above for what changing it does
+  and does not affect.
 - **`allow_cors`** in `sites/<site>/site_config.json` — required since
   ADR-008; without it the application emits no CORS headers and breaks
   every browser client (see "Required server-side configuration" above).
@@ -263,16 +293,13 @@ rounds of configuration archaeology.
    path and fails. The test fixtures sidestep this by inserting Leads as a
    dedicated unprivileged user.
 
-3. `bench --site visa-tracker-test.localhost migrate` until clean.
+3. `bench --site visa-tracker-test.localhost migrate` until clean. This also
+   runs the `recompute_lookup_hash_unkeyed` patch (ADR-011) automatically —
+   no separate key-generation step is needed; `visa_tracker_lookup_hmac_key`
+   is no longer a prerequisite for the public lookup on this or any site
+   (see "Required server-side configuration" above).
 
-4. Generate the lookup HMAC key without echoing its value:
-
-   ```bash
-   KEY=$(python3 -c "import secrets;print(secrets.token_urlsafe(48))")
-   bench --site visa-tracker-test.localhost set-config visa_tracker_lookup_hmac_key "$KEY"
-   ```
-
-5. Apply `Visa Tracker Settings`. The two rows marked **differs** are the ones
+4. Apply `Visa Tracker Settings`. The two rows marked **differs** are the ones
    that must NOT be copied from `visaguy`:
 
    | Field | Test-site value | Note |
@@ -292,11 +319,11 @@ rounds of configuration archaeology.
    `scope_maximum_failed_attempts` and `scope_lockout_minutes` (ADR-009) may be
    left unset — their getters fall back to the safe defaults 20 and 60.
 
-6. PaddleOCR models live in `~/.paddlex`, which is user-level and **survives site
+5. PaddleOCR models live in `~/.paddlex`, which is user-level and **survives site
    deletion** — no re-download needed. Confirm they are present before running
    the `passport_extractor` suite.
 
-7. Verify against the baselines in *Test execution* below. Matching them is what
+6. Verify against the baselines in *Test execution* below. Matching them is what
    proves the rebuild is faithful; a mismatch means the site build differs, not
    that the code is wrong.
 
@@ -339,7 +366,12 @@ Each stage has failed at least once in practice. Check in order:
      `require_manual_verification`.
    - `Needs Review` → check digits, missing fields, or low confidence.
 4. `Visa Tracking Application` created with a **non-NULL**
-   `verification_lookup_hash` and `tracking_enabled = 1`? A NULL hash means the
-   HMAC key was missing at creation time — and it cannot be repaired in place.
+   `verification_lookup_hash` and `tracking_enabled = 1`? As of ADR-011
+   (2026-09-03) a NULL hash here would indicate the linked `Passport
+   Extraction` could not be resolved at creation time, not a missing key —
+   `verification_lookup_hash` no longer depends on any site-side key. A
+   pre-existing NULL-hash row from before this change is repaired
+   automatically by the `recompute_lookup_hash_unkeyed` patch on the next
+   `bench migrate`, not left broken.
 5. Public lookup failing with a correct passport/DOB while the application
    exists is stage 4, not stage 1.
