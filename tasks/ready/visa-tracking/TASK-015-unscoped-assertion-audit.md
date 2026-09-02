@@ -8,7 +8,7 @@ owners: []
 depends_on:
   - TASK-011
 created: 2026-09-01
-updated: 2026-09-01
+updated: 2026-09-03
 ---
 
 # TASK-015: Audit visa-tracking tests for assertions that depend on global table state
@@ -115,3 +115,26 @@ today or on the next accumulation of leftover data.
   described in Validation.
 - A short audit note lists every file reviewed and its outcome (fixed /
   no issue found).
+
+## Extension (2026-09-03) — two `TestPublicApiSecurity` tests still count audit rows globally
+
+Found during the ADR-011 (unkeyed lookup hash) change: **two tests in
+`TestPublicApiSecurity` still count `Visa Tracker Audit Log` rows without
+scoping the count to their own test's activity**, and were not caught by
+this task's original sweep:
+
+- `test_audit_rows_contain_no_pii`
+- `test_invalid_combination_matches_not_found_shape`
+
+Both fail once enough `Visa Tracker Audit Log` rows have accumulated under
+one hash value — the same class of failure this task was written to sweep
+for and fix. This is not a new product risk; it is the same test-fragility
+pattern this task already covers, found to be incomplete. **Add these two
+tests explicitly to the required sweep scope (item 1/2 of "Required
+behaviour" above)**, scope their assertions to rows produced by their own
+test activity (unique synthetic identity and/or a filter on the test's own
+audit rows, following the pattern already applied to the original
+`test_audit_rows_contain_no_pii` fix referenced in "Context" above), and add
+`tearDown` cleanup where appropriate. Do not close this task on the original
+scope alone — the twice-in-a-row validation run must also cover these two
+tests.
