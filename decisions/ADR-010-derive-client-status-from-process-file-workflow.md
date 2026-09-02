@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted
+Accepted. Amended 2026-09-02 — see "Amendment (2026-09-02)" below; the
+amendment removes the hourly scheduled sweep this ADR originally described
+and sharpens the "No worker means no updates" negative consequence
+accordingly.
 
 Supersedes the parts of `features/ongoing/visa-tracking/README.md`
 "Status ownership rules" that describe `PF Process File.custom_client_status`
@@ -172,8 +175,11 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
   always yields the same result and, through the existing lifecycle service,
   writes no duplicate log row.
 - Self-healing after a missed event or a downed worker: the reconciliation
-  sweep uses the same resolver and can repair drift on its own schedule,
-  without needing the original triggering event to be replayed.
+  sweep uses the same resolver and can repair drift without needing the
+  original triggering event to be replayed — as of the 2026-09-02 amendment
+  this requires a manual invocation rather than happening on a schedule (see
+  "Amendment (2026-09-02)" below), but the repair capability itself is
+  unchanged.
 - Immune to out-of-order job execution: because the job re-reads current
   state rather than acting on data captured at enqueue time, a late or
   reordered job converges on the correct status rather than overwriting a
@@ -190,10 +196,13 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
   `workflow_state` and `custom_form_submitted`," not "because someone set it
   to X on this date" — a support agent must reconstruct the Process File
   state at the relevant time rather than reading an explicit intent log.
-- **No worker means no updates.** If the RQ worker is down, no client sees
-  their status change until the reconciliation sweep next runs and catches
-  up — a period of staleness bounded by the sweep's schedule, not by the
-  triggering event.
+- **No worker means no updates — and, as of the 2026-09-02 amendment, this is
+  worse than originally described.** The sweep is no longer scheduled; it
+  runs only when someone invokes it by hand (see "Amendment (2026-09-02)"
+  below). If the RQ worker is down, no client sees their status change until
+  a human runs `run_client_status_reconciliation_sweep` — staleness is now
+  bounded by when someone thinks to run the sweep, not by any schedule. This
+  is the honest trade-off of the amendment, not a mitigated risk.
 - The forward-only guard means a Process File that moves through Hold back
   to an earlier `workflow_state` than it held before Hold can display a
   ladder position that does not literally match `workflow_state` at that
@@ -226,6 +235,55 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
   immunity to out-of-order execution — despite the explainability and
   worker-dependency costs recorded under "Negative".
 
+## Amendment (2026-09-02)
+
+TASK-016 shipped with the reconciliation sweep wired as an hourly scheduled
+task in `the_visaguy/hooks.py`, as this ADR originally described under
+"Architecture" and "Positive". **That scheduler entry has been removed.**
+The functions it called remain and are unchanged —
+`jobs.run_client_status_reconciliation_sweep` and
+`services.reconciliation_service.repair_client_status_drift` are still
+present and still callable. Only the schedule is gone.
+
+**Why.** The sweep is a backstop for a missed recompute enqueue or a downed
+worker. That value is real only for a feature carrying traffic. Verified
+live on `visaguy`: 3,866 Process Files exist, but zero are linked to a Visa
+Tracking Application and zero have a client status set — only 2 tracking
+applications exist at all, both from the Lead-stage passport chain. An
+hourly job would scan and find nothing, indefinitely: surface area and a
+worker slot on a shared host, with no safety value. A sweep that has never
+once acted is also one nobody will notice has broken.
+
+**When to reinstate.** Once Process Files actually flow through the stage
+model and a missed job becomes a real possibility rather than a
+hypothetical one.
+
+**How it is run manually now:**
+
+```bash
+# read-only report of diverging PF / tracking-application pairs
+bench --site <site> execute the_visaguy.visa_tracking.services.reconciliation_service.reconcile_status_mismatches
+
+# cautious repair, bounded
+bench --site <site> execute the_visaguy.visa_tracking.services.reconciliation_service.repair_client_status_drift --kwargs "{'limit': 20}"
+
+# full sweep
+bench --site <site> execute the_visaguy.visa_tracking.jobs.run_client_status_reconciliation_sweep
+```
+
+`repair_client_status_drift(limit=None)` writes and returns a list of
+`{process_file, tracking_application, status}`; `reconcile_status_mismatches()`
+is strictly read-only. Both share the same resolver and therefore the same
+guards as the queued job — forward-only, ON_HOLD exemption, Rejected —
+rather than a bypass path.
+
+**Consequence of this amendment, stated plainly:** removing the schedule
+does not mitigate the "No worker means no updates" negative consequence
+recorded above — it sharpens it. With nothing scheduled, a missed enqueue
+now stays missed until someone runs the sweep by hand; there is no longer a
+bounded worst case measured in an hour. This is an accepted trade-off given
+the zero-traffic reality above, not an oversight.
+
 ## Revisit when
 
 The reconciliation sweep's repair frequency proves too coarse for real
@@ -233,4 +291,7 @@ support-ticket volume (i.e., staleness after a worker outage becomes a
 recurring complaint), the forward-only guard's Hold-detour behavior is
 observed to confuse ops or clients in a way that needs a different
 interpretation than the one implemented in TASK-016, or the owner decides
-`Rejected` should have client-facing handling after all.
+`Rejected` should have client-facing handling after all. Also revisit the
+2026-09-02 amendment specifically once Process Files begin flowing through
+the stage model at real volume — that is the stated condition for
+reinstating a scheduled sweep entry.

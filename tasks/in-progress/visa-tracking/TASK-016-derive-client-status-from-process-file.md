@@ -355,10 +355,31 @@ remains" below).
 - A `recompute_client_status` queued job that re-reads current Process File
   / Visa Tracking Application state at execution time (not data captured at
   enqueue time) and calls the resolver.
-- `run_client_status_reconciliation_sweep`, wired to an hourly scheduler
-  entry in `hooks.py`, and `repair_client_status_drift` in
-  `reconciliation_service.py`, both routed through the same resolver as the
-  job — the sweep repairs drift rather than only reporting it.
+- `run_client_status_reconciliation_sweep` and `repair_client_status_drift`
+  in `reconciliation_service.py`, both routed through the same resolver as
+  the job — the sweep repairs drift rather than only reporting it.
+  **Update (2026-09-02):** the hourly scheduler entry in `hooks.py` that
+  originally wired the sweep has been removed by owner decision — see
+  ADR-010's "Amendment (2026-09-02)". The functions themselves are
+  unchanged and remain callable manually:
+
+  ```bash
+  # read-only report of diverging PF / tracking-application pairs
+  bench --site <site> execute the_visaguy.visa_tracking.services.reconciliation_service.reconcile_status_mismatches
+
+  # cautious repair, bounded
+  bench --site <site> execute the_visaguy.visa_tracking.services.reconciliation_service.repair_client_status_drift --kwargs "{'limit': 20}"
+
+  # full sweep
+  bench --site <site> execute the_visaguy.visa_tracking.jobs.run_client_status_reconciliation_sweep
+  ```
+
+  Reason: verified live on `visaguy`, 3,866 Process Files exist but zero are
+  linked to a Visa Tracking Application and zero have a client status set
+  (only 2 tracking applications exist, both Lead-stage). An hourly job would
+  scan and find nothing, indefinitely, for no safety value while the
+  feature carries no traffic. Reinstate the schedule once Process Files
+  actually flow through the stage model.
 - The six replacement `Visa Tracking Status` records (sequence 0-50, per the
   table in "Required behaviour" above).
 - `public_title` added to `Visa Tracking Status`, and `title` added to the
