@@ -113,6 +113,112 @@ Beware self-matching process polls: `pgrep -f "site <x> migrate"` matches the
 polling shell itself, so a wait loop never terminates. This produced a false
 "still running" report during the 2026-07-22 deploy.
 
+## Rebuilding the dedicated test site
+
+The site `visa-tracker-test.localhost` was dropped on 2026-09-01 (`bench.log`
+records three `drop-site` calls ending in `--force`) and **no backup existed**.
+It was rebuilt from scratch the same day. This recipe exists so the next rebuild
+is a copy-paste rather than a rediscovery — getting the suites green took two
+rounds of configuration archaeology.
+
+> **Do NOT mirror `visaguy`'s `Visa Tracker Settings` wholesale.** Two values are
+> test-site-specific and the integration tests assert them directly. Copying the
+> `visaguy` values produced 8 failures + 1 error on an otherwise correct build.
+
+1. `bench new-site visa-tracker-test.localhost`. The `root_password` key in
+   `sites/common_site_config.json` is required and is picked up automatically —
+   never print it. Set a throwaway Administrator password; the site is reachable
+   only through an explicit `Host` header on loopback.
+
+2. Install apps in this order (each earlier app supplies something a later one
+   needs — `PF Process File` from `processflo`, `FF File Collection` from
+   `fileflo`, `CRM Lead` from `crm`, `Salary Component` from `hrms`):
+
+   ```bash
+   erpnext  crm  insights  hrms  processflo  fileflo  visaguy_crm  passport_extractor  the_visaguy
+   ```
+
+   > **`visaguy_crm` and `hrms` are not optional, and omitting them produces a
+   > site that looks fine and silently lies.** The first rebuild (2026-09-01)
+   > left both out and the suite went green anyway — because `visaguy_crm` owns
+   > the customisations that make `PF Process File` behave like production:
+   >
+   > - `workflow_state` (Link → Workflow State) and the **active**
+   >   `Process File Workflow`. Without it the field does not exist at all, and
+   >   the TASK-016 client-status resolver has nothing to read.
+   > - `custom_form_submitted` (Check) — the durable questionnaire signal.
+   > - The mandatory fields `custom_department` (Link → Department) and
+   >   `process_` (Link → PF Process Template).
+   >
+   > `hrms` is required only because `visaguy_crm`'s `Company` customisation
+   > references `Salary Component`; without it the `visaguy_crm` install aborts
+   > partway, leaving its hooks active but its fields missing — a worse state
+   > than not installing it at all. Install `hrms` first.
+   >
+   > Installing these two turned 28 previously-passing tests red, all with one
+   > root cause: fixtures were building `PF Process File` and `Lead` documents
+   > that could never exist in production. That cascade
+   > (`custom_department` → `Department.company` → `Company.{currency, country,
+   > abbr, gst_category}` → `Lead.{mobile_no, custom_zone, custom_lead_source,
+   > custom_destination}` → `Customer.naming_series` via `Zone`) is now handled
+   > by the shared `the_visaguy/visa_tracking/tests/fixtures.py` helper. Reuse
+   > it rather than hand-building these documents.
+
+   **Known remaining divergence:** `CRM Migration Settings` exists on `visaguy`
+   but is not installed by any app here, so creating a `Lead` as a user holding
+   "Consultant Role" (including Administrator) hits `visaguy_crm`'s auto-assign
+   path and fails. The test fixtures sidestep this by inserting Leads as a
+   dedicated unprivileged user.
+
+3. `bench --site visa-tracker-test.localhost migrate` until clean.
+
+4. Generate the lookup HMAC key without echoing its value:
+
+   ```bash
+   KEY=$(python3 -c "import secrets;print(secrets.token_urlsafe(48))")
+   bench --site visa-tracker-test.localhost set-config visa_tracker_lookup_hmac_key "$KEY"
+   ```
+
+5. Apply `Visa Tracker Settings`. The two rows marked **differs** are the ones
+   that must NOT be copied from `visaguy`:
+
+   | Field | Test-site value | Note |
+   |---|---|---|
+   | `frontend_base_url` | `https://tracker-test.example.com` | **differs** from `visaguy` (`http://localhost:5173/`); asserted by `test_cors_against_live_settings` |
+   | `support_link` | `https://tracker-test.example.com/support` | **differs**; asserted by `test_status_payload_against_live_documents` |
+   | `passport_field_ids` | `passport_front` + `passport_back`, newline-separated | **differs** from `visaguy` (`passport`); required by the FileFlo inspection and reconciliation integration tests. This value was undocumented before 2026-09-02 and had to be recovered from a test fixture comment |
+   | `enabled` / `enable_public_tracking` / `enable_passport_extraction` | `1` | |
+   | `auto_create_tracking_application` / `auto_link_verified_passport` | `1` | |
+   | `require_manual_verification` | `0` | ADR-007 |
+   | `generic_failure_message` | `Unable to verify. Please check your details and try again.` | must equal the contract default |
+   | `session_expiry_minutes` / `max_session_lifetime_minutes` | `15` / `60` | |
+   | `maximum_failed_attempts` / `lockout_minutes` | `5` / `15` | per-identity counter, ADR-009 |
+   | `status_history_limit` | `20` | |
+   | `default_lead_status` / `process_file_created_status` | `APPLICATION_RECEIVED` / `WORKING_ON_APPLICATION` | superseded once TASK-016 lands; see ADR-010 |
+
+   `scope_maximum_failed_attempts` and `scope_lockout_minutes` (ADR-009) may be
+   left unset — their getters fall back to the safe defaults 20 and 60.
+
+6. PaddleOCR models live in `~/.paddlex`, which is user-level and **survives site
+   deletion** — no re-download needed. Confirm they are present before running
+   the `passport_extractor` suite.
+
+7. Verify against the baselines in *Test execution* below. Matching them is what
+   proves the rebuild is faithful; a mismatch means the site build differs, not
+   that the code is wrong.
+
+   App installs and migrations here run for minutes and outlive an SSH session,
+   so run them detached and poll. **Do not poll with `pgrep -f "<the command>"`:**
+   over SSH the polling shell's own command line contains that string, so the
+   loop matches itself and never terminates. This is the same trap recorded
+   under *Shared-host safety*, and it recurred twice during the 2026-09-02
+   rebuild. Poll on a captured PID (`kill -0 "$PID"`), or have the background
+   command append a `DONE_MARKER` to its log and grep for that.
+
+Fixture sync on a fresh site recreates the visa-tracking Custom Fields cleanly,
+including `PF Process File-custom_client_status`. Their absence on `visaguy` is
+external damage (risk 25), not a defect in the fixture.
+
 ## Test execution
 
 ```bash
@@ -122,8 +228,10 @@ bench --site visa-tracker-test.localhost run-tests --app <app> --skip-test-recor
 `--skip-test-records` is required: without it the ERPNext fixture bootstrap dies
 with `LinkValidationError: Could not find Warehouse Type: Transit`.
 
-Baselines: `the_visaguy` 248, `passport_extractor` 63, `fileflo` 8,
-frontend `visa_tracker` 41.
+Baselines at `the_visaguy` `53b0f28` (2026-09-02): `the_visaguy` **298**,
+`passport_extractor` 63, `fileflo` 8, frontend `visa_tracker` 41. The
+`the_visaguy` figure was 248 before TASK-011, TASK-012 and the merge of
+`main` added tests.
 
 ## Diagnostic order for "no tracking application was created"
 
