@@ -18,6 +18,7 @@ depends_on:
   - ADR-007
   - ADR-008
   - ADR-009
+  - ADR-010
 created: 2026-07-20
 updated: 2026-09-01
 ---
@@ -170,7 +171,15 @@ The developer must not modify any application repository from its current defaul
 
 ## Required status model
 
-Initial status records:
+**Narrowed 2026-09-01 by ADR-010.** The six status records below described
+the model as originally built (TASK-005/TASK-006) and are **superseded** by
+the six statuses defined in ADR-010, which are automatically derived from
+Process File state rather than typed by hand. This subsection is retained
+for historical record only; see ADR-010 for the current status model
+(`QUESTIONNAIRE_NOT_SUBMITTED`, `QUESTIONNAIRE_SUBMITTED`, `FILE_ASSIGNED`,
+`IN_PROGRESS`, `COMPLETED`, `ON_HOLD`) and TASK-016 for its implementation.
+
+Original (superseded) initial status records:
 
 1. Application Received
 2. Documents Under Review
@@ -179,7 +188,7 @@ Initial status records:
 5. Application Submitted
 6. Update Shared with Client
 
-Statuses are records, not hardcoded Select options. Each status has a stable code, order, default message, active flag, final flag, success flag, and `allow_on_process_file` flag.
+Statuses are records, not hardcoded Select options. Each status has a stable code, order, default message, active flag, final flag, success flag, and `allow_on_process_file` flag. ADR-010 adds a `public_title` field to this record shape.
 
 `Visa Tracker Settings` controls at least:
 
@@ -191,12 +200,14 @@ No business code may hardcode the labels `Application Received` or `Working on Y
 
 ## Status ownership rules
 
+**Narrowed 2026-09-01 by ADR-010** — see the note directly below the list.
+
 - `Visa Tracking Application.current_status` is the canonical current public state.
 - `Visa Tracking Status Log` is the canonical immutable client-visible timeline.
 - Before a Process File exists, status is the configured system default and no Lead status field is required.
-- After a Process File is linked, `PF Process File.custom_client_status` is the normal operations input.
-- Direct changes from `Visa Tracking Application` are exceptional and must synchronize the linked Process File without recursion.
-- Every effective status change creates one log entry. Saving the same status again must not create a duplicate log.
+- ~~After a Process File is linked, `PF Process File.custom_client_status` is the normal operations input.~~ **Superseded by ADR-010.** `custom_client_status` becomes read-only/derived: the client-facing status is automatically resolved from `PF Process File.workflow_state` and `custom_form_submitted` by `resolve_client_status` (TASK-016), not typed by ops. See ADR-010 for the mapping, the forward-only guard, the ON_HOLD exemption, and why the Rejected workflow state is deliberately left unhandled.
+- Direct changes from `Visa Tracking Application` remain possible as an exceptional path and must synchronize the linked Process File without recursion, but per ADR-010 any such manual value is transient: the next automatic recompute (triggered only by a genuine `workflow_state`/`custom_form_submitted` change) overwrites it. This is intended, not a bug.
+- Every effective status change creates one log entry. Saving the same status again must not create a duplicate log. This contract is preserved under ADR-010: the derived-status job and the reconciliation sweep both route writes through the existing lifecycle/status service rather than a separate path.
 
 ## Passport ownership rules
 
@@ -387,6 +398,27 @@ Other changes since the 2026-07-23 reconciliation, verified directly:
   `/Users/shzd/...`. The Linux worktrees under `/home/shahzad/visa-tracker-worktrees/`
   referenced throughout earlier phase reports no longer exist; feature
   branches now live directly in the bench app checkouts at `~/bench/apps/<app>`.
+
+## Client-facing status is now derived, not typed (2026-09-01)
+
+Owner decision, recorded in **ADR-010**: client-facing status becomes
+automatically derived from `PF Process File.workflow_state` and
+`custom_form_submitted` via a pure `resolve_client_status` function, instead
+of being typed by hand on `custom_client_status`. This narrows the "Status
+ownership rules" and "Required status model" sections above — read ADR-010
+before relying on either section as current. Implementation is tracked as
+**TASK-016** (backend: resolver, trigger hooks, queued job, reconciliation
+sweep, read-only `custom_client_status`, new `public_title` field) and
+**TASK-017** (frontend: rendering the new `title` value through
+`visa_tracker`'s wire contract). Both are new as of this date; neither is
+complete.
+
+A blocking prerequisite for TASK-016 is recorded in risk 25
+(`docs/risks-and-open-questions.md`): three Custom Fields this feature
+depends on, including `PF Process File-custom_client_status` itself, do not
+currently exist on site `visaguy` — deleted 2026-08-07 by an untracked,
+indiscriminate administrative sweep. They must be restored before TASK-016
+can be implemented or validated at runtime.
 
 ## Supporting specifications
 
