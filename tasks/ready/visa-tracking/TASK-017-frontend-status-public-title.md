@@ -15,7 +15,7 @@ expected_files:
   - src/api/contract.test.ts
   - src/mocks/handlers.ts
 created: 2026-09-01
-updated: 2026-09-02
+updated: 2026-09-03
 ---
 
 # TASK-017: Render derived status public_title through the frontend wire contract
@@ -27,13 +27,18 @@ the public status/timeline API response, threading it through
 `visa_tracker`'s wire-contract fixture module, its MSW mocks, its contract
 conformance tests, and the UI that renders the current status and timeline.
 
-This task is **not started**. It is marked `ready` because it requires no new
-product or architecture decision — ADR-010 already specifies the field name
-(`public_title` on `Visa Tracking Status`, sent as `title` on the wire), the
-six status values, and their exact `public_title` copy. It cannot begin
-functionally until TASK-016 has shipped the backend field, but the frontend
-contract-fixture and type changes described here can be drafted against the
-documented contract in the meantime.
+**Updated 2026-09-03: this task now also covers the new `dependants` array**
+(see "Update (2026-09-03)" in Context below). `title` rendering has already
+shipped (`visa_tracker` commits `b25df4a`/`204f563`); `dependants` rendering
+has not started and is the remaining work under this task. The SPA currently
+ignores the `dependants` key silently.
+
+This task is marked `ready`. It requires no new product or architecture
+decision — ADR-010 already specifies the field names and copy for both
+`title` (`public_title` on `Visa Tracking Status`, sent as `title` on the
+wire) and `dependants` (see ADR-010's "Amendment (2026-09-03)"). The `title`
+portion is done; the `dependants` portion can proceed directly since the
+backend has already shipped it (`the_visaguy` `7ec522f`).
 
 ## Context
 
@@ -119,6 +124,61 @@ rendering). Two uncoordinated changes to the same components risk a merge
 collision or, worse, one silently reverting the other's work. Check its
 current state before writing any component code here.
 
+### Update (2026-09-03) — status of this task, in two parts
+
+This task now covers **two separate wire fields**, shipped by the backend at
+different times and in different states on the frontend side:
+
+1. **`title`** — shipped backend 2026-09-02 (TASK-016). **Frontend rendering
+   of `title` has already shipped**, in the `visa_tracker` repository,
+   commits `b25df4a` and `204f563`. Treat the "Required behaviour" items
+   below that concern `title` as background/context for what was already
+   done, not as outstanding work, unless a review of those commits finds a
+   gap against this task's stated requirements — verify against the actual
+   commits rather than assuming full coverage.
+2. **`dependants`** — shipped backend 2026-09-03, on the same commit
+   (`7ec522f` in `the_visaguy`) as the temporary dependant-status-display
+   override recorded in ADR-010's "Amendment (2026-09-03)". **Frontend
+   rendering of `dependants` has NOT started.** The SPA currently has no
+   code path that reads the `dependants` key at all — because the field did
+   not exist when the frontend's types/fixtures were last touched, the
+   `visa_tracker` SPA today **silently ignores** the array: no crash, no
+   console warning, no UI change, the data simply arrives and is dropped.
+   This is new, outstanding scope for this task, not yet reflected in
+   `expected_files`, `Required behaviour`, or the wire-contract fixtures
+   below — see "Required behaviour" item 7 (new) for what is needed.
+
+The full, current backend payload shape (`the_visaguy` `7ec522f`), superseding
+the shape recorded in the rest of this Context section where they differ:
+
+Top-level `data` object:
+
+```
+applicant_name_masked, passport_number_masked, destination, visa_type,
+current_status, title, public_message, last_updated, timeline, support_link,
+dependants
+```
+
+`dependants` is always an array, **never null or missing** — empty when the
+primary has none, and also always empty (`[]`) on a dependant's own separate
+lookup (a dependant's own lookup never reveals that they have siblings; see
+ADR-010's privacy-shape note). Each `dependants` entry:
+
+```
+applicant_name_masked, type, current_status, title, public_message
+```
+
+`type` is the raw Applicant Type label — not PII, not masked, render as-is.
+No Process File or application identifiers appear in a dependants entry, so
+none should be surfaced in the UI either.
+
+**Note for UI design:** on a dependant's own lookup, the `current_status` /
+`title` / `public_message` / `timeline` / `last_updated` the frontend
+receives are the **primary's** values, substituted server-side (temporary,
+owner-approved — see ADR-010). The frontend has no way to detect this from
+the payload shape alone (it is shape-identical to a standalone applicant)
+and should not attempt to — render it exactly as any other status response.
+
 ## Required behaviour
 
 1. Add `title: string` (naming exactly as it arrives on the wire — verify
@@ -156,6 +216,23 @@ current state before writing any component code here.
    resolves to one of six known statuses, each with a non-empty
    `public_title`, so `title` should likely always be non-empty on any
    `success: true` status response — verify, don't assume).
+7. **(New, 2026-09-03, not started) Render `dependants`.** Add `dependants`
+   to `StatusResponse` in `src/types/tracking.ts` as an array of a new
+   `DependantSummary` (or similarly named) type with
+   `applicant_name_masked, type, current_status, title, public_message`.
+   Add realistic fixture entries to `wireContract.ts` (at least one non-empty
+   `dependants` array and one empty array, since both are valid and the
+   empty-on-a-dependant's-own-lookup case is significant — see Context).
+   Update the contract-conformance test and MSW mocks accordingly, per the
+   same single-source-of-truth rule as `title`. Render each dependant on the
+   primary's status page — `title` as heading, `public_message` as
+   supporting text (same pattern as the primary's own status), with
+   `applicant_name_masked` and `type` identifying which dependant each entry
+   is. Do not render anything when `dependants` is empty (do not show an
+   empty "Dependants" section/heading). Confirm with `ongoing/tracker-ui-polish/`
+   (per the reconciliation note above) before adding new UI structure, since
+   dependant rendering is new layout, not just a new text field on an
+   existing element.
 
 ## Constraints
 

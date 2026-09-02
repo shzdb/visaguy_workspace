@@ -5,7 +5,10 @@
 Accepted. Amended 2026-09-02 — see "Amendment (2026-09-02)" below; the
 amendment removes the hourly scheduled sweep this ADR originally described
 and sharpens the "No worker means no updates" negative consequence
-accordingly.
+accordingly. Amended again 2026-09-03 — see "Amendment (2026-09-03) —
+Dependant status display" below; a primary applicant's public lookup now
+also returns their dependants, and dependants display the primary's status
+rather than their own, as a temporary display-layer override.
 
 Supersedes the parts of `features/ongoing/visa-tracking/README.md`
 "Status ownership rules" that describe `PF Process File.custom_client_status`
@@ -284,6 +287,96 @@ now stays missed until someone runs the sweep by hand; there is no longer a
 bounded worst case measured in an hour. This is an accepted trade-off given
 the zero-traffic reality above, not an oversight.
 
+## Amendment (2026-09-03) — Dependant status display
+
+A primary applicant's public lookup now also returns their dependants, and
+dependants display the **primary's** status rather than their own — in both
+directions: on the primary's own lookup (each dependant entry) and on a
+dependant's own separate lookup (their `current_status`/`title`/
+`public_message`/`last_updated`/`timeline` are all sourced from the primary,
+not from the dependant's own Process File).
+
+**Why (owner's reasoning, 2026-09-02/03).** Operations work a primary's
+Process File promptly but update dependant files late, often only at the end
+of a case. A dependant's own stored status therefore lags reality and would
+mislead the client if shown as-is. Verified live on `visaguy`: 157 dependants
+currently sit at a different `workflow_state` from their primary.
+
+**This is an accepted trade-off, not a footnote: it knowingly shows some
+clients a status that is not their own.** A dependant genuinely at an
+earlier stage of their own file will be told, on their own tracker lookup,
+that they are further along than they are — because the payload displays
+the primary's status, title, message and timeline in place of the
+dependant's actual ones. This is deliberate and owner-approved, on the
+reasoning above, but it is a real and known instance of the tracker
+displaying an inaccurate individual status to a client, and must be
+understood as such by anyone debugging a "why does my status say X"
+complaint about a dependant.
+
+**Removal condition — explicitly temporary.** This override is removed once
+operations is streamlined so dependant Process Files are kept current
+alongside their primary's. Once removed, each dependant shows their own real
+status again, computed by the unchanged `resolve_client_status` resolver
+against their own Process File.
+
+**Where the override lives.** A single, clearly bounded block in
+`visa_tracking/api/status.py`:
+
+```python
+if is_dependant and primary_process_file:
+    # --- TEMPORARY DISPLAY-LAYER OVERRIDE ---
+    ...
+    # --- END TEMPORARY OVERRIDE ---
+```
+
+Deleting this block reverts `current_status`, `title`, `public_message`,
+`timeline` and `last_updated` together, back to each dependant's own
+resolved values. It is a **display-layer only** change: `resolve_client_status`,
+the trigger hooks, the queued job, the reconciliation sweep, and all stored
+`Visa Tracking Status Log` rows are untouched — the dependant's real,
+correct status is computed and stored throughout; only what the public API
+*returns* for a dependant is substituted.
+
+**Why status, title, message, timeline AND last_updated are substituted
+together, not just the headline.** Overriding only the status/title would
+show, for example, "Wheels up!" as the heading above a timeline that never
+left "Questionnaire Submitted" — the displayed status would appear nowhere
+in its own history, which is a worse and more confusing inconsistency than
+the override itself. All five fields move together so the payload is
+internally consistent, even though it is externally inaccurate for the
+dependant.
+
+**Privacy shape (owner decision).** A dependant's own lookup returns **no**
+`dependants` array — the response is shape-identical to a standalone
+applicant's, so nothing about the payload reveals that siblings exist or
+that the caller is a dependant. The dependant's own
+`applicant_name_masked`, `passport_number_masked`, `destination` and
+`visa_type` remain genuinely their own — only status/title/message/
+timeline/last_updated are substituted. On the primary's own lookup, each
+`dependants` array entry carries only `applicant_name_masked, type,
+current_status, title, public_message` (masked name via the existing
+masking helper; `type` is the raw Applicant Type label, not PII, not
+masked); no Process File or application identifiers appear in the array.
+
+**Source of dependants — and the rejected cross-check alternative.**
+Dependants are sourced from the primary's `custom_dependent_details` child
+table, which the owner confirmed is the intended source of truth. A
+proposal to additionally cross-check each entry against the dependant's own
+`custom_primary_process_file` back-link (i.e. only show a dependant if both
+sides agree who is whose dependant) was considered and **rejected by the
+owner**. Reasoning: cross-checking two sources that are supposed to agree
+just **hides** any disagreement between them rather than fixing it — a
+dependant wrongly listed in `custom_dependent_details` is a bug at its
+origin (the data that was entered), and building a defensive cross-check
+around it would mask that bug's symptom instead of surfacing it for
+correction. See risk 28 in `docs/risks-and-open-questions.md` for a concrete
+instance of exactly this kind of data corruption, found but deliberately
+not fixed as part of this change.
+
+**Not in scope for this amendment.** Frontend rendering of the `dependants`
+array is tracked separately — see TASK-017, which the SPA currently ignores
+silently (no crash, no display) because it does not read the key at all.
+
 ## Revisit when
 
 The reconciliation sweep's repair frequency proves too coarse for real
@@ -294,4 +387,7 @@ interpretation than the one implemented in TASK-016, or the owner decides
 `Rejected` should have client-facing handling after all. Also revisit the
 2026-09-02 amendment specifically once Process Files begin flowing through
 the stage model at real volume — that is the stated condition for
-reinstating a scheduled sweep entry.
+reinstating a scheduled sweep entry. Revisit the 2026-09-03 dependant-display
+amendment once operations is streamlined enough that dependant Process Files
+are kept current alongside their primary's — that is the stated removal
+condition for the temporary override in `visa_tracking/api/status.py`.

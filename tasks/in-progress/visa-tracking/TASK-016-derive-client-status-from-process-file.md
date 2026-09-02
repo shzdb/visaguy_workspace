@@ -19,7 +19,7 @@ expected_files:
   - the_visaguy/the_visaguy/visa_tracking/tests/test_pf_process_file_status_trigger.py
   - the_visaguy/the_visaguy/visa_tracking/tests/test_reconciliation_status.py
 created: 2026-09-01
-updated: 2026-09-02
+updated: 2026-09-03
 ---
 
 # TASK-016: Derive client-facing status automatically from Process File state
@@ -332,14 +332,43 @@ missing on `visaguy`, while any of the twelve test requirements is untested
 or not mutation-proven, or while the frontend `title` consumption (TASK-017)
 is treated as in scope here — it is a separate task.
 
-## Completion evidence (2026-09-02)
+## Completion evidence (2026-09-02, updated 2026-09-03)
 
 **Status stays `in-progress`.** All required behaviour below is implemented
 and independently verified green in `the_visaguy` on branch
-`feat/visa-tracker`, uncommitted on top of local HEAD `53b0f28`. Per this
-workspace's convention, a task with only unsaved working-tree edits is not
-moved to `completed` — commit, then deploy, remain outstanding (see "What
-remains" below).
+`feat/visa-tracker`. As of 2026-09-03 this work is **committed** as `7ec522f`
+(see "What remains" below for what is still outstanding — deployment).
+
+### Update (2026-09-03) — dependant status display added on top of TASK-016
+
+A follow-on, owner-directed change lands on the same branch/commit
+(`7ec522f`): a primary applicant's public lookup now also returns their
+dependants, and dependants display the **primary's** status rather than
+their own, in both directions (on the primary's own lookup, and on a
+dependant's own separate lookup). This is recorded in full in ADR-010's
+"Amendment (2026-09-03) — Dependant status display", including the
+reasoning, the explicit trade-off of showing some clients a status that is
+not their own, the removal condition, and the rejected cross-check
+alternative. Summary relevant to this task's evidence:
+
+- Implemented as a single bounded block in `visa_tracking/api/status.py`,
+  delimited `# --- TEMPORARY DISPLAY-LAYER OVERRIDE ---` /
+  `# --- END TEMPORARY OVERRIDE ---`. Display layer only —
+  `resolve_client_status`, the trigger hooks, the queued job, the
+  reconciliation sweep, and stored `Visa Tracking Status Log` rows are
+  unchanged by it.
+- Dependants are sourced from the primary's `custom_dependent_details` child
+  table (owner-confirmed source of truth; a proposed cross-check against the
+  dependant's own `custom_primary_process_file` back-link was rejected — see
+  ADR-010).
+- A dependant's own lookup returns no `dependants` array (shape-identical to
+  a standalone applicant); the primary's lookup carries one array entry per
+  dependant. See "Exact public payload shape" below for the precise keys.
+- **Known data-quality finding, not fixed by this task (owner decision):**
+  primary `Schengen-Primary-00127-ANNETTE ENGELBRECHT-6863`'s
+  `custom_dependent_details` table lists two Process Files belonging to two
+  other, unrelated primaries. See risk 28 in
+  `docs/risks-and-open-questions.md`.
 
 ### Delivered
 
@@ -392,7 +421,7 @@ remains" below).
 
 | Suite | Result | Note |
 |---|---|---|
-| `the_visaguy` | **342/342** | Up from the 298 baseline recorded in `ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md` — **+44 tests, none removed.** |
+| `the_visaguy` | **352/352** | Verified twice. Up from the 342 figure recorded 2026-09-02 (itself up from the 298 baseline in `ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md`) — the further +10 covers the 2026-09-03 dependant-display addition. |
 | `passport_extractor` | 63/63 | Unchanged, confirms no cross-app regression. |
 | `fileflo` | 8/8 | Unchanged, confirms no cross-app regression. |
 
@@ -418,17 +447,23 @@ covered; see the session report for the fixture-chain root cause that
 initially made 28 unrelated tests fail when the corrected test environment
 was installed, and how it was resolved.
 
-### Exact public payload shape (for TASK-017)
+### Exact public payload shape (for TASK-017, updated 2026-09-03 with dependants)
 
 Top-level `data` object:
 
 ```
 applicant_name_masked, passport_number_masked, destination, visa_type,
-current_status, title, public_message, last_updated, timeline, support_link
+current_status, title, public_message, last_updated, timeline, support_link,
+dependants
 ```
 
-`title` is new, positioned immediately after `current_status`. Each
-`timeline` entry:
+`title` is new (shipped 2026-09-02), positioned immediately after
+`current_status`. `dependants` is new (shipped 2026-09-03), positioned
+**last** in the object, and is **always an array — never null or missing**,
+even when there are no dependants (empty array) or when the caller is
+themself a dependant (empty array — see privacy shape below).
+
+Each `timeline` entry:
 
 ```
 status, title, message, effective_on, icon
@@ -436,12 +471,41 @@ status, title, message, effective_on, icon
 
 `title` is new here too, positioned immediately after `status`. In both
 places `title` is always a string, never null — every resolvable status has
-a non-empty `public_title`. The generic-failure response body is unchanged
-and remains byte-identical across every failure mode (unaffected by this
-task).
+a non-empty `public_title`.
+
+Each `dependants` array entry:
+
+```
+applicant_name_masked, type, current_status, title, public_message
+```
+
+`type` is the raw Applicant Type label (not PII, not masked). No Process
+File or application identifiers appear in a dependants entry.
+
+**A dependant's own lookup** returns the same top-level key set as any other
+lookup, with `dependants: []` always, and with `current_status`, `title`,
+`public_message`, `last_updated` and `timeline` all sourced from the
+**primary's** current values rather than the dependant's own — see ADR-010's
+"Amendment (2026-09-03) — Dependant status display" for the full reasoning,
+the explicit trade-off, and the removal condition. This substitution is
+implemented as a single bounded block in `visa_tracking/api/status.py`
+(`# --- TEMPORARY DISPLAY-LAYER OVERRIDE ---` /
+`# --- END TEMPORARY OVERRIDE ---`) and is display-layer only; it does not
+touch the resolver, triggers, job, sweep, or stored log rows.
+
+The generic-failure response body is unchanged and remains byte-identical
+across every failure mode (unaffected by this task or by the 2026-09-03
+addition).
 
 ### What remains
 
-1. Commit this work in `the_visaguy` on `feat/visa-tracker`.
-2. Deploy to `visaguy`, per `docs/operations/visa-tracking-runbook.md`.
-3. Only then may this task move to `completed`.
+1. ~~Commit this work in `the_visaguy` on `feat/visa-tracker`.~~ Done —
+   `7ec522f`, includes both the original TASK-016 scope and the 2026-09-03
+   dependant-display addition.
+2. Deploy to `visaguy`, per `docs/operations/visa-tracking-runbook.md` (see
+   also its new "Updating a staging or live site" section for the
+   multi-app deploy sequence).
+3. Frontend rendering of `title` has shipped in `visa_tracker`
+   (commits `b25df4a`/`204f563`); frontend rendering of `dependants` has not
+   started — see TASK-017.
+4. Only after deployment may this task move to `completed`.
