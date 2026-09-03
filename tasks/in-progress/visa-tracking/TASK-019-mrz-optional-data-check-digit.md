@@ -2,9 +2,9 @@
 id: TASK-019
 feature: FEAT-001
 title: Accept ICAO filler check digit for unused MRZ optional data, and stop an optional field vetoing mrz_valid
-status: ready
+status: in-progress
 repository: passport_extractor
-worktree: /home/shahzad/visa-tracker-worktrees/passport_extractor
+app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
 depends_on:
   - TASK-003
@@ -107,7 +107,9 @@ special case belongs at the comparison site.
 ### Part B — `mrz_valid` scope
 
 B1. Compose `mrz_valid` from the four mandatory checks only: passport
-number, date of birth, expiry date, composite.
+number, date of birth, expiry date, composite. **Already true in the
+delivered code** (`mrz_parser.py`), which had diverged from TASK-003 §4.4
+before this task; no code change was needed here.
 
 B2. Keep computing and storing `personal_number_check_valid` on the record
 as review evidence. Do not remove the field.
@@ -120,28 +122,13 @@ B4. All other `Needs Review` and `Failed` triggers in TASK-003 §5.3 are
 unchanged: missing required fields, confidence below threshold, a false
 mandatory check digit, no MRZ found, unreadable file, OCR engine failure.
 
-### Part C — backfill assessment (assess and report; do not execute)
+### Part C — backfill assessment (cancelled)
 
-C1. Identify existing `Passport Extraction` records affected by the defect:
-`extraction_status = 'Needs Review'` with `personal_number_check_valid = 0`
-and all four mandatory check flags = 1. Report the count and, per record,
-the five flags and the extraction status — no MRZ text, passport numbers, or
-other PII in the report.
-
-C2. Establish whether re-validation can run from the stored `mrz_line_1` /
-`mrz_line_2` values without re-running PaddleOCR. It should: the lines are
-already persisted, and both Part A and Part B are pure functions of them.
-Confirm this rather than assuming it.
-
-C3. **Determine and record whether flipping a record from `Needs Review` to
-`Extracted` cascades into client-visible state** before any backfill is
-proposed. The transition clears `requires_review`, and TASK-006 lifecycle
-sync plus TASK-016's derivation of client status from the process file may
-react to it. Trace the actual trigger path and write down what it does.
-
-C4. Do not run the backfill as part of this task. Record the findings, the
-proposed backfill procedure, and the cascade analysis, and stop for owner
-decision.
+**Cancelled by owner decision, 2026-09-03.** The `visaguy` site is a
+development site, not production; the affected `Passport Extraction` records
+are test data from feature work, so there is no client-visible backlog to
+count and no backfill to run. If this fix later reaches a production site,
+the affected-record question returns with it.
 
 ### Part D — tests
 
@@ -173,8 +160,6 @@ in this task file.
   dirty for owner review. Committing, pushing, and deploying are owner
   actions on this feature.
 - Do not push to any Git remote and do not deploy.
-- Do not run the Part C backfill, and do not modify any existing
-  `Passport Extraction` record as part of this task.
 - Do not run migrations or tests against the `visaguy` site.
 - Do not weaken any mandatory check digit, and do not change
   `compute_icao_check_digit`.
@@ -208,9 +193,7 @@ in this task file.
 
 - Part A and Part B implemented in the feature worktree, uncommitted.
 - Part D tests written and passing as pure functions.
-- Part C findings recorded in this task file: affected record count, whether
-  re-validation from stored MRZ lines is sufficient, and the client-visible
-  cascade analysis. No backfill executed.
+- Part C cancelled by owner decision (development site, test data only).
 - TASK-003's amendment and the implementation agree; if implementation
   reveals the amendment is wrong, correct the amendment rather than
   diverging from it silently.
@@ -222,16 +205,25 @@ in this task file.
 
 Stop and record a decision request if any of the following occur:
 
-1. **Cascade is client-visible and non-trivial**: Part C shows that flipping
-   `Needs Review` → `Extracted` changes what a client sees on the public
-   tracker in a way that needs an owner decision before any backfill.
-2. **`mrz_valid` has other consumers**: the flag is read outside
+1. **`mrz_valid` has other consumers**: the flag is read outside
    `passport_extractor` (for example by TASK-006 lifecycle sync or the public
    API) in a way that makes narrowing its definition a cross-repository
    behaviour change.
-3. **The stored MRZ lines are insufficient** for re-validation, making the
-   backfill an OCR re-run rather than a pure re-check.
-4. **The defect is not where this task says it is** — for example the
+2. **The defect is not where this task says it is** — for example the
    comparison is already conformant and `personal_number_check_valid` is
    false for a different reason. Record the real cause and stop.
-5. **Permission denial** on any required worktree or bench operation.
+3. **Permission denial** on any required worktree or bench operation.
+
+## Implementation record (2026-09-03)
+
+Parts A, B and D are implemented and tested on the bench, uncommitted.
+Part C is cancelled (development site, test data). Full detail, including a correction to the stale
+worktree path and a finding about how narrow the optional check really was,
+is in `ongoing/task-019-mrz-optional-data/01-implementation.md`. The applied
+diff is mirrored at `ongoing/task-019-mrz-optional-data/task019.patch`.
+
+Evidence: 31 pure tests pass in the bench environment with no site
+(`TestMRZParser`, `TestPassportExtractionUtils`, `TestImagePreprocessor`);
+one pre-existing test that encoded the defect was replaced, seven added.
+Bench left at `feat/visa-tracker` `014a36e` with three files modified and not
+committed.

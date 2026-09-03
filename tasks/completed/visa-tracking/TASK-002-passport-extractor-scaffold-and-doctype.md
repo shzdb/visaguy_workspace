@@ -272,7 +272,7 @@ The following scaffold files are already present and must remain unchanged unles
 
 ## Definition of done
 
-- `Passport Extraction` DocType exists on dedicated test site `passport-extractor-test.localhost` with all field groups from Section 2; production-like `visaguy` migration remains a rollout responsibility.
+- `Passport Extraction` DocType exists on dedicated test site `passport-extractor-test.localhost` with all field groups from Section 2; `visaguy` migration remains a rollout responsibility (`visaguy` is a development site, not production — see TASK-003 "Environment note (2026-09-03)").
 - Controller enforces every valid transition from Section 3.2 and rejects invalid transitions.
 - Permissions prevent Guest access and restrict raw OCR/MRZ/error fields to privileged roles.
 - File-reference validation seams exist and reject public or missing files.

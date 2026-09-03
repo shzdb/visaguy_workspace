@@ -4,7 +4,7 @@ feature: FEAT-001
 title: Passport OCR and MRZ pipeline
 status: completed
 repository: passport_extractor
-worktree: /home/shahzad/visa-tracker-worktrees/passport_extractor
+app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
 depends_on:
   - TASK-002
@@ -156,7 +156,9 @@ PaddleOCR(
 
 Set `mrz_valid` to true only when all five check digits are valid.
 
-> **Amended 2026-09-03 (TASK-019).** `mrz_valid` is composed from the four
+> **Amended 2026-09-03 (TASK-019).** The delivered implementation already
+> did this; the requirement below was never what shipped, and this amendment
+> corrects the specification to match. `mrz_valid` is composed from the four
 > *mandatory* check digits only: `passport_number`, `date_of_birth`,
 > `expiry_date`, `composite`. `personal_number_check_valid` is still computed
 > and stored as review evidence but no longer contributes to `mrz_valid`.
@@ -288,7 +290,10 @@ frappe.enqueue(
 - Work only in `/home/shahzad/visa-tracker-worktrees/passport_extractor`. Do not modify original repository checkouts.
 - Do not import from or reference `the_visaguy`, `fileflo`, `processflo`, `erpnext.crm.doctype.lead`, Lead, Customer, `PF Process File`, `FF File Collection`, or `Visa Tracking Application`.
 - Do not implement FileFlo event handlers, Visa Tracker Settings access, or public APIs.
-- Do not run migrations or tests on the `visaguy` production-like site.
+- Do not run migrations or tests on the `visaguy` site. (The "production-like"
+  description this constraint originally carried was wrong — see the
+  environment note in "Amendment (2026-09-03)". The constraint stands; its
+  stated reason did not.)
 - Do not push to any Git remote.
 - Do not commit secrets, production data, real passport samples, or sensitive raw data.
 - Keep heavy CV/OCR imports lazy; module-level imports of PaddleOCR, PyMuPDF, or OpenCV in request-loaded files are prohibited.
@@ -394,6 +399,26 @@ The composite check digit is computed over line 2 positions 1–10, 14–20 and
 **22–43**, which contains the optional-data field and its check digit.
 Misread or altered optional data still fails the composite check, which
 remains mandatory. Nothing detectable is lost.
+
+### Environment note (2026-09-03)
+
+Two facts in the sections above were true when written and are no longer.
+They are recorded here rather than edited inline, so the task still describes
+the environment the work was actually done in.
+
+**The feature worktree is gone.** `/home/shahzad/visa-tracker-worktrees/passport_extractor`
+no longer exists; `passport_extractor` is now a bench app at
+`/home/shahzad/bench/apps/passport_extractor`, still on branch
+`feat/visa-tracker`. The frontmatter `worktree:` key has been replaced with
+`app_path:` pointing at the current location. Every worktree path in the
+body prose below is historical and should be read as such.
+
+**`visaguy` is a development site, not a production-like one.** Confirmed by
+the owner on 2026-09-03. Records on it — including extractions of real
+passport documents — are feature test data. The constraint against running
+migrations and tests there still stands as working practice, but a defect
+found on `visaguy` is a development finding and must not be escalated as
+client-facing impact. TASK-002 carries the same incorrect description.
 
 ### Scope of this amendment
 

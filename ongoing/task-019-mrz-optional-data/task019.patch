@@ -1,0 +1,169 @@
+--- a/passport_extractor/passport_extractor/ocr/mrz_parser.py
++++ b/passport_extractor/passport_extractor/ocr/mrz_parser.py
+@@ -44,6 +44,24 @@
+ 		return int(check_digit)
+ 	except ValueError:
+ 		return None
++
++
++def _validate_optional_data_check(field: str, check_digit: str) -> bool:
++	"""Validate the optional-data check digit (TD3 line 2, position 43).
++
++	ICAO 9303 Part 4: when the optional-data field is unused it is filled with
++	``<``, and the check-digit position may itself carry the ``<`` filler. Some
++	issuing states write ``0`` there instead. Both are conformant, so an unused
++	field validates on either.
++
++	This relaxation applies to the optional-data field only. The four mandatory
++	check digits keep strict numeric comparison, where a filler is a genuine
++	failure.
++	"""
++	if set(field) == {"<"}:
++		return check_digit in ("<", "0")
++	value = _parse_check_digit(check_digit)
++	return value is not None and compute_icao_check_digit(field) == value
+ 
+ 
+ def _clean_mrz_line(line: str) -> str:
+@@ -227,11 +245,9 @@
+ 	personal = line2[28:42]
+ 	personal_check = line2[42]
+ 	personal = _correct_field(personal, personal_check, prefer_digits=True)
+-	personal_check_value = _parse_check_digit(personal_check)
+ 	result["personal_number"] = personal
+-	result["personal_number_check_valid"] = (
+-		personal_check_value is not None
+-		and compute_icao_check_digit(personal) == personal_check_value
++	result["personal_number_check_valid"] = _validate_optional_data_check(
++		personal, personal_check
+ 	)
+ 
+ 	# Composite check digit covers the combined payload.
+--- a/passport_extractor/passport_extractor/services/extraction_service.py
++++ b/passport_extractor/passport_extractor/services/extraction_service.py
+@@ -201,10 +201,6 @@
+ 		_mark_needs_review(doc, NO_MRZ_FOUND, "Required passport fields are missing.")
+ 		return
+ 
+-	if best_parsed["personal_number_check_valid"] is False and _other_checks_pass(best_parsed):
+-		_mark_needs_review(doc, CHECK_DIGIT_FAILURE, "Optional field check failed.")
+-		return
+-
+ 	if best["confidence"] < CONFIDENCE_OK_THRESHOLD:
+ 		_mark_needs_review(doc, LOW_CONFIDENCE, "Confidence is below the extraction threshold.")
+ 		return
+@@ -242,16 +238,6 @@
+ 	doc.personal_number_check_valid = parsed.get("personal_number_check_valid")
+ 	doc.composite_check_valid = parsed.get("composite_check_valid")
+ 	doc.mrz_valid = parsed.get("mrz_valid")
+-
+-
+-def _other_checks_pass(parsed: dict) -> bool:
+-	"""Return True when the four mandatory check digits are all valid."""
+-	return (
+-		parsed.get("passport_number_check_valid")
+-		and parsed.get("date_of_birth_check_valid")
+-		and parsed.get("expiry_date_check_valid")
+-		and parsed.get("composite_check_valid")
+-	)
+ 
+ 
+ def _mark_extracted(doc) -> None:
+--- a/passport_extractor/passport_extractor/doctype/passport_extraction/test_passport_extraction.py
++++ b/passport_extractor/passport_extractor/doctype/passport_extraction/test_passport_extraction.py
+@@ -664,19 +664,91 @@
+ 		self.assertFalse(parsed["composite_check_valid"])
+ 		self.assertFalse(parsed["mrz_valid"])
+ 
+-	def test_filler_optional_data_check_digit_does_not_raise(self):
++	def test_unused_optional_data_with_filler_check_digit_is_valid(self):
++		"""ICAO 9303 Part 4 allows a `<` filler check digit for an unused field.
++
++		Ghana and other issuing states leave the optional-data field blank, so
++		line 2 positions 29-42 are all fillers and position 43 is a filler too.
++		Treating that as a check-digit failure rejected valid passports.
++		"""
+ 		line1, line2 = _build_td3_mrz(personal_number="")
+ 		line2 = line2[:42] + "<" + line2[43:]
+ 		parsed = parse_td3_mrz(line1, line2)
+ 		self.assertEqual(parsed["personal_number"], "<<<<<<<<<<<<<<")
+-		self.assertFalse(parsed["personal_number_check_valid"])
+-		# The optional-data check is not part of the aggregated mrz_valid flag;
+-		# the mandatory check digits remain valid, so the document stays valid.
++		self.assertTrue(parsed["personal_number_check_valid"])
++		self.assertTrue(parsed["mrz_valid"])
+ 		self.assertTrue(parsed["passport_number_check_valid"])
+ 		self.assertTrue(parsed["date_of_birth_check_valid"])
+ 		self.assertTrue(parsed["expiry_date_check_valid"])
++		self.assertTrue(parsed["composite_check_valid"])
++
++	def test_unused_optional_data_with_zero_check_digit_is_valid(self):
++		"""Some issuing states write `0` rather than a filler for an unused field."""
++		line1, line2 = _build_td3_mrz(personal_number="")
++		self.assertEqual(line2[42], "0")
++		parsed = parse_td3_mrz(line1, line2)
++		self.assertTrue(parsed["personal_number_check_valid"])
++		self.assertTrue(parsed["mrz_valid"])
++
++	def test_populated_optional_data_keeps_strict_check(self):
++		"""A populated optional-data field is still checked strictly."""
++		line1, line2 = _build_td3_mrz(personal_number="EXTRA123")
++		parsed = parse_td3_mrz(line1, line2)
++		self.assertTrue(parsed["personal_number_check_valid"])
++
++		wrong = "9" if line2[42] != "9" else "8"
++		corrupted = line2[:42] + wrong + line2[43:]
++		parsed = parse_td3_mrz(line1, corrupted)
++		self.assertFalse(parsed["personal_number_check_valid"])
++
++	def test_populated_optional_data_filler_check_digit_is_invalid(self):
++		"""The filler relaxation must not leak to a populated field."""
++		line1, line2 = _build_td3_mrz(personal_number="EXTRA123")
++		line2 = line2[:42] + "<" + line2[43:]
++		parsed = parse_td3_mrz(line1, line2)
++		self.assertFalse(parsed["personal_number_check_valid"])
++
++	def test_optional_data_failure_does_not_invalidate_mrz(self):
++		"""An optional field must not veto mrz_valid on its own.
++
++		The composite check digit covers positions 22-43, so almost any change
++		to the optional-data check digit also breaks the composite. The one
++		exception is substituting the filler `<` for a `0`, since both carry
++		numeric value 0 and leave the composite payload unchanged. That makes
++		this the only fixture that can isolate an optional-only failure --
++		which is itself the reason the optional check is redundant.
++		"""
++		# EXTRA12 is chosen because its padded optional-data check digit is 0.
++		line1, line2 = _build_td3_mrz(personal_number="EXTRA12")
++		self.assertEqual(line2[42], "0")
++		line2 = line2[:42] + "<" + line2[43:]
++		parsed = parse_td3_mrz(line1, line2)
++		self.assertFalse(parsed["personal_number_check_valid"])
+ 		self.assertTrue(parsed["composite_check_valid"])
++		self.assertTrue(parsed["mrz_valid"])
+ 
++	def test_corrupted_optional_data_still_fails_composite(self):
++		"""The composite check covers positions 22-43, optional data included.
++
++		This is what makes it safe to keep the optional check out of mrz_valid.
++		"""
++		line1, line2 = _build_td3_mrz(personal_number="EXTRA123")
++		corrupted = line2[:28] + "X" + line2[29:]
++		parsed = parse_td3_mrz(line1, corrupted)
++		self.assertFalse(parsed["composite_check_valid"])
++		self.assertFalse(parsed["mrz_valid"])
++
++	def test_filler_in_mandatory_check_digit_position_still_fails(self):
++		"""The filler relaxation is scoped to optional data only."""
++		line1, line2 = _build_td3_mrz()
++		parsed = parse_td3_mrz(line1, line2[:9] + "<" + line2[10:])
++		self.assertFalse(parsed["passport_number_check_valid"])
++		self.assertFalse(parsed["mrz_valid"])
++
++		parsed = parse_td3_mrz(line1, line2[:43] + "<" + line2[44:])
++		self.assertFalse(parsed["composite_check_valid"])
++		self.assertFalse(parsed["mrz_valid"])
++
+ 	def test_correct_field_handles_malformed_check_digit(self):
+ 		from passport_extractor.passport_extractor.ocr.mrz_parser import _correct_field
+ 
