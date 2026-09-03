@@ -227,6 +227,7 @@ Success response (HTTP 200):
 Masking rules:
 
 - Applicant name: show first character and last character, mask the middle with `*` to a fixed length (for example 4 asterisks). For a single name or very short name, still produce a masked constant shape.
+  - **Superseded 2026-09-03 (ADR-005 amendment).** The applicant name is now returned in full and the wire key is `applicant_name`, not `applicant_name_masked` — in the top-level payload and in each `dependants` entry. The blank-name placeholder below no longer applies either: a blank name is returned as `""`. Passport-number masking in this section is unchanged.
 - Passport number: show the first two and last two characters, mask the middle with `*` to a fixed length (for example 4 asterisks).
 - If applicant name is blank, return a masked placeholder such as `*****` instead of an empty string.
 

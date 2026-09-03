@@ -358,6 +358,14 @@ current_status, title, public_message` (masked name via the existing
 masking helper; `type` is the raw Applicant Type label, not PII, not
 masked); no Process File or application identifiers appear in the array.
 
+> **Correction (2026-09-03).** The two references to masking in the
+> paragraph above are superseded by ADR-005's "Amendment (2026-09-03):
+> applicant names are returned in full". Applicant names — the primary's own
+> and each dependant's — are returned **unmasked**, and the wire key is now
+> `applicant_name`, not `applicant_name_masked`. The rest of this paragraph,
+> including the shape of the `dependants` array and the exclusion of Process
+> File and application identifiers, is unchanged and still correct.
+
 **Source of dependants — and the rejected cross-check alternative.**
 Dependants are sourced from the primary's `custom_dependent_details` child
 table, which the owner confirmed is the intended source of truth. A

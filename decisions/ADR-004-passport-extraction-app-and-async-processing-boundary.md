@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+Accepted, with one later narrowing: **ADR-012 (2026-09-03)** replaces the
+trigger edge in the "Asynchronous processing boundary" subsection — a
+configured passport row enters extraction when its
+`FF File Collection File.status` becomes `Completed`, not when the
+submission is persisted. The rest of this ADR, including the boundary rules
+themselves, remains in force. See also the "Amendment (2026-09-03)" at the
+end of this ADR for the extraction worker's execution identity.
 
 ## Context
 
@@ -67,3 +73,30 @@ FEAT-001 introduces automated passport data extraction from FileFlo uploads. The
 ## Revisit when
 
 Extraction needs to run in a separate service/process, another feature needs to consume `passport_extractor`, or the privacy boundary around raw OCR output needs to change.
+
+## Amendment (2026-09-03): the extraction worker runs as Administrator
+
+`passport_extractor.jobs.run_passport_extraction` now sets
+`frappe.set_user("Administrator")` for the duration of the job and restores
+the previous user in a `finally` block (`passport_extractor` `014a36e`).
+
+**Why.** The chain that starts extraction begins with a **guest** FileFlo
+upload, so the enqueued job inherited `Guest` as its session user. `Guest`
+cannot write `Passport Extraction`. The job therefore could not move the
+record out of `Queued` and could not save a failure state either — the
+symptom in production was extractions sitting at `Queued` forever with no
+error surfaced anywhere a human would look. This is the same class of silent
+failure as the configuration gaps listed in the feature README.
+
+**What this does and does not widen.** The elevation is confined to one
+background job that reads a private `File` already linked to the extraction
+record and writes only that extraction. It does not run in a request, does
+not accept a user-supplied user, and does not extend to the inspection
+handler, the lifecycle service, or any public API — those keep their own
+permission handling. The privacy boundary of ADR-004 is unchanged: raw OCR
+output stays in private, permlevel-restricted fields.
+
+**Alternative not taken.** Granting `Guest` write permission on
+`Passport Extraction` would have fixed the symptom by making a public role
+able to write extraction records — strictly worse, and a permanent widening
+rather than a scoped one.

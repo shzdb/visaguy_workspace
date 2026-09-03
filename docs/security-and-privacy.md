@@ -29,6 +29,26 @@ Data classes observed:
 
 **Recommended follow-up:** document data-retention policy; encrypt uploads at rest; mask PII in logs; add consent capture for marketing use.
 
+## Public visa tracker payload (FEAT-001)
+
+The public status endpoint is the one surface in this platform that returns
+applicant PII to an unauthenticated caller, gated only by passport number +
+date of birth and a short-lived opaque session. What it may contain is fixed
+by ADR-005.
+
+| Field | Treatment | Note |
+|---|---|---|
+| `applicant_name` | **Full name, unmasked** | Owner decision, 2026-09-03 (ADR-005 "Amendment"). Renamed from `applicant_name_masked`, which had carried an unmasked value under a misleading key. Empty string when the verified extraction carried no name (risk 32). |
+| `dependants[].applicant_name` | **Full name, unmasked** | Same decision; sourced from each dependant's own Process File. |
+| `passport_number_masked` | Masked, unchanged | First two + fixed mask + last two. |
+| DOB, full passport number, files, MRZ, internal document names, Lead/Customer/PF identifiers | Never returned | Unchanged; asserted by both the backend suite and the frontend contract tests. |
+
+The controls that stand in front of this payload — opaque Redis sessions,
+constant generic failures, rate limiting and lockout, origin-restricted CORS,
+and the prohibition on Guest `/api/resource/*` access to the tracking
+DocTypes — are unchanged by the name decision. See ADR-005, ADR-009 and
+ADR-011.
+
 ## Browser storage
 
 - `localStorage`: OAuth tokens (B2B), API key/secret (consumer).

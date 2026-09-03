@@ -289,7 +289,8 @@ Presentational components may be copied and adapted. Next.js-specific routing, i
 
 The public response may include only:
 
-- masked applicant name,
+- applicant name — **full, not masked, since 2026-09-03; wire key
+  `applicant_name`** (ADR-005 "Amendment (2026-09-03)"),
 - masked passport number,
 - destination and visa type when approved,
 - current public status,
@@ -334,10 +335,13 @@ duplication is a standing drift risk (risk 21).
 
 ```
 form save  ->  field_id preserved on the uploaded FF File Collection File row
-           ->  fileflo post-persistence extension event dispatched
-           ->  the_visaguy.enqueue_fileflo_inspection (RQ, short queue)
-           ->  passport rows matched BY field_id
-           ->  Passport Extraction (OCR + MRZ)
+           ->  row sits at status Uploaded; nothing happens yet
+           ->  STAFF MARK THE ROW Completed          (ADR-012, since 2026-09-03)
+           ->  the_visaguy FF File Collection File on_update / after_insert
+           ->  inspection enqueued (RQ, short queue), rows matched BY field_id
+              (the fileflo post-persistence extension event also still enqueues
+               this inspection; it is a no-op while the row is not Completed)
+           ->  Passport Extraction (OCR + MRZ), job runs as Administrator
            ->  status Verified  (auto per ADR-007, else manual)
            ->  Visa Tracking Application, keyed by verification_lookup_hash
 ```
@@ -419,6 +423,53 @@ depends on, including `PF Process File-custom_client_status` itself, do not
 currently exist on site `visaguy` — deleted 2026-08-07 by an untracked,
 indiscriminate administrative sweep. They must be restored before TASK-016
 can be implemented or validated at runtime.
+
+## Changes made outside the workspace (2026-09-03)
+
+Owner work done directly on the bench, verified against source and recorded
+here after the fact. Three of these change behaviour that earlier sections of
+this document describe.
+
+### Extraction starts when staff mark the passport row Completed
+
+**ADR-012.** A configured passport row enters extraction when its
+`FF File Collection File.status` becomes `Completed` — not on upload, not
+when the `document` link is written, and never while `Rejected`. This fixes
+three real problems at once: OCR was running on files staff had not
+reviewed, reject → reupload cycles produced repeated extractions, and a race
+in which inspection ran before the row's `document` was linked
+(`FF_DOCUMENT_NOT_LINKED`) silently dropped dependant extractions with
+nothing to re-inspect later. An earlier fix that re-inspected on the
+document-link edge was implemented and then dropped in favour of this rule.
+The backfill job and the missing-extraction report were narrowed to
+`Completed` rows too, so neither can resurrect a row the rule excludes.
+
+**The operational cost is real and new:** if nobody marks the row
+`Completed`, there is no extraction, no tracking application, and no public
+tracking — silently, from the client's point of view. This is now the first
+question in the runbook's diagnostic order.
+
+### The applicant name is shown in full, and the wire key was renamed
+
+**ADR-005 "Amendment (2026-09-03)".** Owner decision: the public status
+payload returns the applicant's full name, and each `dependants` entry
+returns that dependant's full name. The wire key changed with the value —
+`applicant_name_masked` → `applicant_name` — in `the_visaguy` and in
+`visa_tracker` together. The passport number is still masked.
+
+`Visa Tracking Application.applicant_display_name` is the source, populated
+on create from the verified extraction's `given_names` + `surname`. Nothing
+had ever written that field before, so every applicant's payload previously
+carried the blank-name placeholder `*****`.
+
+### The OCR worker runs as Administrator
+
+**ADR-004 "Amendment (2026-09-03)".** The chain starts with a *guest*
+upload, so `passport_extractor.jobs.run_passport_extraction` inherited
+`Guest`, who cannot write `Passport Extraction`. Extractions sat at `Queued`
+forever with no visible error. The job now elevates to `Administrator` for
+its duration and restores the previous user in a `finally` block
+(`passport_extractor` `014a36e`).
 
 ## Supporting specifications
 

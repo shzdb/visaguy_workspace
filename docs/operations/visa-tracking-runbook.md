@@ -353,19 +353,51 @@ Baselines at `the_visaguy` `53b0f28` (2026-09-02): `the_visaguy` **298**,
 `the_visaguy` figure was 248 before TASK-011, TASK-012 and the merge of
 `main` added tests.
 
+Baselines on 2026-09-03, with the uncommitted Completed-row trigger and the
+`applicant_name` rename in the `the_visaguy` working tree: `the_visaguy`
+**366 OK** on site, plus a pure tier of 274 (2 pre-existing errors in
+`test_lifecycle_service.TestProcessFileHandler`, which need a site context);
+frontend `visa_tracker` **64/64** via `npm run verify`.
+
+**Omitting `--skip-test-records` aborts before any test runs**, with
+`DoesNotExistError: DocType Company Print Options not found` raised out of
+`make_test_records`. That looks like a broken site and is not one — it is
+the missing flag.
+
 ## Diagnostic order for "no tracking application was created"
 
 Each stage has failed at least once in practice. Check in order:
 
-1. `FF File Collection File.field_id` populated on the **uploaded** row?
-2. RQ job for `enqueue_fileflo_inspection` enqueued? (Requires `bench start`'s
-   worker to be running.)
-3. `Passport Extraction` created, and what `status`?
+1. **Is the passport row's `status` `Completed`?** Since ADR-012 (2026-09-03)
+   this is the trigger, and it is a manual staff action. `Uploaded` means the
+   client uploaded but nobody approved it; `Rejected` means a reupload is
+   expected. In both cases nothing further happens, by design, and nothing
+   reports it (risk 31). Marking the row `Completed` fires the trigger
+   immediately — no backfill or replay is needed.
+2. `FF File Collection File.field_id` populated on that row, and does it match
+   a `Visa Tracker Settings.passport_field_ids` entry exactly?
+3. RQ job enqueued? (Requires `bench start`'s worker to be running.) Two paths
+   enqueue the same idempotent inspection: the
+   `FF File Collection File` `on_update`/`after_insert` handlers
+   (`visa_tracking.handlers.fileflo_collection_handlers`, job id
+   `visa-tracking-fileflo-inspect::<collection>::<row>`) and the older FileFlo
+   post-persistence extension event (`enqueue_fileflo_inspection`). The latter
+   still fires on every submission but is a no-op while the row is not
+   `Completed`. An inspection that ran and found nothing records
+   `{"action": "skipped", "reason": "ROW_NOT_COMPLETED"}` for that row.
+4. `Passport Extraction` created, and what `status`?
    - `Failed` / `NO_MRZ_FOUND` → extraction problem.
    - `Extracted` → verification gate (ADR-007); check
      `require_manual_verification`.
-   - `Needs Review` → check digits, missing fields, or low confidence.
-4. `Visa Tracking Application` created with a **non-NULL**
+   - `Needs Review` → check digits, missing fields, or low confidence. If the
+     passport is from an issuer that leaves MRZ optional data blank, suspect
+     risk 30 / TASK-019 before suspecting the document.
+   - **Stuck at `Queued` with no error anywhere** → this was the guest-user
+     defect fixed in `passport_extractor` `014a36e` (ADR-004 amendment). The
+     job inherited `Guest` from the guest upload and could not write the
+     record — not even to save its own failure state. If it recurs on a site,
+     confirm that app version is deployed there.
+5. `Visa Tracking Application` created with a **non-NULL**
    `verification_lookup_hash` and `tracking_enabled = 1`? As of ADR-011
    (2026-09-03) a NULL hash here would indicate the linked `Passport
    Extraction` could not be resolved at creation time, not a missing key —
@@ -373,5 +405,13 @@ Each stage has failed at least once in practice. Check in order:
    pre-existing NULL-hash row from before this change is repaired
    automatically by the `recompute_lookup_hash_unkeyed` patch on the next
    `bench migrate`, not left broken.
-5. Public lookup failing with a correct passport/DOB while the application
-   exists is stage 4, not stage 1.
+6. Public lookup failing with a correct passport/DOB while the application
+   exists is stage 5, not stage 1.
+7. Client says "the tracker shows no name" → check
+   `Visa Tracking Application.applicant_display_name`. It is populated on
+   create from the verified extraction's `given_names` + `surname`, and
+   backfilled on reuse; an application created before 2026-09-03 may still
+   have it empty, which now renders as an empty name rather than the old
+   `*****` placeholder (risk 32). The wire key is `applicant_name` — a
+   client of this API still reading `applicant_name_masked` is out of date
+   (ADR-005 amendment, 2026-09-03).

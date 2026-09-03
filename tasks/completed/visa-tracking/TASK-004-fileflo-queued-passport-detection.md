@@ -26,7 +26,7 @@ expected_files:
   - the_visaguy/the_visaguy/visa_tracking/tests/test_fileflo_inspection.py
   - ongoing/visa-tracking-implementation/05c-task-004-implementation.md
 created: 2026-07-21
-updated: 2026-07-21
+updated: 2026-09-03
 ---
 
 # TASK-004: FileFlo queued passport detection
@@ -364,3 +364,48 @@ If the bench still lacks a configured `root_password` key or no dedicated test s
 - `visaguy` is not migrated or tested on.
 - Implementation evidence is recorded in `ongoing/visa-tracking-implementation/05c-task-004-implementation.md`.
 - TASK-004 is ready for TASK-006 to add Lead/Customer/PF Process File lifecycle orchestration.
+
+## Change note (2026-09-03): the trigger edge moved — see ADR-012
+
+This task remains `completed`; its delivered mechanism is intact and still in
+use. What changed is **when** that mechanism fires.
+
+As shipped, this task treated *persistence* as the trigger: FileFlo emits the
+after-commit extension event, `the_visaguy` enqueues inspection, and every row
+whose `field_id` matched settings produced a `Passport Extraction`. **ADR-012
+narrows that to the moment `FF File Collection File.status` becomes
+`Completed`** — a deliberate staff approval, not an upload.
+
+What is unchanged from this task's Definition of done:
+
+- FileFlo still emits the generic after-commit extension event and still has
+  no VisaGuy dependency. It was **not** modified for ADR-012.
+- `the_visaguy` still subscribes to that event, and it still enqueues the same
+  idempotent short-queue inspection worker.
+- Provenance resolution, private-file checks, settings gating, exact
+  `field_id` matching, idempotency, bounded retries, and the reconciliation
+  seam all behave as specified here.
+
+What is added or narrowed:
+
+- A second enqueue path: `doc_events` on `FF File Collection File`
+  (`on_update` when the status *changes* to `Completed`, and `after_insert`
+  for a row created `Completed`), implemented in
+  `the_visaguy/visa_tracking/handlers/fileflo_collection_handlers.py`. It
+  respects this task's synchronous-boundary rule — settings predicate,
+  `field_id` check, deterministic `job_id`, `is_job_enqueued` dedupe,
+  `enqueue_after_commit=True`, no file access, and every exception swallowed
+  into `frappe.log_error` so it cannot fail a staff save.
+- `run_fileflo_inspection` now skips any matched row whose status is not
+  `Completed`, recording `{"action": "skipped", "reason":
+  "ROW_NOT_COMPLETED"}`. This is what makes the rule hold regardless of which
+  path enqueued the job.
+- `jobs.enqueue_missing_fileflo_extractions` and
+  `reconciliation_service.reconcile_missing_extractions` both filter on
+  `"status": "Completed"`, so the backfill and the read-only report cannot
+  resurrect a row the rule excludes.
+- `expected_files` for this task now effectively includes
+  `the_visaguy/the_visaguy/visa_tracking/handlers/fileflo_collection_handlers.py`.
+
+Read ADR-012 for the reasoning, the dropped document-link alternative, and the
+new operational dependency (risk 31).

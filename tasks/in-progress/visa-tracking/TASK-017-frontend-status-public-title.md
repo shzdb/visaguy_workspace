@@ -22,6 +22,19 @@ updated: 2026-09-03
 implemented and committed in visa_tracker; see "Completion evidence
 (2026-09-03)" below for why status is not `completed`. -->
 
+> **Wire-contract change landed 2026-09-03, after this task's spec was
+> written.** The applicant-name field is now `applicant_name`, not
+> `applicant_name_masked`, and it carries the person's **full name** rather
+> than a masked one — top level and inside each `dependants` entry (ADR-005
+> "Amendment (2026-09-03)"). Every occurrence of `applicant_name_masked`
+> below should be read as `applicant_name`. `applicant_name` was also removed
+> from `FORBIDDEN_STATUS_RESPONSE_FIELDS` in
+> `src/test/contract/wireContract.ts`, where it had been listed as the
+> unmasked value the payload must never contain. The rename was applied
+> across `the_visaguy` and `visa_tracker` together and the frontend suite is
+> green at 64/64; the dependant-rendering work this task tracks is unaffected
+> in substance.
+
 # TASK-017: Render derived status public_title through the frontend wire contract
 
 ## Objective
