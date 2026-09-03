@@ -21,7 +21,7 @@ expected_files:
   - passport_extractor/passport_extractor/utils.py
   - passport_extractor/passport_extractor/doctype/passport_extraction/test_passport_extraction.py
 created: 2026-07-21
-updated: 2026-07-21
+updated: 2026-09-03
 ---
 
 # TASK-003: Passport OCR and MRZ pipeline
@@ -156,6 +156,12 @@ PaddleOCR(
 
 Set `mrz_valid` to true only when all five check digits are valid.
 
+> **Amended 2026-09-03 (TASK-019).** `mrz_valid` is composed from the four
+> *mandatory* check digits only: `passport_number`, `date_of_birth`,
+> `expiry_date`, `composite`. `personal_number_check_valid` is still computed
+> and stored as review evidence but no longer contributes to `mrz_valid`.
+> See the "Amendment (2026-09-03)" section below.
+
 4.5. Store the detected `mrz_line_1` and `mrz_line_2` values on the record. These fields are permission level 1 per TASK-002 and must never appear in error messages or logs.
 
 ### 5. Confidence scoring and review thresholds
@@ -178,7 +184,9 @@ Set `mrz_valid` to true only when all five check digits are valid.
   - a TD3 MRZ is detected but `mrz_valid` is false, or
   - required fields are missing, or
   - confidence is below `CONFIDENCE_OK_THRESHOLD`, or
-  - `personal_number_check_valid` is false but other checks pass (optional field inconsistency).
+  - ~~`personal_number_check_valid` is false but other checks pass (optional field inconsistency).~~
+    **Removed 2026-09-03 (TASK-019)** — this rule caused confirmed false
+    rejections of valid passports. See the "Amendment (2026-09-03)" section below.
 - `Failed` when:
   - no MRZ candidate is found after all pages, rotations, and preprocessing attempts, or
   - the file cannot be read/rendered, or
@@ -339,6 +347,65 @@ Stop this task and record a workspace decision request if any of the following o
 4. **Missing architecture decision**: an implementation question arises that is not answered by FEAT-001, ADR-004, or `01-architecture-and-data-model.md`.
 5. **Permission denial**: any required repository, bench, or worktree operation is denied by host policy or user approval.
 6. **Unsafe test-site demand**: a stakeholder requires running migrations or tests on `visaguy` instead of a dedicated isolated test site.
+
+## Amendment (2026-09-03)
+
+Recorded by TASK-019. This task is `completed`; the sections above describe
+what was delivered, and this amendment records where that delivered behaviour
+was found to be wrong. It is written here rather than edited in silently so
+the original specification stays legible.
+
+### What was wrong
+
+Two provisions combined to reject valid passports:
+
+- **§4.4** required all five check digits valid for `mrz_valid`, giving the
+  *optional* optional-data field the power to invalidate an MRZ whose
+  identity fields were provably intact.
+- **§5.3** independently listed `personal_number_check_valid` being false
+  while other checks pass as its own `Needs Review` trigger.
+
+Underneath both sat a conformance defect in the parser: for a passport that
+leaves the optional-data field unused (line 2 positions 29–42 all `<`), ICAO
+9303 Part 4 permits the check digit at position 43 to be a filler, and some
+issuers write `0` there. Both are conformant. The implementation computed the
+check digit over the filler string, obtained `0`, compared it against the `<`
+it read, and returned false.
+
+Confirmed 2026-09-03 on a real production extraction: a Ghanaian passport at
+roughly 95% OCR confidence, with passport number, date of birth, expiry date,
+and composite check digits all valid, was classified `Needs Review` solely
+because of the unused optional-data field.
+
+### What changes
+
+- The optional-data check digit is accepted as valid when the field is all
+  fillers and the check character is `<` or `0`. Mandatory check digits keep
+  strict comparison.
+- `mrz_valid` is composed from the four mandatory checks only.
+- The §5.3 optional-field `Needs Review` trigger is removed.
+
+`personal_number_check_valid` is still computed and stored. Only its
+promotion to a veto is withdrawn.
+
+### Why narrowing `mrz_valid` is safe
+
+The composite check digit is computed over line 2 positions 1–10, 14–20 and
+**22–43**, which contains the optional-data field and its check digit.
+Misread or altered optional data still fails the composite check, which
+remains mandatory. Nothing detectable is lost.
+
+### Scope of this amendment
+
+§4.4 and §5.3 only. Every other provision of TASK-003 stands unchanged,
+including §9.4 (no real passport images, MRZ strings from real documents, or
+production PII in the repository) — which is why neither TASK-019 nor this
+amendment records the MRZ of the passport that exposed the defect.
+
+Implementation, tests, and backfill assessment are tracked in
+`tasks/ready/visa-tracking/TASK-019-mrz-optional-data-check-digit.md`.
+Risk 30 in `docs/risks-and-open-questions.md` tracks the production impact
+and closes on deployment evidence only.
 
 ## Completion evidence
 
