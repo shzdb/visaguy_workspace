@@ -2,7 +2,7 @@
 id: TASK-019
 feature: FEAT-001
 title: Accept ICAO filler check digit for unused MRZ optional data, and stop an optional field vetoing mrz_valid
-status: in-progress
+status: completed
 repository: passport_extractor
 app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
@@ -227,3 +227,13 @@ Evidence: 31 pure tests pass in the bench environment with no site
 one pre-existing test that encoded the defect was replaced, seven added.
 Bench left at `feat/visa-tracker` `014a36e` with three files modified and not
 committed.
+
+## Completion evidence (2026-09-03)
+
+Committed in `passport_extractor` `5f2403e` on `feat/visa-tracker`, together
+with the TASK-020 padding fix — the two changes touch the same parser block
+and the same test class, so they were not worth splitting.
+
+34 pure tests pass with no site. Deployment is still outstanding; risk 30
+stays open until there is deployment evidence, per this workspace's standing
+rule.

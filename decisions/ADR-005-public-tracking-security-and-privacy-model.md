@@ -46,8 +46,13 @@ FEAT-001 exposes a public visa-status lookup using passport number and date of b
 
 ### CORS restriction
 
-- Public API endpoints restrict allowed origins to the approved frontend base URL configured in `Visa Tracker Settings`.
-- Wildcard or overly permissive CORS is prohibited.
+- ~~Public API endpoints restrict allowed origins to the approved frontend base URL configured in `Visa Tracker Settings`.~~
+  **Superseded 2026-09-03 by ADR-013**: the `Origin` header is forgeable and is no
+  longer an authorization input. Header emission was already delegated to Frappe by
+  ADR-008.
+- Wildcard or overly permissive CORS is prohibited. This is now governed by
+  `allow_cors` in `site_config.json` rather than by an application-level check;
+  see ADR-013's consequences.
 
 ### Masking and minimal response boundary
 
