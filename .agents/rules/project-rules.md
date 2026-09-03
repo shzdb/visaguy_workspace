@@ -19,6 +19,11 @@
 - Record only environment variable names, not values.
 - Do not reproduce raw file paths, credentials, or private keys from the bench or application repositories.
 
+## Git discipline
+
+- Do not run `git add`, `git commit`, or `git push` unless explicitly asked by the user.
+- Leave all changes unstaged so the user can review and commit manually.
+
 ## Verification labels
 
 Use these labels consistently when reporting evidence:
