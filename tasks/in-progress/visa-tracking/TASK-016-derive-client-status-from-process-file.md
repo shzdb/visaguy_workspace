@@ -80,14 +80,22 @@ write the derived status to or display.
 
 ### The six statuses (replacing the previous six; no data migration — dev sites only)
 
-| sequence | status_code | status_name | public_title | message (existing field) |
+| sequence | status_code | status_name | public_title | default_public_message |
 |---|---|---|---|---|
-| 10 | QUESTIONNAIRE_NOT_SUBMITTED | Questionnaire Not Submitted | Let's get your journey started. | (existing default message field, unchanged shape) |
-| 20 | QUESTIONNAIRE_SUBMITTED | Questionnaire Submitted | Thank you — we've got what we need. | |
-| 30 | FILE_ASSIGNED | File Assigned | Your file just found its travel companion. | |
-| 40 | IN_PROGRESS | In Progress | Final checks before takeoff. | |
-| 50 | COMPLETED | Completed | Wheels up! | |
-| 0 | ON_HOLD | On Hold | Holding at the gate. | |
+| 10 | QUESTIONNAIRE_NOT_SUBMITTED | Questionnaire Not Submitted | Let's get your journey started. | We're just waiting on your questionnaire and documents — once you submit them, we can begin working on your visa. |
+| 20 | QUESTIONNAIRE_SUBMITTED | Questionnaire Submitted | Thank you — we've got what we need. | Your application is now under careful review. We'll reach out if anything more is required. |
+| 30 | FILE_ASSIGNED | File Assigned | Your file just found its travel companion. | It's now with one of our specialists, who's begun preparing your visa documentation. |
+| 40 | IN_PROGRESS | In Progress | Final checks before takeoff. | Your visa documents are going through a thorough quality check to make sure every detail is flight-ready. |
+| 50 | COMPLETED | Completed | Wheels up! | Your visa package is complete and winging its way to your inbox. Thank you for trusting us with your journey — good luck ahead! |
+| 0 | ON_HOLD | On Hold | Holding at the gate. | Your application is paused for now. We'll let you know the moment it's moving again. |
+
+> **`default_public_message` filled in 2026-09-03.** This column was left
+> blank when the task was written, which made the body copy look
+> unspecified. It was in fact implemented in
+> `the_visaguy/fixtures/visa_tracking_status.json` all along; the values
+> above are transcribed from that file, which stays authoritative. See
+> ADR-010 "Amendment (2026-09-03) — Why the six statuses never reached
+> `visaguy`" for why the fixture existed but never synced to the site.
 
 Add a `public_title` field (Data) to `Visa Tracking Status` and to its
 fixture/seed records. It is a new field, additive to the doctype; do not

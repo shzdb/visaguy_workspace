@@ -8,7 +8,12 @@ and sharpens the "No worker means no updates" negative consequence
 accordingly. Amended again 2026-09-03 — see "Amendment (2026-09-03) —
 Dependant status display" below; a primary applicant's public lookup now
 also returns their dependants, and dependants display the primary's status
-rather than their own, as a temporary display-layer override.
+rather than their own, as a temporary display-layer override. Amended twice
+more on 2026-09-03 — see "The public message snapshot follows the status"
+(the `current_public_message` snapshot is now refreshed by the DocType
+controller when `current_status` changes) and "Why the six statuses never
+reached `visaguy`" (`Visa Tracking Status` was missing from the `fixtures`
+hook, so `bench migrate` never synced the seed records).
 
 Supersedes the parts of `features/ongoing/visa-tracking/README.md`
 "Status ownership rules" that describe `PF Process File.custom_client_status`
@@ -92,14 +97,22 @@ state instead of being typed by hand.
 
 ### The six statuses (replacing the previous six; no data migration — dev sites only)
 
-| sequence | status_code | status_name | public_title |
-|---|---|---|---|
-| 10 | QUESTIONNAIRE_NOT_SUBMITTED | Questionnaire Not Submitted | Let's get your journey started. |
-| 20 | QUESTIONNAIRE_SUBMITTED | Questionnaire Submitted | Thank you — we've got what we need. |
-| 30 | FILE_ASSIGNED | File Assigned | Your file just found its travel companion. |
-| 40 | IN_PROGRESS | In Progress | Final checks before takeoff. |
-| 50 | COMPLETED | Completed | Wheels up! |
-| 0 | ON_HOLD | On Hold | Holding at the gate. |
+| sequence | status_code | status_name | public_title | default_public_message |
+|---|---|---|---|---|
+| 10 | QUESTIONNAIRE_NOT_SUBMITTED | Questionnaire Not Submitted | Let's get your journey started. | We're just waiting on your questionnaire and documents — once you submit them, we can begin working on your visa. |
+| 20 | QUESTIONNAIRE_SUBMITTED | Questionnaire Submitted | Thank you — we've got what we need. | Your application is now under careful review. We'll reach out if anything more is required. |
+| 30 | FILE_ASSIGNED | File Assigned | Your file just found its travel companion. | It's now with one of our specialists, who's begun preparing your visa documentation. |
+| 40 | IN_PROGRESS | In Progress | Final checks before takeoff. | Your visa documents are going through a thorough quality check to make sure every detail is flight-ready. |
+| 50 | COMPLETED | Completed | Wheels up! | Your visa package is complete and winging its way to your inbox. Thank you for trusting us with your journey — good luck ahead! |
+| 0 | ON_HOLD | On Hold | Holding at the gate. | Your application is paused for now. We'll let you know the moment it's moving again. |
+
+The `default_public_message` column was recorded here on 2026-09-03,
+transcribed from the authoritative
+`the_visaguy/fixtures/visa_tracking_status.json`. It had been implemented
+since TASK-016 but never written down in this workspace, which made the copy
+look unspecified when it was not. Rows 10-50 match the owner's "Client
+Application Status Messages" document; `ON_HOLD` is a seventh status that
+document does not cover, and its copy originates in the fixture.
 
 ### Mapping
 
@@ -384,6 +397,104 @@ not fixed as part of this change.
 **Not in scope for this amendment.** Frontend rendering of the `dependants`
 array is tracked separately — see TASK-017, which the SPA currently ignores
 silently (no crash, no display) because it does not read the key at all.
+
+## Amendment (2026-09-03) — The public message snapshot follows the status
+
+### What prompted this
+
+Reported by the owner: changing a `Visa Tracking Application`'s status in
+the desk did not update the client-facing title and message. Reproduced live
+on `visaguy`: `VTA-2026-00774` sat on `UPDATE_SHARED_WITH_CLIENT` while still
+carrying `current_public_message = "We have received your visa application."`
+— the `APPLICATION_RECEIVED` text. `VTA-2026-00688` showed the same class of
+drift.
+
+### The asymmetry that caused it
+
+The two client-facing strings were resolved by different mechanisms:
+
+| Wire field | Source | Freshness |
+|---|---|---|
+| `title` | `Visa Tracking Status.public_title`, read live at request time | always current |
+| `public_message` | `Visa Tracking Application.current_public_message` (a snapshot), falling back to the status default **only when the snapshot is empty** | stale after any write that bypassed the status service |
+
+`status_service.update_tracking_status` rewrites `current_status` and
+`current_public_message` together, so every path through the service stayed
+consistent. A direct desk edit of the `current_status` Link does not go
+through the service, and nothing on the DocType controller re-derived the
+snapshot. The result on the public tracker is the new status's headline above
+the previous status's body text.
+
+### Decision
+
+Keep the snapshot; make the controller maintain it.
+
+`VisaTrackingApplication.validate` now refreshes `current_public_message`
+from the newly selected status's `default_public_message` whenever
+`current_status` changes, and populates it on insert when left blank. An
+operator who edits the message in the same save is making a deliberate
+override and is left untouched — consistent with "Ops override becomes
+transient" above, since the next automatic recompute still overwrites it.
+
+**Why not resolve the message live, symmetrically with `title`.** The
+snapshot is load-bearing elsewhere: `Visa Tracking Status Log.public_message`
+records the message *as shown at that transition*, so history stays truthful
+when a status's default copy is later reworded. Resolving live would make
+every past timeline row silently rewrite itself. The asymmetry is therefore
+deliberate for `public_message` and remains a live read for `title` — with
+the accepted consequence that **editing a status's `public_title` does
+retroactively change every historical timeline entry's title.** That is
+tolerable while titles are short marketing headlines tied to the status
+identity rather than to the moment.
+
+### Known gap, not closed here
+
+A direct desk edit of `current_status` still appends **no**
+`Visa Tracking Status Log` row and does not advance `status_updated_on`. The
+transition is therefore invisible in the client timeline and the "last
+updated" stamp lies. This amendment deliberately does not change that: routing
+desk edits through the status service is a larger change to the ADR's
+"direct correction is exceptional" stance and needs its own decision.
+
+## Amendment (2026-09-03) — Why the six statuses never reached `visaguy`
+
+`the_visaguy/fixtures/visa_tracking_status.json` has carried all six new
+status records — codes, sequences, `public_title`, and the full
+`default_public_message` body copy — since TASK-016. They were nevertheless
+absent from `visaguy`, which still held the previous six
+(`APPLICATION_RECEIVED` … `UPDATE_SHARED_WITH_CLIENT`), and the site's
+`tabVisa Tracking Status` had no `public_title` column at all.
+
+**Cause:** the `fixtures` list in `the_visaguy/hooks.py` named only `Custom
+Field`, `Workspace`, `Custom HTML Block`, `Insights Query` and `Insights
+Chart`. `Visa Tracking Status` was never in it, so `bench migrate` had
+nothing to sync the JSON from. Writing the fixture file was mistaken for
+shipping it. `after_install` is commented out, so there was no second path
+either.
+
+`Visa Tracking Status` is now registered in `fixtures`, unfiltered — the app
+owns the DocType outright and every row in it is configuration.
+
+**Two consequences to handle deliberately, not by surprise:**
+
+- **Fixtures insert; they do not delete.** Syncing adds the new six
+  alongside the old six, giving twelve active statuses. Retiring the old six
+  (deactivate versus delete) is a data decision this ADR does not make.
+- **Ten existing `Visa Tracking Application` rows on `visaguy` point at old
+  codes** and will keep doing so; see "3.2 The status records are replaced"
+  in `ongoing/visa-tracking-implementation/10-task-010-planning.md` for what
+  that does and does not break.
+
+**Wider drift this exposed.** `fixtures/` also contains
+`custom_field.json`, `custom_docperm.json`, `property_setters.json`,
+`client_scripts.json` and `roles.json`, none of which are in the `fixtures`
+hook either — the `Custom Field` entry that *is* present filters to ten
+unrelated timer and quality-feedback fields. The runbook's claim that these
+"sync automatically with `bench migrate`"
+(`docs/operations/visa-tracking-runbook.md`) is therefore wrong as written,
+and is the likely reason `PF Process File-custom_client_status` is missing on
+`visaguy`. Correcting that is out of scope here because docperm and property
+-setter fixtures change permissions site-wide and need their own review.
 
 ## Revisit when
 

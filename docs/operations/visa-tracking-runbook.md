@@ -150,30 +150,54 @@ to repeat.
 
 ### What `bench migrate` brings automatically (fixtures)
 
+> **Corrected 2026-09-03. The previous version of this section was wrong**
+> and asserted the opposite of what the code does. It claimed custom fields,
+> custom docperms, property setters, roles, client scripts and the
+> `visa_tracking_status` fixture all sync automatically on both apps. They do
+> not. A fixture JSON file only syncs if its DocType is named in that app's
+> `fixtures` hook, and most of these were never listed. This error is the
+> direct reason the six `Visa Tracking Status` records were absent from
+> `visaguy` while everyone believed they had shipped — see ADR-010
+> "Amendment (2026-09-03) — Why the six statuses never reached `visaguy`".
+>
+> **Rule: a file in `fixtures/` proves nothing. Read the `fixtures` list in
+> `hooks.py`; only DocTypes named there sync.**
+
 `bench migrate` syncs DocType schema, runs patches, then syncs fixtures, in
-that order. The following are shipped as fixtures in the relevant app and
-therefore load **automatically** on migrate — no separate action needed:
+that order. What each app's `fixtures` hook actually declares, verified
+against `hooks.py` on 2026-09-03:
 
-- **`the_visaguy`:** custom fields (present in both `custom_field.json` and
-  `custom_fields.json` — see risk 29 in
-  `docs/risks-and-open-questions.md`, both currently load), **custom
-  docperms**, **property setters**, roles, client scripts, workspace,
-  Insights charts/queries, and the `visa_tracking_status` fixture (the six
-  status records, including `public_title`).
-- **`visaguy_crm`:** custom fields, **custom docperms**, **property
-  setters**, roles, **workflows plus workflow states/actions**, client
-  scripts, email templates, print formats, reports, workspace.
+- **`the_visaguy`:** `Visa Tracking Status` (added 2026-09-03 — this is what
+  brings the six status records and their `public_title`/
+  `default_public_message` copy), `Custom Field` **filtered to ten specific
+  names** (Customer notification prefs, Quality Feedback, and PF Process File
+  timer fields — no visa-tracking field is in that filter), `Workspace`,
+  `Custom HTML Block`, `Insights Query`, `Insights Chart`.
+  **Not declared, therefore not synced:** the `custom_field.json`,
+  `custom_docperm.json`, `property_setters.json`, `client_scripts.json` and
+  `roles.json` files that exist in `the_visaguy/fixtures/`. `after_install`
+  is commented out, so there is no second path either.
+- **`visaguy_crm`:** `Workflow`, `Workflow State`, `Workflow Action Master`,
+  `Client Script`, `Insights Dashboard`, `Insights Query`, `Insights Chart`,
+  `Role`, `Print Format`, `Custom HTML Block`, `Workspace`.
+  **Not declared, therefore not synced:** `custom_field.json`,
+  `custom_docperm.json`, `property_setter.json`, `email_template.json`,
+  `report.json`.
 
-Custom fields and permissions are called out explicitly here because this
-was the owner's specific question: yes, both custom fields and permission
-(docperm/property setter) fixtures sync automatically with `bench migrate`
-on both apps — no manual field-by-field or permission-by-permission
-restoration is needed on a clean deploy. (Contrast with `visaguy` in its
-*current* state, where three of these Custom Fields are missing not because
-fixture sync failed, but because they were deleted out-of-band afterward —
-see risk 25. A fresh `bench migrate` restores them; the missing state on
-`visaguy` today is drift to be corrected by running migrate, not evidence
-that fixture sync itself is unreliable.)
+**Custom fields and permissions — the owner's specific question, answered
+correctly this time:** no. Neither app syncs its custom-field, custom-docperm
+or property-setter fixtures on migrate, because neither names those DocTypes
+in its `fixtures` hook. A clean deploy will **not** restore them.
+
+This also revises the earlier reading of risk 25. Three Custom Fields missing
+on `visaguy` were attributed to out-of-band deletion that "a fresh `bench
+migrate` restores". Migrate cannot restore them — nothing syncs them. Whether
+they were ever deleted is a separate question from whether migrate brings
+them back; it does not.
+
+Registering the missing DocTypes in both `fixtures` hooks is **not** done
+here: docperm and property-setter fixtures change permissions site-wide, and
+that needs its own review and its own deploy window.
 
 **`fileflo` and `passport_extractor` ship no fixtures** — their schema lives
 entirely in DocType JSON, so `bench migrate`'s schema-sync step (not its
