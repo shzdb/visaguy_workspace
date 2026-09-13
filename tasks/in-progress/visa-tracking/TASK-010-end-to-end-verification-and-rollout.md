@@ -465,8 +465,8 @@ and TASK-023 (duplicate dependant rows). Neither has on-site test evidence
    `8cf4c64` fixture fix.
 2. ~~Push `fileflo`, `the_visaguy`, `visaguy_crm`.~~ Done: `fileflo`
    `c7244a4..219c9aa` (2026-09-13), `the_visaguy` `d59614f..6221926` and
-   `visaguy_crm` `de7c959..9df61b4` (2026-09-14). One newer local commit to
-   push: `the_visaguy` `8cf4c64` (test fixture only).
+   `visaguy_crm` `de7c959..9df61b4`, `the_visaguy` `6221926..8cf4c64`
+   (2026-09-14). Nothing unpushed on the four backend branches.
 3. Deploy per the §8 plan, backend before frontend. The drift sweep is
    scheduled again, but it reads only linked Process Files, so the §8
    first-run concern about scanning every Process File does not apply.

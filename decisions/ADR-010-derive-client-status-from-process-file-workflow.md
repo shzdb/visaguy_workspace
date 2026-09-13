@@ -257,9 +257,9 @@ Owner decisions. Narrows "Ops override becomes transient": the override is
 now made on the Process File, not only on the application. Implementation:
 TASK-027 (not started).
 
-- `PF Process File.custom_client_status` becomes **editable** for the
-  operations team lead and operations consultant roles only (exact role
-  names: open, see TASK-027). Everyone else sees it read-only.
+- `PF Process File.custom_client_status` becomes **editable** for
+  `Operations Team Lead` and `Operations Associate` only (owner, 2026-09-14;
+  `System Manager` keeps access). Everyone else sees it read-only.
 - **Initial value:** `fetch_from: custom_visa_tracking_application.current_status`
   with `fetch_if_empty: 1`. Without `fetch_if_empty` Frappe re-fetches on
   every save and would erase a manual value. The server-side link write

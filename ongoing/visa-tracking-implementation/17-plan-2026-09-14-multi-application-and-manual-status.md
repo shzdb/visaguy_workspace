@@ -11,21 +11,21 @@
 
 | # | Decision | Recorded in |
 |---|---|---|
-| D1 | File collection is **not** the case key. Case = Lead applicant row. | ADR-015 |
-| D2 | `destination` from the Lead, mandatory. `visa_type` from the Lead — **no such field exists** (open O1). | ADR-015, TASK-024 |
+| D1 | File collection is **not** the case key. Case = Lead applicant row. Creation traces back to the source Lead; `lead`/`crm_lead` on the application is mandatory. | ADR-015 |
+| D2 | `destination` from the Lead, mandatory. `visa_type` ignored and **removed** from the application, payload and SPA. | ADR-015, TASK-024, TASK-026 |
 | D3 | Not answered; technical choice: separate `list_applications` endpoint. | ADR-015 §7 |
 | D4 | No Lead-level link; a custom field on each applicant row. | ADR-015, TASK-024 |
 | D5 | Closed/completed cases are not treated differently. | ADR-015 §5 |
 | D6 | Not answered; the 2 dev-site conflicts are left alone. | — |
-| M1 | Only operations team lead and operations consultant may edit — **role names do not match the site** (open). | TASK-027 |
+| M1 | `Operations Team Lead` and `Operations Associate` only. | TASK-027 |
 | M2 | Manual value changes on the next workflow change. | ADR-010 amendment |
 | M3 | No reason required. | ADR-010 amendment |
 | M4 | Allowed on dependant Process Files for now. | ADR-010 amendment |
 | M5 | Manual changes not shown on the client timeline. | ADR-010 amendment |
 
-Tasks: TASK-024, TASK-025, TASK-026, TASK-027 in `tasks/blocked/visa-tracking/`.
-Open before work starts: O1 visa type source, O2 applicant-row lookup,
-exact role names.
+Tasks: TASK-024 and TASK-027 `ready`; TASK-025 (after TASK-024) and
+TASK-026 (after TASK-025) `blocked` on their predecessors only. No open
+owner decisions remain.
 
 ---
 

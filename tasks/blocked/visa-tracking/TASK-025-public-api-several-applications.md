@@ -34,7 +34,8 @@ Let a verified client see every case they are in (ADR-015 §7).
    `resolve_session` returns the map. Old single-application sessions keep
    resolving until they expire.
 3. New guest POST `list_applications(session_token)` →
-   `[{application_ref, destination, visa_type, role, title, last_updated}]`.
+   `[{application_ref, destination, role, title, last_updated}]`
+   (no `visa_type`, ADR-015 §7).
    `role` is `Primary` / the dependant type from the case's Process File,
    or the applicant row `type` before one exists.
 4. `get_tracking_status(session_token, application_ref=None)`:

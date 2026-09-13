@@ -21,8 +21,11 @@ updated: 2026-09-14
 ## Required behaviour
 
 1. After verification call `list_applications`. One case → status page as
-   today. Several → a case list showing destination, visa type (if any),
-   role, status title, last updated.
+   today. Several → a case list showing destination, role, status title,
+   last updated.
+2a. Remove `visa_type` (ADR-015 §7): `src/types/tracking.ts`,
+   `src/test/contract/wireContract.ts` (fixtures and the key list),
+   `src/components/tracking/StatusSummary.tsx`, `src/api/contract.test.ts`.
 2. Status page for the chosen `application_ref`, with a control to switch
    case without re-verifying.
 3. Token and refs in React state only (ADR-005); no URL, storage, or logs.

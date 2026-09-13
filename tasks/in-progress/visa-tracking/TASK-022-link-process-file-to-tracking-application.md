@@ -95,6 +95,5 @@ each `PF Process File` to the `Visa Tracking Application` it belongs to.
 ## What remains
 
 1. ~~Re-run the on-site tier.~~ Done 2026-09-14, 382 OK (see Validation).
-2. `6221926` pushed 2026-09-14 (`d59614f..6221926`). Push `8cf4c64`
-   (test fixture), then deploy. The deploy's migrate registers the hourly
+2. `6221926` and `8cf4c64` pushed 2026-09-14. Deploy. The deploy's migrate registers the hourly
    Scheduled Job Type.

@@ -132,10 +132,11 @@ decision from the owner.
 
 ## 10. What is left for FEAT-001
 
-1. Push `the_visaguy` `8cf4c64`.
+1. ~~Push `the_visaguy` `8cf4c64`.~~ Pushed 2026-09-14 (`6221926..8cf4c64`).
 2. Deploy backend before frontend (TASK-017), then close TASK-010/011/012/
    016/017/022/023 on deployment evidence.
-3. Owner decisions D1–D6 and M1–M5 in the 17 plan.
+3. ~~Owner decisions in the 17 plan.~~ Decided 2026-09-14: ADR-015, ADR-010
+   amendment; TASK-024 and TASK-027 ready.
 6. Open items carried forward: TASK-013 (blocked), TASK-014, TASK-015,
    TASK-018 (ready), risk 28 root cause, risk 34 recompute patch not run,
    risk 35 `allow_cors` decision, human visual check of the status page
