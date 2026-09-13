@@ -251,6 +251,36 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
   immunity to out-of-order execution — despite the explainability and
   worker-dependency costs recorded under "Negative".
 
+## Amendment (2026-09-14): operations may set the status on the Process File
+
+Owner decisions. Narrows "Ops override becomes transient": the override is
+now made on the Process File, not only on the application. Implementation:
+TASK-027 (not started).
+
+- `PF Process File.custom_client_status` becomes **editable** for the
+  operations team lead and operations consultant roles only (exact role
+  names: open, see TASK-027). Everyone else sees it read-only.
+- **Initial value:** `fetch_from: custom_visa_tracking_application.current_status`
+  with `fetch_if_empty: 1`. Without `fetch_if_empty` Frappe re-fetches on
+  every save and would erase a manual value. The server-side link write
+  (`db.set_value`) does not run `fetch_from`, so the existing
+  `sync_tracking_status_to_process_file` at link time stays the main initial
+  write; `fetch_from` is the fallback.
+- **Transient, as before:** a manual value holds until the next genuine
+  `workflow_state` / `custom_form_submitted` change recomputes it.
+- **No reason required.**
+- **Allowed on dependant Process Files too**, for now. The public tracker
+  still shows a dependant the primary's status until dependants get their
+  own tracking status and the display override is removed.
+- **Not shown on the client's timeline.** The log row for a manual change is
+  written with `visible_to_client = 0`. The row is still stored for audit.
+  Consequence: the status headline (`current_status`) shows the manual value
+  while the timeline has no matching entry.
+- An inactive or unknown status is rejected in `PF Process File.validate`,
+  before save. Today the sync runs in `on_update` inside a swallowed
+  exception, so a bad value would save on the Process File and never reach
+  the application.
+
 ## Amendment (2026-09-13): the hourly schedule is reinstated
 
 The reinstatement condition below is met. Since `the_visaguy` `b99dea7` and
