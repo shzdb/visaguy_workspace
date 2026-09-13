@@ -121,13 +121,21 @@ decision from the owner.
 | Hooks | Drift sweep back under `hourly`, stale comment replaced: `the_visaguy` `6221926`. Pure tier unchanged (286 / 19 skipped / 2 known errors). Local, not pushed. |
 | `fileflo` push | Pushed `feat/visa-tracker` `c7244a4..219c9aa`; equal to upstream after a fresh fetch. |
 
-## 9. What is left for FEAT-001
+## 9. Follow-up on 2026-09-14 (owner instructions)
 
-1. Re-run the on-site suite when Redis Queue is up (risk 38).
-2. Decide on cleaning the existing duplicate dependant rows (risk 36).
-3. Push `the_visaguy` `6221926` and `visaguy_crm` `9df61b4`.
-4. Deploy backend before frontend (TASK-017), then close TASK-010/011/012/
+| Item | Result |
+|---|---|
+| Push | `the_visaguy` `d59614f..6221926`, `visaguy_crm` `de7c959..9df61b4`. |
+| Duplicate dependant rows | Owner: no cleanup. |
+| On-site suite | Bench Redis (queue, cache) started from its own config for the run and shut down after. First run 382 / 3 errors (stale fixture after the `after_insert` link hook); fixed in `the_visaguy` `8cf4c64` (local); re-run **382 OK**. |
+| Plans | `17-plan-2026-09-14-multi-application-and-manual-status.md` — several applications per passport, and manual status from the Process File. Both wait on owner decisions. |
+
+## 10. What is left for FEAT-001
+
+1. Push `the_visaguy` `8cf4c64`.
+2. Deploy backend before frontend (TASK-017), then close TASK-010/011/012/
    016/017/022/023 on deployment evidence.
+3. Owner decisions D1–D6 and M1–M5 in the 17 plan.
 6. Open items carried forward: TASK-013 (blocked), TASK-014, TASK-015,
    TASK-018 (ready), risk 28 root cause, risk 34 recompute patch not run,
    risk 35 `allow_cors` decision, human visual check of the status page

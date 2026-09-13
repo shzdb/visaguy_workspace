@@ -84,8 +84,12 @@ dependant twice.
   `cd ~/bench/sites && ../env/bin/python -m unittest visaguy_crm.test_allocated_to_process_file`.
 - Committed locally, not pushed.
 
+## Owner decisions (2026-09-14)
+
+- **No cleanup of existing duplicate rows** (gap 2). Owner decision: not
+  needed.
+- `visaguy_crm` `feat/visa-tracker` pushed (`de7c959..9df61b4`).
+
 ## What remains
 
-1. Owner decision on removing the existing duplicate rows (gap 2). Report
-   the rows before deleting anything.
-2. Push `visaguy_crm` `feat/visa-tracker`, then deploy. See risk 36.
+1. Deploy. See risk 36.

@@ -70,9 +70,12 @@ each `PF Process File` to the `Visa Tracking Application` it belongs to.
   `PF Process File` rows have `custom_visa_tracking_application`; 4 of 11
   `Visa Tracking Application` rows have `process_file`. The linking path
   runs on real data.
-- On-site tier: **not run.** The 2026-09-13 attempt could not start because
-  Redis Queue on the bench refused connections. The last green on-site run
-  (366, 2026-09-03) predates both commits.
+- On-site tier, 2026-09-14
+  (`bench --site visa-tracker-test.localhost run-tests --app the_visaguy --skip-test-records`,
+  bench Redis started for the run and stopped after): first run 382 tests,
+  3 errors in `TestRepairClientStatusDriftIntegration`. The `after_insert`
+  link hook saved the application while the fixture held a stale copy.
+  Fixture fixed in `the_visaguy` `8cf4c64`; re-run **382 tests, OK**.
 
 ## Owner decisions (2026-09-13)
 
@@ -91,7 +94,7 @@ each `PF Process File` to the `Visa Tracking Application` it belongs to.
 
 ## What remains
 
-1. Re-run the on-site tier on `visa-tracker-test.localhost` when Redis Queue
-   is up: `bench --site visa-tracker-test.localhost run-tests --app the_visaguy --skip-test-records`.
-2. Push `the_visaguy` `feat/visa-tracker` (`6221926` is local), then deploy.
-   The deploy's migrate registers the hourly Scheduled Job Type.
+1. ~~Re-run the on-site tier.~~ Done 2026-09-14, 382 OK (see Validation).
+2. `6221926` pushed 2026-09-14 (`d59614f..6221926`). Push `8cf4c64`
+   (test fixture), then deploy. The deploy's migrate registers the hourly
+   Scheduled Job Type.
