@@ -5,3 +5,10 @@
 # never be committed here.
 .staging/
 staging/
+ongoing/multi-zone-whatsapp/the_visaguy/
+ongoing/multi-zone-whatsapp/waflo/
+ongoing/visaguy-crm-trigger-fix/repo/
+ongoing/waflo-correctness/worktree/
+
+# Raw executor transcripts. Keep the phase reports, not the logs.
+ongoing/**/*.log

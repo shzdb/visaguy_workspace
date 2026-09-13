@@ -1,0 +1,83 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-ui-polish`.
+- Your previous commit is ca39d19. This is a CORRECTIVE pass on that commit.
+  Every defect below was found by review of your own diff; they are real, they
+  are not questions, and they are not up for redesign.
+- DO NOT push. DO NOT create branches. Commit locally.
+- Do NOT touch any file other than the four named below.
+- `cn` lives in src/lib/utils.ts and is the project's required way to compose
+  conditional class strings.
+
+READ FIRST:
+- src/components/tracking/StatusTimeline.tsx
+- src/components/tracking/StatusSummary.tsx
+- src/pages/StatusPage.tsx
+- src/components/ui/card.tsx  (note: `Card` has `py-6`; `CardHeader`/`CardContent`
+  supply their own `px-6` but NO vertical padding of their own)
+
+DEFECTS TO FIX:
+
+F1. src/components/tracking/StatusTimeline.tsx — the connector rail is inverted.
+    It currently renders when `!isCurrent`, i.e. on every item EXCEPT the first.
+    Because the list is newest-first, this leaves no connector between item 0 and
+    item 1, and leaves a rail dangling below the final marker into empty space.
+    Correct rule: render the rail segment for every item EXCEPT THE LAST one
+    (`index < items.length - 1`). Remove the now-redundant `items.length > 1`
+    guard — the new condition already covers the single-item case.
+
+F2. src/components/tracking/StatusTimeline.tsx — replace the template-literal
+    className on the marker `<span>` with a `cn(...)` call, matching the project
+    convention. Same resulting classes, no visual change.
+
+F3. src/components/tracking/StatusTimeline.tsx — the `<time>` element sits flush
+    against the message with no spacing. Give it `mt-1 block` in addition to its
+    existing classes.
+
+F4. src/components/tracking/StatusSummary.tsx — the tinted header band does not
+    reach the card edges. `Card` applies `py-6`, so a white gap sits above the
+    `bg-brand-background` header and below the content. Fix by giving the Card
+    `py-0` (keep `overflow-hidden`), then restoring the vertical padding on the
+    children: `CardHeader` gets `py-6`, `CardContent` gets `pb-6 pt-6`.
+
+F5. src/components/tracking/StatusSummary.tsx — `CardHeader` is a CSS grid, so
+    the `<Badge>` span stretches to the full column width instead of hugging its
+    text. Give the Badge `className="w-fit"`.
+
+F6. src/pages/StatusPage.tsx — the gradient wash div is a child of the element
+    that also carries `container mx-auto`, so the wash is clipped to the centred
+    container instead of spanning the viewport. Restructure so the wash spans
+    full width: make the outer element `<section className="relative
+    overflow-hidden">`, put the absolutely-positioned aria-hidden wash div
+    directly inside it, and move `container mx-auto px-4 py-8 md:py-12 lg:px-20`
+    onto an inner `<div>` that wraps the existing `max-w-3xl` block.
+
+F7. src/pages/StatusPage.tsx — the new subhead `<p>` is a direct child of the
+    `space-y-6` stack, so it is pushed 24px away from the `<h1>` it belongs to.
+    Wrap the `<h1>` and the conditional `<p>` together in a single `<div>` so
+    they read as one header block, and drop the `<p>`'s `mt-2` only if the
+    wrapper already spaces them (otherwise keep it).
+
+CONSTRAINTS:
+- Do not change any user-facing string.
+- Do not change the `<ol>`/`<li>` structure, ordering, keys, or the fact that
+  the timeline `<ol>` is the first `<ol>` in the document.
+- Preserve every aria-*, role, ref, tabIndex, handler, and the `status ?`
+  conditional on the subhead.
+
+GATES (all must pass before you commit):
+
+  npm run lint
+  npx tsc --noEmit
+  npm run test
+  npm run build
+
+COMMIT: one local commit, message:
+  `fix(ui): correct timeline rail direction, card band padding and status header layout`
+
+OUTPUT: append a "Corrective pass" section to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/03a-status-page.md
+listing each defect ID and exactly what you changed.
+
+REPLY ONLY WITH one line: <commit sha>, <F-ids fixed>, <lint: pass|fail>,
+<tsc: pass|fail>, <tests: N passed/M failed>, <build: pass|fail>.

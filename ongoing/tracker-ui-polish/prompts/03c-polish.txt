@@ -1,0 +1,94 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-ui-polish`.
+- HEAD is 210a742. Phases 3a and 3b are done. This is a POLISH pass fixing four
+  issues found by running the app in a real browser at desktop and mobile widths.
+  These are observed defects, not proposals.
+- DO NOT push. DO NOT create branches. Commit locally.
+- No new dependencies, tokens, or hex literals. `cn` is in src/lib/utils.ts.
+- `Header` renders with a transparent background when its mobile menu is closed,
+  so a page-level background WILL show through behind it. That is the basis of P1.
+
+READ FIRST:
+- src/components/layout/PageShell.tsx
+- src/pages/VerificationPage.tsx
+- src/pages/StatusPage.tsx
+- src/components/ui/badge.tsx
+- src/components/ui/button.tsx  (note: it does NOT export its `cva` variants —
+  match that convention in P3)
+
+TASKS:
+
+P1. The brand gradient wash currently lives inside each page's <section>, which
+    starts BELOW the header. The result is a visible hard horizontal seam across
+    the full width of the viewport, directly under the logo bar.
+    Fix by hoisting the decoration to the page shell so it spans header + main:
+    - Give `PageShell` a new optional prop `accent?: boolean` (default false).
+    - Inside PageShell's outer `<div className="flex min-h-screen flex-col">`,
+      add `relative overflow-hidden` and render, before <Header/>:
+        * the gradient wash div, `aria-hidden="true"`, `pointer-events-none`,
+          `absolute inset-x-0 top-0 -z-10 h-[32rem]` with the same
+          `bg-[linear-gradient(180deg,var(--brand-background)_0%,var(--background)_100%)]`
+          background it uses today;
+        * when `accent` is true, additionally the soft radial:
+          `pointer-events-none absolute -right-24 -top-24 -z-10 size-96
+           rounded-full bg-brand-500/10 blur-3xl`, also `aria-hidden="true"`.
+    - Remove BOTH decorative divs from VerificationPage and the wash div from
+      StatusPage; they must no longer render their own.
+    - VerificationPage renders `<PageShell accent>`; StatusPage renders
+      `<PageShell>` (no accent).
+    - Keep each page's remaining structure (`relative overflow-hidden` on the
+      section is no longer needed once the divs are gone — drop it, but KEEP the
+      `container mx-auto ...` inner div wrapper on both pages).
+    - Ensure the page body never scrolls horizontally at 375px width: the radial
+      accent must be clipped by PageShell's `overflow-hidden`.
+
+P2. On mobile, VerificationPage stacks as: headline, lead, three trust bullets,
+    THEN the form. The form — the entire point of the page — is pushed below the
+    fold. Reorder so the form card comes directly after the lead paragraph on
+    small screens, with the trust list beneath it, while the desktop two-column
+    layout is unchanged (copy + trust list stacked in the left column, form card
+    in the right column, vertically centred).
+    Implement by splitting the current left-hand <div> into two sibling grid
+    items and placing all three explicitly at `lg`:
+    - item 1: eyebrow Badge + <h1> + lead <p>      → `lg:col-start-1 lg:row-start-1`
+    - item 2: the form card wrapper                → `order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center`
+    - item 3: the trust <ul>                       → `order-3 lg:order-none lg:col-start-1 lg:row-start-2`
+    Give item 1 `order-1`. Adjust the grid's `items-center` if it fights the new
+    row placement (prefer `lg:items-center` or per-item `self-*`).
+    The trust list must remain a <ul>. No <ol> may appear on this page.
+
+P3. src/components/ui/badge.tsx exports `badgeVariants` alongside the component,
+    which trips the oxlint `react(only-export-components)` fast-refresh warning.
+    `button.tsx` keeps its variants module-private. Do the same: stop exporting
+    `badgeVariants` (keep the const, just remove it from the export statement).
+    Confirm nothing imports it before changing.
+
+P4. src/pages/StatusPage.tsx — the subhead <p> "Live progress for your
+    application." now sits flush against the <h1>. Give it `mt-2`.
+
+CONSTRAINTS:
+- Do not change any user-facing string.
+- Preserve every aria-*, role, aria-live, ref, tabIndex, key and handler,
+  including the <h1> ref/tabIndex on StatusPage and the `status ?` conditional.
+- Do not touch src/api/, src/hooks/, src/context/, src/lib/validation/,
+  src/types/, src/mocks/, src/test/, or any *.test.* file.
+- Files you may modify: src/components/layout/PageShell.tsx,
+  src/pages/VerificationPage.tsx, src/pages/StatusPage.tsx,
+  src/components/ui/badge.tsx. Nothing else.
+
+GATES (all must pass before you commit):
+
+  npm run lint      # must now report ONLY the pre-existing SessionContext.tsx warning
+  npx tsc --noEmit
+  npm run test
+  npm run build
+
+COMMIT: one local commit, message:
+  `fix(ui): hoist brand wash to the page shell and prioritise the form on mobile`
+
+OUTPUT: write a log of each task ID and what changed to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/03c-polish.md
+
+REPLY ONLY WITH one line: <commit sha>, <P-ids done>, <lint warning count>,
+<tsc: pass|fail>, <tests: N passed/M failed>, <build: pass|fail>.

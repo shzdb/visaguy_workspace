@@ -148,3 +148,13 @@ re-derive it or mistake "implemented" for "shippable."
 
 Full session narrative, including the five-failure triage that preceded this
 work: `ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md`.
+
+### Update (2026-09-13)
+
+- **Committed:** `the_visaguy` `25e3186` ("test(TASK-011): cover automatic
+  passport extraction verification").
+- **Pushed, as of the last fetch:** `the_visaguy` `feat/visa-tracker` HEAD
+  equals `upstream/feat/visa-tracker`.
+- Remaining: deploy. The task stays `in-progress` until then, like
+  TASK-012 and TASK-016. See
+  `ongoing/visa-tracking-implementation/16-session-2026-09-13-reconciliation.md`.

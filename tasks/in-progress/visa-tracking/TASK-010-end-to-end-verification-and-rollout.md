@@ -445,3 +445,24 @@ deploy, or release.
 
 Deploy and push execution themselves are not TASK-010 activities; they are
 the owner's to schedule once the commit/push decision above is made.
+
+## Repository state update (2026-09-13)
+
+**Blocker 2 is closed.** TASK-011 (`25e3186`), TASK-012 (`53b0f28`) and
+TASK-016 (`e7167ff`, `7ec522f`) are committed in `the_visaguy`. As of the
+last fetch, `the_visaguy`, `passport_extractor` and `visaguy_crm`
+`feat/visa-tracker` equal their `upstream/feat/visa-tracker` refs, and
+`visa_tracker` `main` equalled `origin/main` before one new local commit.
+`fileflo` `feat/visa-tracker` is 4 commits ahead (its merge of `main`).
+
+New work since the last update: TASK-022 (Process File linking, ADR-014)
+and TASK-023 (duplicate dependant rows). Neither has on-site test evidence
+(risk 38).
+
+**Remaining before this task closes:**
+
+1. Re-run the on-site suite when Redis Queue on the bench is up (risk 38).
+2. Push `fileflo` `feat/visa-tracker`.
+3. Deploy per the §8 plan, backend before frontend.
+4. The open items in
+   `ongoing/visa-tracking-implementation/16-session-2026-09-13-reconciliation.md` §8.

@@ -1,0 +1,70 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-ui-polish`.
+- HEAD is b58bd86. Phases 3a and its corrective pass are DONE and correct:
+  `src/components/ui/badge.tsx` and `src/lib/statusTone.ts` now exist, and the
+  status page + summary + timeline are already redesigned. Do not revisit them.
+- DO NOT push. DO NOT create branches. Commit locally.
+- Design tokens are already mapped to Tailwind theme names in src/index.css.
+  Do NOT add dependencies, tokens, or hex literals.
+- `cn` lives in src/lib/utils.ts and is the required way to compose classes.
+
+READ FIRST:
+1. /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/02-design-spec.md
+   — implement SECTION E exactly. Sections A-D and F are already done.
+2. /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/01-recon.md
+   — the "Test constraints discovered" section is binding.
+3. src/pages/StatusPage.tsx — copy its now-correct wash pattern: the wash div is
+   a child of a `relative overflow-hidden` <section>, and `container mx-auto`
+   lives on an inner <div>. Use the same structure so the gradient spans the
+   full viewport width rather than being clipped to the container.
+4. src/components/ui/badge.tsx — reuse the existing Badge for the eyebrow.
+
+TASKS:
+
+V1. Rewrite src/pages/VerificationPage.tsx per spec section E:
+    two-column hero (`lg:grid-cols-2`), decorative full-bleed gradient wash plus
+    the soft brand radial accent (both `aria-hidden` + `pointer-events-none` +
+    `-z-10`), left copy column (eyebrow Badge, h1, lead paragraph, three-item
+    trust list), right column holding the existing verification Card.
+
+POLICIES:
+
+- The `<h1>` text must remain exactly `Track your visa application` and must
+  remain the only h1 on the page.
+- The Card's existing contents are unchanged in wording: CardTitle
+  "Verify your identity", CardDescription "Enter the details you provided with
+  your application.", `<IdentityVerificationForm />`, and the existing fine-print
+  paragraph whose text must stay byte-identical. Only the fine print's wrapper
+  styling changes (per spec: a `rounded-lg bg-bg-secondary p-3` block with a
+  `Lock` icon).
+- The trust list MUST be a `<ul>`. There must be NO `<ol>` anywhere on this page
+  — an e2e test resolves the timeline via `document.querySelector("ol")` and a
+  stray `<ol>` here would break it.
+- Do NOT modify src/components/tracking/IdentityVerificationForm.tsx, any file
+  under src/api/, src/hooks/, src/context/, src/lib/validation/, src/types/,
+  src/mocks/, src/test/, src/components/layout/, or any *.test.* file.
+- Use only lucide-react icons that genuinely exist: ShieldCheck, Clock, Lock.
+- Give the Card `shadow-card` so it reads as elevated against the wash.
+
+GATES (all must pass before you commit):
+
+  npm run lint
+  npx tsc --noEmit
+  npm run test
+  npm run build
+
+Then verify these two greps before committing:
+
+  grep -c '<ol' src/pages/VerificationPage.tsx     # must be 0
+  git diff --name-only HEAD                        # must list ONLY src/pages/VerificationPage.tsx
+
+COMMIT: one local commit, message:
+  `feat(ui): rebuild verification page as a two-column hero with trust signals`
+
+OUTPUT: write a detailed log (final structure, classes used, any deviation from
+the spec and why, gate results) to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/03b-verification-page.md
+
+REPLY ONLY WITH one line: <commit sha>, <lint: pass|fail>, <tsc: pass|fail>,
+<tests: N passed/M failed>, <build: pass|fail>, <ol count on page>.

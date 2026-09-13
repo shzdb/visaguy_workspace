@@ -517,3 +517,14 @@ addition).
    (commits `b25df4a`/`204f563`); frontend rendering of `dependants` has not
    started — see TASK-017.
 4. Only after deployment may this task move to `completed`.
+
+### Update (2026-09-13)
+
+- Item 3 is out of date: TASK-017 shipped `dependants` rendering too
+  (`dc3ba23`, `f773f93`).
+- Process Files are now linked to tracking applications (ADR-014, TASK-022),
+  so the resolver's `custom_visa_tracking_application` guard acts on real
+  rows: 4 of 3,875 on `visaguy` on 2026-09-13. The reason in `hooks.py`
+  for leaving the drift sweep unscheduled ("no PF Process File is linked")
+  no longer holds. Decide the schedule together with the TASK-022 backfill
+  (risk 37).

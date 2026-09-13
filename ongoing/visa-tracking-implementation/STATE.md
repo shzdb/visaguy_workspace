@@ -8,6 +8,7 @@
 - Application code does not belong in this workspace.
 - Remote Frappe bench: `/home/shahzad/bench` on `erpcode.tridz.in:2257`.
 - New frontend repository target: `/home/shzd/Projects/tridz/visa_tracker`.
+- **Current as of 2026-09-13** (session 16): TASK-001 to TASK-009 and TASK-019 to TASK-021 are completed; TASK-010, 011, 012, 016, 017, 022, 023 are in progress (deployment outstanding); TASK-014, 015, 018 are ready; TASK-013 is blocked. Workspace path on this machine is `/Users/shzd/Projects/tridz/workspaces/visaguy_workspace`. The ground facts below are the 2026-07-21 originals and are kept for history.
 - TASK-001, TASK-003, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, and TASK-009 are completed (runtime gates deferred); TASK-002 is in progress (runtime-blocked); TASK-010 is in progress.
 - TASK-001 through TASK-010 and accepted ADR-003 through ADR-005 are materialized in the workspace.
 - The current workspace checkout has pre-existing documentation edits in `README.md` and `features/planned/visa-tracking/README.md`; preserve them.

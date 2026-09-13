@@ -1,0 +1,129 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-site-parity`.
+- HEAD is 81bb210. Phase A is done: headings now render in `Geist Variable`, the
+  primary button is `bg-brand-800`, and the Button supports `loading`/`loadingText`.
+- DO NOT push. DO NOT create branches. Commit locally.
+- /Users/shzd/Projects/tridz/visaguy-website-client is READ-ONLY reference.
+- These asset files ALREADY EXIST in visa_tracker/public — copied, verified, ready:
+    /hero/curved.png            (soft curved blob, 405x400)
+    /hero/visa.png              /hero/hero_1..4.webp   /hero/hero_left_bg.webp
+    /images/heroAirplane.svg    (75x59)
+    /images/heroCurvedLines.svg (375x78)
+  Reference them by absolute public path (e.g. src="/images/heroAirplane.svg").
+- `PageShell` already renders the page-level brand gradient wash and an optional
+  `accent` radial, and it already has `relative overflow-hidden`. VerificationPage
+  renders `<PageShell accent>`. Do NOT add another page-level wash.
+
+READ FIRST:
+1. /Users/shzd/Projects/tridz/visaguy-website-client/components/home/Hero.tsx
+   and components/home/HeroFeatures.tsx — the visual language you are adopting.
+2. src/pages/VerificationPage.tsx — current implementation.
+3. src/components/layout/PageShell.tsx — how the wash/accent already works.
+
+DESIGN BRIEF (this is a utility page, not a marketing page):
+
+The visitor has already paid for a visa service and is anxious about where their
+application stands. The page has exactly one job: get them to their status in one
+action. So the reference site's centred, photo-heavy marketing hero is adapted, NOT
+copied: we take its visual language — the two-tone headline, the compact feature
+row, the curved/airplane decorations — while the form card stays the single
+dominant element. Do NOT add the tilted destination photo cards.
+
+TASKS — rewrite src/pages/VerificationPage.tsx:
+
+B1. Two-tone headline, in the reference's style (`Visa` + `Simplified.` becomes):
+      <h1>  <span class="text-tertiary">Visa</span>{" "}
+            <span class="text-brand-800">Tracking.</span>  </h1>
+    Sizing follows the reference scale but left-aligned, not centred:
+    `text-5xl md:text-6xl font-semibold` plus the Geist heading face it now
+    inherits automatically. Keep it the page's only <h1>.
+
+    CONTRAST — this is not negotiable and is why the tint differs from the site:
+    the reference uses `text-brand-600` (#c6992c) for the accent word, which
+    measures only 2.42:1 against the `--brand-background` wash and 2.63:1 on
+    white — it fails WCAG AA even at the 3:1 large-text threshold. Use
+    `text-brand-800` (#85610e = 5.26:1 on the wash). Same brand gold, deeper tint,
+    and consistent with the Phase A button. Do NOT "restore" brand-600 here.
+
+B2. Replace the current three-item vertical trust list with the reference's
+    compact feature row (see HeroFeatures.tsx). Same treatment, our content:
+      - `ShieldCheck` — "Private by design"
+      - `Clock`       — "Always current"
+      - `Lock`        — "No account needed"
+    Structure: a <ul> (NEVER an <ol> — an e2e test resolves the status timeline via
+    `document.querySelector("ol")` and a stray <ol> here breaks it), rendered as
+    `flex flex-wrap items-center gap-x-6 gap-y-3` with each <li>
+    `flex items-center gap-x-2`. Icon `size-4 text-brand-700` (brand-600 is only
+    2.42:1 on the wash — below the 3:1 non-text minimum), label
+    `text-sm md:text-base font-medium text-tertiary`.
+    Place the row directly beneath the lead paragraph, as the reference does.
+    Drop the second explanatory line from each item — the row is a rhythm device,
+    not a feature list.
+
+B3. Asymmetric layout. Replace the even `lg:grid-cols-2` split with a 12-column
+    grid so the composition is not two equal blocks:
+      grid: `container mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-12
+             lg:items-center lg:gap-8 lg:px-20`
+      copy column: `lg:col-span-6`
+      form column: `order-2 lg:order-none lg:col-span-5 lg:col-start-8`
+    Preserve the Phase-3c mobile ordering: headline+lead+form, THEN the feature row.
+    Give the feature row `order-3 lg:order-none` and place it inside the copy column
+    on desktop — if that conflicts with the mobile order, keep it a third grid item
+    at `lg:col-span-6 lg:col-start-1 lg:row-start-2` and put the copy at
+    `lg:row-start-1`, with the form spanning `lg:row-span-2`.
+
+B4. Vertical rhythm. At 1440px the hero currently leaves a dead band above the
+    footer. Increase the section's vertical padding to `py-16 md:py-24 lg:py-28`
+    so the hero occupies its space deliberately.
+
+B5. Decoration, using the copied assets. All decorative imagery must be
+    `aria-hidden="true"`, `pointer-events-none`, negative z-index, and `alt=""`:
+    - `/images/heroCurvedLines.svg` — full-bleed behind the headline area,
+      `absolute inset-x-0 top-24 -z-10 w-full opacity-60 md:hidden` (the reference
+      uses it as a mobile-only flourish).
+    - `/hero/curved.png` — one soft blob behind the form card on desktop only:
+      `hidden lg:block absolute -z-10` positioned so it sits behind the card's top
+      -right corner, `opacity-70`.
+    - `/images/heroAirplane.svg` — a single small accent near the headline,
+      `hidden md:block absolute -z-10 w-16`.
+    HARD REQUIREMENT: no horizontal page scroll at 375px. Every absolutely
+    positioned decoration must be clipped by an ancestor with `overflow-hidden`
+    (PageShell has it) and must not force `scrollWidth > clientWidth`. Verify at
+    375px before committing.
+    Do NOT use the `hero_*.webp` destination photos anywhere.
+
+B6. Keep the form card exactly as it is in content: CardTitle "Verify your
+    identity", CardDescription "Enter the details you provided with your
+    application.", `<IdentityVerificationForm />`, and the fine-print block with
+    its `Lock` icon and byte-identical text. Keep `shadow-card` on the Card.
+    Keep the eyebrow `<Badge tone="brand">` with its `ShieldCheck` icon and the
+    text "Secure application tracking" — exactly one badge, no badge row.
+
+B7. Keep the lead paragraph text byte-identical:
+    "Enter your passport number and date of birth to see exactly where your
+    application stands — updated straight from our case team."
+
+POLICIES:
+- Only src/pages/VerificationPage.tsx may change. Nothing else.
+- Preserve every aria-*, role, htmlFor/id and handler.
+- No new dependencies. No hex literals — tokens only.
+- Use only lucide icons that exist: ShieldCheck, Clock, Lock.
+
+GATES (all must pass before you commit):
+
+  npm run lint      # must not add any new warning beyond the 1 pre-existing one
+  npx tsc --noEmit
+  npm run test
+  npm run build
+  grep -c '<ol' src/pages/VerificationPage.tsx    # must be 0
+
+COMMIT: one local commit, message:
+  `feat(ui): adopt the site hero language with a two-tone headline and feature row`
+
+OUTPUT: write a log (final structure, decoration positioning, contrast reasoning,
+gate results) to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-site-parity/B-hero.md
+
+REPLY ONLY WITH one line: <commit sha>, <lint warnings>, <tsc: pass|fail>,
+<tests: N passed/M failed>, <build: pass|fail>, <ol count>.

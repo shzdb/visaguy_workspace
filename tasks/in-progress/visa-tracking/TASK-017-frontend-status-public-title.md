@@ -363,3 +363,13 @@ This workspace's standing convention is not to close a task whose result
 nobody has seen running end to end. This task is held `in-progress` for
 these specific, recoverable reasons — push, deploy (backend first), and a
 human visual check — not for lack of progress.
+
+### Update (2026-09-13)
+
+- Item 3 is resolved: on 2026-09-13 `visa_tracker` `main` was equal to
+  `origin/main` at `49dd6b1`, so the TASK-017 commits are pushed. One new
+  local commit, `dc53ce6` (`.env.example` base URL), is unpushed.
+- The backend commits are pushed too: `the_visaguy` `feat/visa-tracker`
+  equals `upstream/feat/visa-tracker` as of the last fetch.
+- Items 1 and 2 remain: human visual check, and deploy backend first.
+- `npm run verify`: 64/64, build clean.

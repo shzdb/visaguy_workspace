@@ -1,0 +1,73 @@
+GROUND FACTS (already verified — do not re-derive, do not go looking for these):
+
+- Work ONLY in the git repo /Users/shzd/Projects/tridz/visa_tracker.
+- You are already on branch `feat/tracker-ui-polish`. Do NOT create or switch branches.
+- DO NOT push. DO NOT open a PR. Commit locally only.
+- Stack: Vite 8, React 19, TypeScript, Tailwind CSS v4, local shadcn-style UI
+  primitives in src/components/ui/, Base UI button, react-router-dom 7,
+  lucide-react. Package manager: npm.
+- Design tokens already exist and are already mapped to Tailwind theme names in
+  src/index.css under `@theme inline`. Do NOT add tokens, hex literals, or deps.
+- Commands: `npm run lint` (oxlint), `npx tsc --noEmit`, `npm run test` (vitest run),
+  `npm run build`.
+
+READ FIRST (in this order, they are the authority for this task):
+
+1. /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/01-recon.md
+2. /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/02-design-spec.md
+3. src/index.css and src/styles/design-tokens.css (for the exact token names available)
+4. src/components/ui/alert.tsx and src/components/ui/card.tsx (for the local
+   component conventions you must match: cva + cn, data-slot, prop spreading)
+
+TASKS (implement sections A, B, C, D and F of 02-design-spec.md exactly):
+
+S1. Create src/components/ui/badge.tsx per spec section A.
+S2. Create src/lib/statusTone.ts per spec section B.
+S3. Rewrite src/components/tracking/StatusSummary.tsx per spec section C.
+S4. Rewrite src/components/tracking/StatusTimeline.tsx per spec section D.
+S5. Edit src/pages/StatusPage.tsx per spec section F.
+
+POLICIES:
+
+- The spec is exact. Where the spec gives class strings, use them. Where it
+  offers a choice of lucide icon, pick one that genuinely exists in the
+  installed lucide-react version — verify by checking the package's exports
+  before importing, and substitute a plainly existing icon (Circle, FileText,
+  User, MapPin, Clock, CheckCircle2, AlertCircle, RefreshCw, ArrowLeft,
+  CircleDot) rather than guessing an exotic name.
+- Preserve every existing aria-*, role, aria-live, tabIndex, ref, key, and
+  handler. Preserve all user-facing copy that already exists; you may only ADD
+  the new strings the spec names.
+- Do NOT modify any file under src/api/, src/hooks/, src/context/,
+  src/lib/validation/, src/types/, src/mocks/, src/test/, or any *.test.* file.
+- Do NOT modify src/components/layout/, src/components/common/, or
+  src/components/tracking/LockoutState.tsx / ExpiredSessionState.tsx.
+- The status timeline <ol> must remain the FIRST <ol> in the rendered document
+  and must render exactly one <li> per timeline item, in unchanged API order,
+  each containing that item's status text and message text. An e2e test asserts
+  this via document.querySelector("ol").
+- Never render unmasked PII and never invent timeline entries that the API did
+  not return. There are no "future"/"upcoming" steps in this data model.
+
+GATES (all must pass before you commit; if one fails, fix and re-run):
+
+  npm run lint
+  npx tsc --noEmit
+  npm run test
+  npm run build
+
+Additionally, grep the diff for accidental violations before committing:
+
+  git diff --cached --name-only        # must list only the 5 files above
+  git diff -U0 | grep -nE '#[0-9a-fA-F]{6}'   # must be empty (no hex literals)
+
+COMMIT: one local commit on feat/tracker-ui-polish, message:
+  `feat(ui): add status badge, tone mapping and connected status timeline`
+
+OUTPUT: write a detailed log — files changed, icons chosen, any spec deviation
+and why, and the full pass/fail output summary of each gate — to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/03a-status-page.md
+
+REPLY ONLY WITH one line: <commit sha>, <files changed count>, <lint: pass|fail>,
+<tsc: pass|fail>, <tests: N passed/M failed>, <build: pass|fail>, <verdict>.
+Do not paste file contents or diffs into the reply.

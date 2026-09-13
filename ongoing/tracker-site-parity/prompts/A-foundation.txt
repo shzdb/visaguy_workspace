@@ -1,0 +1,115 @@
+GROUND FACTS (already verified — do not re-derive, do not go looking):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-site-parity`.
+- DO NOT push. DO NOT create branches. Commit locally.
+- /Users/shzd/Projects/tridz/visaguy-website-client is the READ-ONLY brand reference.
+  Never write to it.
+- The colour palette in src/styles/design-tokens.css is ALREADY a correct verbatim
+  copy of the reference site's tokens. Do NOT re-port, re-derive, or "improve" it.
+- `@fontsource-variable/geist` is ALREADY in package.json dependencies and is
+  currently unused. It self-hosts family `Geist Variable`, weights 100-900, and
+  already declares `font-display: swap`. Do not add any font dependency or CDN link.
+- `--shadow-card-value` in design-tokens.css already equals Tailwind's `shadow-lg`
+  exactly, which is what the reference site's Card uses. Card shadow needs NO change.
+- Commands: `npm run lint`, `npx tsc --noEmit`, `npm run test`, `npm run build`.
+
+READ FIRST:
+1. /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-site-parity/STATE.md
+   — the "User decisions" section is binding.
+2. /Users/shzd/Projects/tridz/visaguy-website-client/components/ui/button.tsx
+   — the reference Button whose API you are porting (A3).
+3. src/index.css, src/styles/design-tokens.css, src/components/ui/button.tsx.
+
+TASKS:
+
+A1. Type system. Headings and body currently both resolve to Inter, which reads as
+    an undesigned default. Give headings a display face:
+    - Add `import "@fontsource-variable/geist"` to src/main.tsx, above the
+      `import "./index.css"` line.
+    - In src/styles/design-tokens.css set:
+        --font-family-heading: 'Geist Variable', 'Geist', system-ui, -apple-system,
+          BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      Leave --font-family-sans (Inter) EXACTLY as it is — body copy must stay
+      identical to the reference site.
+    - In src/index.css, inside `@layer base`, apply the heading family so it
+      actually takes effect:
+        h1, h2, h3 { font-family: var(--font-family-heading); letter-spacing: -0.02em; }
+      Do not touch the existing `html`/`body` rules.
+
+A2. CTA contrast. White text on the brand gold `--primary` (#c6992c) measures
+    2.63:1 — it fails WCAG AA on the page's primary button. Fix using tokens that
+    already exist; invent no new colour:
+    - In src/components/ui/button.tsx, the `default` variant becomes
+      `bg-brand-800 text-primary-foreground shadow-xs hover:bg-tertiary`
+      (#85610e background = 5.71:1 against white; #543f0d on hover is darker still,
+      so hover also passes).
+    - Do NOT change `--primary` in design-tokens.css. The resting gold stays in use
+      for borders, icons, and the timeline marker.
+
+A3. Button API parity with the reference site. Keep the Base UI `ButtonPrimitive`
+    the tracker already uses — you are porting the reference's API and styling, NOT
+    its `@radix-ui/react-slot` dependency. Add:
+    - `cursor-pointer` to the base class string.
+    - a new variant `outlineSecondary`: `border bg-transparent border-brand-600 text-brand-600`.
+    - optional props `loading?: boolean` and `loadingText?: string`. When `loading`
+      is true the button is disabled, sets `aria-busy`, renders an inline spinner
+      SVG before the label, and renders `loadingText` as the label when that prop is
+      given. Port the reference's spinner SVG and its per-variant `spinnerColorMap`
+      approach, extended with an entry for `outlineSecondary`. The spinner must
+      carry `aria-hidden="true"` and `focusable="false"`.
+    - The spinner animates, so it MUST be inert under reduced motion. Add to
+      src/index.css inside `@layer base`:
+        @media (prefers-reduced-motion: reduce) {
+          .animate-spin { animation: none; }
+        }
+
+A4. Use the new loading API at the two call sites, without changing any string:
+    - src/components/tracking/IdentityVerificationForm.tsx: the submit button
+      becomes `loading={isPending} loadingText="Verifying…"` and its children become
+      the plain string `Track application`. The rendered text in each state must be
+      byte-identical to today ("Track application" / "Verifying…") — tests assert it.
+    - src/pages/StatusPage.tsx: the refresh button becomes
+      `loading={loading} loadingText="Refreshing…"` with children `Refresh status`,
+      keeping its existing `RefreshCw` icon, `size="md"` and `variant="secondary"`.
+      Keep the `disabled={loading}` behaviour equivalent.
+
+A5. Tap targets below 44x44 at 375px, and one more contrast miss. Fix all of:
+    - src/components/layout/Header.tsx — the hamburger button measures 38x36. Give
+      it at least 44x44 (e.g. `min-h-11 min-w-11` plus centring) without changing
+      the size of the three bars inside it or any aria wiring.
+    - src/components/layout/Footer.tsx — the logo link is 40px tall and the
+      "Support" link is 20px tall. Make each an inline-flex with `min-h-11` and
+      centred items so both clear 44px.
+    - src/components/layout/Footer.tsx — the "Support" link uses `text-brand-700`
+      (#a17307), which is 4.22:1 on white and just misses AA. Change it to
+      `text-brand-800` (#85610e, 5.71:1). Keep its hover class.
+
+A6. Add the one genuinely missing token. In src/styles/design-tokens.css add
+    `--border-200: #9393934D;` beside the other border tokens, and map
+    `--color-border-200: var(--border-200);` in the `@theme inline` block of
+    src/index.css. Do NOT add the `--chart-*` tokens; this app has no charts.
+
+POLICIES:
+- Change no user-facing copy anywhere.
+- Preserve every aria-*, role, aria-live, ref, tabIndex, htmlFor/id and handler.
+- Do NOT modify src/api/, src/hooks/, src/context/, src/lib/validation/,
+  src/types/, src/mocks/, src/test/, or any *.test.* file.
+- Do NOT touch src/pages/VerificationPage.tsx (a later phase owns it).
+- No new dependencies. No hex literals in component files — tokens only. The two
+  hex values in this prompt belong in design-tokens.css only.
+
+GATES (all must pass before you commit):
+
+  npm run lint
+  npx tsc --noEmit
+  npm run test
+  npm run build
+
+COMMIT: one local commit, message:
+  `feat(ui): add display face, fix CTA contrast and port the site button API`
+
+OUTPUT: write a log of each task ID, what changed, and the gate results to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-site-parity/A-foundation.md
+
+REPLY ONLY WITH one line: <commit sha>, <A-ids done>, <lint warnings>,
+<tsc: pass|fail>, <tests: N passed/M failed>, <build: pass|fail>.

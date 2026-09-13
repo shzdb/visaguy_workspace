@@ -245,3 +245,9 @@ Single.
    see `docs/risks-and-open-questions.md` risk 18 for the precise wording.
 
 Full session narrative: `ongoing/visa-tracking-implementation/12-session-2026-09-01-task-011-012.md`.
+
+### Update (2026-09-13)
+
+Step 1 is done: `the_visaguy` `53b0f28` ("feat(TASK-012): constrain
+credential enumeration in public verification"), and the branch equals
+`upstream/feat/visa-tracker` as of the last fetch. Steps 2 and 3 remain.

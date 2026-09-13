@@ -1,0 +1,60 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-ui-polish`.
+- HEAD is 94513ed. Working tree is clean. Phases 3a/3b/3c are done and were
+  reviewed in a real browser at 375px and desktop widths.
+- DO NOT push. DO NOT create branches. Commit locally.
+- No new dependencies, tokens, or hex literals.
+
+READ FIRST:
+- src/components/tracking/StatusSummary.tsx
+
+TASKS:
+
+V1. Browser review found one redundancy: the status card header renders
+    `status.current_status` TWICE — once inside the <Badge> and once as the
+    <CardTitle> directly beneath it, so the same sentence appears twice in a
+    row. Fix by changing the Badge's text content to the literal string
+    `Current status` (keeping its tone, its tone icon, its `w-fit`, and the
+    `statusTone(...)` colour mapping). The <CardTitle> keeps
+    `{status.current_status}` unchanged — it must remain the single place the
+    status text is rendered on this card.
+    An e2e test asserts `getAllByText(current_status).length > 0` on the status
+    page, so exactly one occurrence is required and sufficient. Verify the test
+    still passes rather than assuming.
+
+V2. Run the project's full verification pipeline and record the exact results:
+
+      npm run lint
+      npx tsc --noEmit
+      npm run test
+      npm run build
+
+V3. Confirm and record, with the commands you used as evidence:
+    - `git status --porcelain` is empty after your commit.
+    - No file under src/api/, src/hooks/, src/context/, src/lib/validation/,
+      src/types/, src/mocks/, src/test/, or any *.test.* file was modified by
+      the whole branch. Evidence: `git diff --name-only main...HEAD`.
+    - `git diff main...HEAD` contains no occurrence of `localStorage`,
+      `sessionStorage`, `document.cookie`, `fetch(`, `axios`, or `analytics` —
+      the branch must introduce no persistence and no network calls.
+    - No `#rrggbb` hex colour literal was introduced:
+      `git diff main...HEAD | grep -nE '^\+.*#[0-9a-fA-F]{6}'` must be empty.
+    - The full branch diff touches exactly these files and no others:
+      src/components/layout/PageShell.tsx, src/components/tracking/StatusSummary.tsx,
+      src/components/tracking/StatusTimeline.tsx, src/components/ui/badge.tsx,
+      src/lib/statusTone.ts, src/pages/StatusPage.tsx, src/pages/VerificationPage.tsx.
+      Report any extra or missing file rather than "fixing" it.
+
+COMMIT: if V1 changed a file, one local commit, message:
+  `fix(ui): label the status badge instead of repeating the status text`
+If V1 required no change, make no commit.
+
+OUTPUT: write the complete evidence — every command run and its verbatim
+result summary — to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-ui-polish/04-verify.md
+
+REPLY ONLY WITH one line: <commit sha or "no commit">, <lint warnings>,
+<tsc: pass|fail>, <tests: N passed/M failed>, <build: pass|fail>,
+<forbidden-file violations: N>, <persistence/network hits: N>, <hex hits: N>,
+<branch file count>.

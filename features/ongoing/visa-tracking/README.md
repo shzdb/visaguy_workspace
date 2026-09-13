@@ -471,6 +471,54 @@ forever with no visible error. The job now elevates to `Administrator` for
 its duration and restores the previous user in a `finally` block
 (`passport_extractor` `014a36e`).
 
+## Changes made outside the workspace (2026-09-03 to 2026-09-07)
+
+Owner commits made directly on the bench and in `visa_tracker`, verified
+against source on 2026-09-13. Session record:
+`ongoing/visa-tracking-implementation/16-session-2026-09-13-reconciliation.md`.
+
+### Process Files are now linked to tracking applications
+
+**ADR-014, TASK-022.** `link_process_file_to_tracking` existed but had no
+caller, so no application had a `process_file` and no primary showed
+dependants. It now runs on Process File insert, on a file-collection field
+change, and when a tracking application is created or reused. Ownership is
+by file collection: the lead-stage (`custom_lead_file_collection`) or
+process-stage (`file_collection`) collection must match exactly one active
+application. The Lead's single Link is no longer used. More than one match
+is flagged for review, not linked (`the_visaguy` `b99dea7`).
+
+The link is written without a document save, so Lead-to-Process-File
+conversion no longer fails with `TimestampMismatchError`
+(`the_visaguy` `d59614f`).
+
+Only new events link. On 2026-09-13, 4 of 3,875 Process Files were linked
+(risk 37).
+
+### The Completed trigger watches the parent collection
+
+**ADR-012 amendment.** Desk approval saves `FF File Collection`, and Frappe
+does not run child-row hooks for that save. The primary trigger is now the
+parent's `on_update`, with one inspection job per collection
+(`the_visaguy` `b99dea7`).
+
+### Lead conversion re-runs no longer duplicate dependants
+
+**TASK-023.** `visaguy_crm` `de7c959` checks for an existing dependant row
+before each insert. Existing duplicates remain, and a partial earlier run
+cannot be repaired by re-running (risk 36).
+
+### Smaller changes
+
+- `passport_extractor` `0febf6c` — PaddleOCR packages declared in
+  `pyproject.toml`.
+- `visa_tracker` `6a76283` — header reduced to a logo bar, footer logo
+  removed; `49dd6b1` — date input sizing on iOS.
+- The frontend UI-polish and site-parity programmes
+  (`ongoing/tracker-ui-polish/`, `ongoing/tracker-site-parity/`) are on
+  `visa_tracker` `main` (`4fef926`, `41df7cd`). This delivers the
+  beautification TASK-008 deferred.
+
 ## Supporting specifications
 
 - [Architecture and data model](01-architecture-and-data-model.md)

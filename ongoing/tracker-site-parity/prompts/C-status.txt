@@ -1,0 +1,75 @@
+GROUND FACTS (already verified — do not re-derive):
+
+- Work ONLY in /Users/shzd/Projects/tridz/visa_tracker, branch `feat/tracker-site-parity`.
+- HEAD is 9bef3e6. Phases A and B are done.
+- DO NOT push. DO NOT create branches. Commit locally.
+- `src/lib/statusTone.ts` maps a free-text backend status to one of four tones
+  ("neutral" | "brand" | "success" | "critical"). Its current keyword list was
+  GUESSED before the reference repo was available. This phase replaces the guess
+  with the real vocabulary.
+- The real vocabulary, read from
+  /Users/shzd/Projects/tridz/visaguy-website-client/components/application/VisaApplicationCard.tsx
+  (`getStatusColor`), is:
+      Draft · Payment Confirmed · Application Submitted ·
+      Application Processing · Pending Action
+- That reference function colours those statuses with raw Tailwind palette classes
+  (`bg-yellow-100`, `bg-blue-100`, `bg-purple-100`, `bg-orange-100`, `bg-red-100`).
+  This is the ONE place the reference site departs from its own design tokens.
+  DO NOT copy that approach, those classes, or those colours. Our tone mapping
+  stays token-driven. This is a deliberate, recorded divergence.
+
+READ FIRST:
+- src/lib/statusTone.ts
+- src/components/tracking/StatusSummary.tsx (the only consumer)
+
+TASKS:
+
+C1. Rewrite the cue lists in `statusTone` so the five real statuses map correctly,
+    while keeping the existing structure, the exported type, the function
+    signature, the case-insensitive trimmed substring matching, the first-match-wins
+    ordering, and `neutral` as the fallback for unknown strings.
+    Required results — assert these in your own reasoning before committing:
+      "Draft"                   -> "neutral"
+      "Payment Confirmed"       -> "brand"
+      "Application Submitted"   -> "brand"
+      "Application Processing"  -> "brand"
+      "Pending Action"          -> "critical"   (it is a call to action for the user)
+      "Application Received"    -> "brand"      (used by the tracking API fixtures)
+      "Working on Your Application" -> "brand"  (used by the tracking API fixtures)
+      "Visa Approved"           -> "success"
+      "Visa Issued"             -> "success"
+      "Visa Rejected"           -> "critical"
+      "Rejected - application complete" -> "critical"  (critical must beat success)
+      "Some Unknown Backend Status"     -> "neutral"
+    Careful: "Payment Confirmed" must NOT hit a success cue, and "Pending Action"
+    must NOT hit the same bucket as a plain "pending"/"processing" status — order
+    and cue choice have to separate them. Update the file's doc comment to say the
+    vocabulary came from the reference site and that unknown values still degrade
+    to `neutral`.
+
+C2. Add a colocated unit test `src/lib/statusTone.test.ts` covering every pair in
+    the C1 table, written in the project's existing vitest style. This is the one
+    place in this branch where creating a test file is required.
+
+POLICIES:
+- Files you may create or modify: `src/lib/statusTone.ts` and
+  `src/lib/statusTone.test.ts`. Nothing else.
+- Do not change any user-facing string or any component.
+- No new dependencies. No hex literals.
+
+GATES (all must pass before you commit):
+
+  npm run lint
+  npx tsc --noEmit
+  npm run test      # total count must be 41 + your new cases, all passing
+  npm run build
+
+COMMIT: one local commit, message:
+  `fix(ui): align status tone mapping to the real application status vocabulary`
+
+OUTPUT: write the final cue lists, the mapping table with actual observed results,
+and gate results to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/tracker-site-parity/C-status.md
+
+REPLY ONLY WITH one line: <commit sha>, <tests: N passed/M failed>,
+<all C1 pairs correct: yes|no>, <lint warnings>, <build: pass|fail>.

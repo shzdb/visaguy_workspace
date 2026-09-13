@@ -142,3 +142,34 @@ introduced where documents are auto-approved), `FF File Collection File`
 gains additional statuses, FileFlo's approval model changes, or the
 operational dependency on the `Completed` transition proves to be a
 recurring cause of missing tracking applications.
+
+## Amendment (2026-09-03, recorded 2026-09-13): the parent collection is the primary trigger
+
+Owner change on the bench, `the_visaguy` `b99dea7`. The decision above is
+unchanged: extraction still starts when a configured passport row becomes
+`Completed`. What changed is where that edge is observed.
+
+**The child-row hooks do not fire for the normal staff action.** Staff mark
+a row `Completed` in Desk by saving the parent `FF File Collection`. Frappe
+writes child rows of a parent save with `db_update()` only, so the
+`FF File Collection File` `on_update` and `after_insert` hooks never run.
+As first written, this ADR's trigger only fired for a direct child save,
+which the normal workflow does not do.
+
+- New `doc_events` entry: `FF File Collection` `on_update` →
+  `fileflo_collection_handlers.on_collection_update`. It compares each child
+  row with `get_doc_before_save()` and enqueues inspection when a row with a
+  configured `field_id` and a `document` is `Completed` now and was not
+  before.
+- The child-row hooks stay, for direct `FF File Collection File` saves.
+- **The inspection job id is now per collection:**
+  `visa-tracking-fileflo-inspect::<collection>`, no longer
+  `...::<collection>::<row>`. The inspection reads every row of the
+  collection, so one queued job covers them all. Rows completed while a job
+  is already queued are covered by that job; rows completed after it starts
+  enqueue a new one.
+- Settings, `passport_field_ids`, `enqueue_after_commit=True`,
+  `is_job_enqueued` dedupe, and the blanket `frappe.log_error` are
+  unchanged.
+
+The on-site suite has not run since this change (risk 38).
