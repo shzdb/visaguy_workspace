@@ -255,7 +255,9 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
 
 Owner decisions. Narrows "Ops override becomes transient": the override is
 now made on the Process File, not only on the application. Implementation:
-TASK-027 (not started).
+TASK-027, `the_visaguy` `896930f` (not pushed or deployed). The role rule is
+enforced in a `PF Process File` `validate` hook and mirrored in the client
+script, not through field permission levels; see TASK-027 "Deviation".
 
 - `PF Process File.custom_client_status` becomes **editable** for
   `Operations Team Lead` and `Operations Associate` only (owner, 2026-09-14;

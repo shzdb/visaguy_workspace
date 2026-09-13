@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-09-14).
+Accepted (2026-09-14). Implemented 2026-09-14 in `the_visaguy` `896930f`
+and `visa_tracker` `654b9f0` (TASK-024, TASK-025, TASK-026); not pushed or
+deployed.
 
 Supersedes the feature README exclusion "one active tracking application per
 verified passport identity; conflicts require internal review" and the

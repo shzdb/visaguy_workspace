@@ -41,6 +41,9 @@ by ADR-005.
 | `applicant_name` | **Full name, unmasked** | Owner decision, 2026-09-03 (ADR-005 "Amendment"). Renamed from `applicant_name_masked`, which had carried an unmasked value under a misleading key. Empty string when the verified extraction carried no name (risk 32). |
 | `dependants[].applicant_name` | **Full name, unmasked** | Same decision; sourced from each dependant's own Process File. |
 | `passport_number_masked` | Masked, unchanged | First two + fixed mask + last two. |
+| `visa_type` | Removed | ADR-015, 2026-09-14: no source on the Lead. |
+| `list_applications` entries: `application_ref`, `destination`, `role`, `title`, `last_updated` | Returned per case | ADR-015, 2026-09-14. One passport can own several cases; the list shows each case without internal names. |
+| `application_ref` | Random, session-scoped | Generated per session (`secrets.token_urlsafe`), compared in constant time, never an application name. An unknown reference gets the constant generic failure. |
 | DOB, full passport number, files, MRZ, internal document names, Lead/Customer/PF identifiers | Never returned | Unchanged; asserted by both the backend suite and the frontend contract tests. |
 
 The controls that stand in front of this payload — opaque Redis sessions,

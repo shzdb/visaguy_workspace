@@ -519,6 +519,44 @@ cannot be repaired by re-running (risk 36).
   `visa_tracker` `main` (`4fef926`, `41df7cd`). This delivers the
   beautification TASK-008 deferred.
 
+## Several applications per passport, and manual status (2026-09-14)
+
+Built and tested on 2026-09-14; not pushed or deployed. Plan and owner
+decisions: `ongoing/visa-tracking-implementation/17-plan-2026-09-14-multi-application-and-manual-status.md`.
+
+### One application per Lead applicant (ADR-015)
+
+This replaces the first-release rule "one active tracking application per
+verified passport identity" and the exclusion of a case selector.
+
+- An application belongs to one `Applicant Information` row on its Lead,
+  and each row links its application. One passport can be in several cases,
+  with a different role in each.
+- Creation traces back to the source Lead (its `lead` / `crm_lead` Link is
+  mandatory), picks the row by the extraction's file collection or the
+  Lead's only row, and copies the Lead's destination (mandatory).
+- `visa_type` is gone from the application, the API and the tracker.
+- Verification keeps every case in the session under random references. A
+  new `list_applications` endpoint returns one summary per case, and the
+  status call takes an optional reference. Closed cases are listed like any
+  other.
+- The tracker opens a single case directly and shows a case list when there
+  are several.
+- Records: TASK-024, TASK-025, TASK-026. Commits: `the_visaguy` `896930f`,
+  `visa_tracker` `654b9f0`.
+
+### Operations set the status on the Process File (ADR-010 amendment)
+
+- `Operations Team Lead` and `Operations Associate` may change
+  `PF Process File.custom_client_status`. Its first value is fetched from
+  the application.
+- A manual change is kept for audit, hidden from the client's timeline, and
+  overwritten by the next workflow change.
+- Record: TASK-027. Commit: `the_visaguy` `896930f`.
+
+New risks: 39 (stale Lead-level links), 40 (headline vs timeline after a
+manual change), 41 (unresolvable applicant rows).
+
 ## Supporting specifications
 
 - [Architecture and data model](01-architecture-and-data-model.md)

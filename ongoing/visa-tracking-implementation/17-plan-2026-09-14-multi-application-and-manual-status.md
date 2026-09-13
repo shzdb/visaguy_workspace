@@ -27,6 +27,37 @@ Tasks: TASK-024 and TASK-027 `ready`; TASK-025 (after TASK-024) and
 TASK-026 (after TASK-025) `blocked` on their predecessors only. No open
 owner decisions remain.
 
+## Implementation (2026-09-14)
+
+All four tasks built and tested the same day; now `in-progress` pending
+push and deployment.
+
+| Repository | Commit | Tasks |
+|---|---|---|
+| `the_visaguy` | `896930f` | TASK-024, TASK-025, TASK-027 (one commit: shared constants, fixtures and tests) |
+| `visa_tracker` | `654b9f0` | TASK-026 |
+
+| Check | Result |
+|---|---|
+| `the_visaguy` pure tier | 317 run, 20 skipped, 2 known site-context errors |
+| `visa-tracker-test.localhost` migrate | exit 0; backfill patch ran |
+| `the_visaguy` on-site | **418 run, OK** |
+| `visa_tracker` `npm run verify` | 72/72, build clean, one existing lint warning |
+
+The bench's Redis was down; the queue and cache instances were started from
+the bench's own config for each run and shut down after.
+
+Two things differ from the plan above:
+
+- **D3:** a separate `list_applications` endpoint (as proposed).
+- **M1 enforcement:** a `validate` hook plus client script, not
+  `permlevel` + Custom DocPerm rows. Reason in TASK-027 "Deviation".
+
+Test-fixture changes worth knowing: Leads for the real creation path now
+carry one applicant row (`fixtures.make_lead_with_applicant`), and every
+directly inserted application gets a Lead and destination
+(`fixtures.tracking_application_references`).
+
 ---
 
 ## 1. Several tracking applications for one passport
