@@ -94,9 +94,12 @@ fault cannot fail a staff save.
 
 ### Negative
 
-- **Existing rows are not linked.** The triggers fire only on new events.
-  On 2026-09-13, 4 of 3,875 Process Files on `visaguy` were linked. No
-  backfill exists (risk 37).
+- **Older Process Files stay unlinked.** The triggers fire only on new
+  events. On 2026-09-13, 4 of 3,875 Process Files on `visaguy` were linked.
+  The owner confirmed (2026-09-13) that the rest predate linking and stay
+  unlinked by design; no backfill is planned. The TASK-016 drift sweep is
+  scheduled hourly again and reads only linked Process Files
+  (`the_visaguy` `6221926`).
 - **A wrong link is permanent.** Once `custom_visa_tracking_application` is
   set it short-circuits the resolver. Correction is manual.
 - **A collection mismatch fails silently.** If neither collection field on
@@ -121,5 +124,5 @@ fault cannot fail a staff save.
 
 `visaguy_crm` stops copying the lead-stage collection into
 `custom_lead_file_collection`, a Process File can serve more than one
-applicant, a backfill of existing rows is planned, or the review flag fires
-often enough to need a real queue.
+applicant, older Process Files need tracking after all, or the review flag
+fires often enough to need a real queue.

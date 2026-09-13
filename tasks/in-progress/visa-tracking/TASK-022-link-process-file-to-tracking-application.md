@@ -74,12 +74,24 @@ each `PF Process File` to the `Visa Tracking Application` it belongs to.
   Redis Queue on the bench refused connections. The last green on-site run
   (366, 2026-09-03) predates both commits.
 
+## Owner decisions (2026-09-13)
+
+- **No backfill.** The 3,871 unlinked Process Files are older files created
+  before linking existed. They stay unlinked by design. Only Process Files
+  created or changed from now on are linked.
+- **Reinstate the drift sweep.** `the_visaguy` `6221926` ("fix: schedule the
+  client status drift sweep hourly again") puts
+  `jobs.run_client_status_reconciliation_sweep` back under `hourly` in
+  `scheduler_events` and replaces the stale "no PF Process File is linked"
+  comment. `repair_client_status_drift` filters on
+  `custom_visa_tracking_application is set`, so the older unlinked files
+  are never scanned. Validation: `scheduler_events` parsed with `ast`
+  shows the `hourly` entry; pure tier unchanged at 286 run / 19 skipped /
+  2 known errors. Committed locally, not pushed.
+
 ## What remains
 
 1. Re-run the on-site tier on `visa-tracker-test.localhost` when Redis Queue
    is up: `bench --site visa-tracker-test.localhost run-tests --app the_visaguy --skip-test-records`.
-2. Owner decision on a backfill for existing Process Files (risk 37). Report
-   the count and mapping before writing anything.
-3. Revisit the unscheduled TASK-016 drift sweep. The `hooks.py` comment says
-   no Process File is linked yet; that is no longer true.
-4. Deploy. Close risk 37 only on deployment evidence.
+2. Push `the_visaguy` `feat/visa-tracker` (`6221926` is local), then deploy.
+   The deploy's migrate registers the hourly Scheduled Job Type.

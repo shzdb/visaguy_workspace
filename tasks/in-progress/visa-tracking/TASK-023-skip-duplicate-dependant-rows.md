@@ -61,9 +61,31 @@ dependant twice.
 3. **No test.** A test should cover a re-run, and a re-run after a partial
    first run.
 
+## Fix for gaps 1 and 3 (2026-09-13)
+
+`visaguy_crm` `9df61b4` ("fix: repair a missing dependant row on conversion re-run"):
+
+- `create_connection_to_primary_file` checks the Process File detail row and
+  the File Collection detail row independently. An existing first row no
+  longer skips the second.
+- The Link fields are set from the names read at the top of the function
+  (`dependent_process_file`, `dependent_file_collection`), not from the
+  variables the new rows used to shadow. Stored data already held the
+  correct names (verified on `visaguy`), so this changes readability, not
+  behaviour.
+- New `visaguy_crm/test_allocated_to_process_file.py`, six pure tests
+  (frappe patched, no site): first run writes both rows with their Links;
+  full re-run writes nothing; re-run after only the Process File row writes
+  the File Collection row; re-run after only the File Collection row writes
+  the Process File row; `_dependent_row_exists` identity filters; blank
+  parent or name is never a match.
+- Evidence: against `de7c959` the suite failed 2 of 6 (the two partial-run
+  tests). With the fix: **6/6 OK**. Run with
+  `cd ~/bench/sites && ../env/bin/python -m unittest visaguy_crm.test_allocated_to_process_file`.
+- Committed locally, not pushed.
+
 ## What remains
 
-1. Fix gap 1 and add the test (gap 3).
-2. Owner decision on removing the existing duplicate rows (gap 2). Report
+1. Owner decision on removing the existing duplicate rows (gap 2). Report
    the rows before deleting anything.
-3. Deploy. See risk 36.
+2. Push `visaguy_crm` `feat/visa-tracker`, then deploy. See risk 36.

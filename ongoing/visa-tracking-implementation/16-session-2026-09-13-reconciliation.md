@@ -112,13 +112,21 @@ TASK-020 name different tasks. Its visa tracking status (SPA not started,
 TASK-008 ready) is a month out of date. Merging needs a renumbering
 decision from the owner.
 
-## 8. What is left for FEAT-001
+## 8. Follow-up in the same session (owner instructions)
+
+| Item | Result |
+|---|---|
+| TASK-023 early return | Fixed with test: `visaguy_crm` `9df61b4`. New test failed 2/6 on `de7c959`, passes 6/6 with the fix. Local, not pushed. |
+| Unlinked Process Files | Owner: the 3,871 are older files, unlinked by design. No backfill. |
+| Hooks | Drift sweep back under `hourly`, stale comment replaced: `the_visaguy` `6221926`. Pure tier unchanged (286 / 19 skipped / 2 known errors). Local, not pushed. |
+| `fileflo` push | Pushed `feat/visa-tracker` `c7244a4..219c9aa`; equal to upstream after a fresh fetch. |
+
+## 9. What is left for FEAT-001
 
 1. Re-run the on-site suite when Redis Queue is up (risk 38).
-2. Fix the TASK-023 early return, add its test, decide on duplicate cleanup.
-3. Decide on a Process File link backfill; revisit the drift sweep schedule.
-4. Push `fileflo` `feat/visa-tracker`.
-5. Deploy backend before frontend (TASK-017), then close TASK-010/011/012/
+2. Decide on cleaning the existing duplicate dependant rows (risk 36).
+3. Push `the_visaguy` `6221926` and `visaguy_crm` `9df61b4`.
+4. Deploy backend before frontend (TASK-017), then close TASK-010/011/012/
    016/017/022/023 on deployment evidence.
 6. Open items carried forward: TASK-013 (blocked), TASK-014, TASK-015,
    TASK-018 (ready), risk 28 root cause, risk 34 recompute patch not run,

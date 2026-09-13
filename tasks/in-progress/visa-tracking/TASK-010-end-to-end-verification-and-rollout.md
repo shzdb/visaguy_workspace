@@ -462,7 +462,12 @@ and TASK-023 (duplicate dependant rows). Neither has on-site test evidence
 **Remaining before this task closes:**
 
 1. Re-run the on-site suite when Redis Queue on the bench is up (risk 38).
-2. Push `fileflo` `feat/visa-tracker`.
-3. Deploy per the §8 plan, backend before frontend.
+2. ~~Push `fileflo` `feat/visa-tracker`.~~ Done 2026-09-13
+   (`c7244a4..219c9aa`, now equal to upstream). New local commits to push:
+   `the_visaguy` `6221926` (hourly drift sweep) and `visaguy_crm` `9df61b4`
+   (dependant row repair).
+3. Deploy per the §8 plan, backend before frontend. The drift sweep is
+   scheduled again, but it reads only linked Process Files, so the §8
+   first-run concern about scanning every Process File does not apply.
 4. The open items in
    `ongoing/visa-tracking-implementation/16-session-2026-09-13-reconciliation.md` §8.

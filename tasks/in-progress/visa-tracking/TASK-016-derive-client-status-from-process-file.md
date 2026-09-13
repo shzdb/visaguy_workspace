@@ -526,5 +526,7 @@ addition).
   so the resolver's `custom_visa_tracking_application` guard acts on real
   rows: 4 of 3,875 on `visaguy` on 2026-09-13. The reason in `hooks.py`
   for leaving the drift sweep unscheduled ("no PF Process File is linked")
-  no longer holds. Decide the schedule together with the TASK-022 backfill
-  (risk 37).
+  no longer holds.
+- Same day, owner decision: the sweep is scheduled hourly again
+  (`the_visaguy` `6221926`, local). Older unlinked Process Files stay
+  unlinked by design and the sweep never scans them. See TASK-022.

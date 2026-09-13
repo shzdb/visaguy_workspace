@@ -263,6 +263,14 @@ migration is needed because these are development sites. In practice, on
 
 ### 3.3 Behaviour change at deploy — recompute on genuine change; the sweep is manual, not scheduled
 
+**Updated 2026-09-13 — the sweep is scheduled hourly again**
+(`the_visaguy` `6221926`, ADR-010 "Amendment (2026-09-13)"). The text below
+that says nothing schedules the sweep is out of date. The first-run concern
+still does not apply: the sweep reads only Process Files linked to a
+tracking application (4 on `visaguy` on 2026-09-13), and the older unlinked
+Process Files stay unlinked by design. No disable-observe-re-enable step is
+needed.
+
 **Updated 2026-09-02 — the risk this section originally described no longer
 applies; see below for why and what replaces it.**
 

@@ -251,6 +251,20 @@ This costs a frontend wire-contract change, tracked separately as TASK-017.
   immunity to out-of-order execution — despite the explainability and
   worker-dependency costs recorded under "Negative".
 
+## Amendment (2026-09-13): the hourly schedule is reinstated
+
+The reinstatement condition below is met. Since `the_visaguy` `b99dea7` and
+`d59614f` (ADR-014), Process Files are linked to tracking applications on
+insert, on a file-collection change, and when an application is created or
+reused. `the_visaguy` `6221926` puts
+`jobs.run_client_status_reconciliation_sweep` back under `hourly` in
+`scheduler_events`.
+
+The sweep reads only Process Files with `custom_visa_tracking_application`
+set. The owner confirmed that the older, unlinked Process Files stay
+unlinked by design, so they are never scanned. The manual commands below
+still work. The 2026-09-02 amendment is kept as history.
+
 ## Amendment (2026-09-02)
 
 TASK-016 shipped with the reconciliation sweep wired as an hourly scheduled
