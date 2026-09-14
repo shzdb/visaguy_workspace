@@ -67,6 +67,16 @@ reconciliation pass; recorded here so the omission is not mistaken for the
 repository not existing. See `features/ongoing/visa-tracking/README.md`
 "Reconciliation (2026-09-01)" for the source finding.
 
+### Note: `visa_refusal_checker` (FEAT-005) not yet catalogued (2026-09-14)
+
+`visa_refusal_checker`, the UK visa refusal risk checker, has a Git remote
+(`tvgglobal/visa_refusal_checker`). On 2026-09-14 its local `main` was at
+`bbbcb4f`, and the local remote-tracking ref `origin/main` was at `4e4648e`
+(not re-fetched). It is a frontend-only React 19 + Vite 8 app with no bench
+dependency. Like `visa_tracker`, it is outside the 32-repository count until a
+full catalog pass verifies owner and class. See
+`features/ongoing/uk-refusal-checker/README.md`.
+
 ## Dirty working trees
 
 The following repositories have uncommitted changes. Their diffs were not inspected.

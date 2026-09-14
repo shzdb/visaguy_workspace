@@ -26,6 +26,7 @@ Data classes observed:
 - Eligibility checker: full name, mobile number, destination, nationality, residency, employment, salary, bank statements, visa refusals.
 - Consumer portal: email, phone, travellers, travel dates, passport/identity documents, applicant files.
 - B2B portal: business details, applicant documents, invoices, payments.
+- UK refusal risk checker (FEAT-005): full name, mobile number, funding and statement consistency, ties to home, employment, form and evidence consistency, refusal history and whether it was declared, criminal convictions and whether they were declared, travel timing, refusal letter file name. All held in browser state only; nothing is transmitted except the summary (name, band, score, weakest ground, letter file name) in a WhatsApp message the applicant chooses to send. The letter file itself is not uploaded. A real upload would collect immigration-history documents and needs a storage and retention decision first (risk 43).
 
 **Recommended follow-up:** document data-retention policy; encrypt uploads at rest; mask PII in logs; add consent capture for marketing use.
 

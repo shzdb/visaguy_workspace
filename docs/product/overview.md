@@ -9,6 +9,7 @@ VisaGuy is a Frappe v15 multi-application platform for visa services. It support
 | Actor | Surface | Repository | Authentication |
 |---|---|---|---|
 | Anonymous consumer | Public visa eligibility checker | `tvgglobal/visa_eligibility_checker` | None (guest Frappe writes) |
+| Anonymous UK visit visa applicant | UK visa refusal risk checker (FEAT-005) | `tvgglobal/visa_refusal_checker` | None (no backend calls) |
 | Business admin / standard business user | B2B business portal | `tridz-dev/visaguy_business_client` | OAuth2 password grant |
 | Consumer applicant | Consumer website / e-commerce | `tvgglobal/visaguy-website-client` | Email/OTP → API key/secret |
 | Sales / operations / consultants | Frappe Desk / CRM / process workflows | Frappe site `visaguy` | Frappe session |
@@ -21,6 +22,7 @@ VisaGuy is a Frappe v15 multi-application platform for visa services. It support
 
 - Multi-zone visa eligibility assessment (chat and voice) with OpenAI Realtime.
 - Public lead capture into Frappe CRM.
+- UK visit visa refusal risk assessment, browser-side only, with WhatsApp hand-off (FEAT-005; no lead capture yet).
 - B2B visa order creation, applicant management, document collection, payment requests, and invoice download.
 - Consumer destination browsing, visa order creation, multi-applicant application form, file upload, and payment redirect.
 - Internal process/file workflows (`processflo` + `fileflo`).

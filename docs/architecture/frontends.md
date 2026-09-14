@@ -1,12 +1,13 @@
 # Frontends
 
-VisaGuy has three independent web frontends. Each targets a different actor and uses a different authentication model.
+VisaGuy has several independent web frontends. Each targets a different actor and uses a different authentication model. This page documents four. `visa_tracker` (FEAT-001) is documented in `features/ongoing/visa-tracking/` and is not yet described here.
 
 | Repository | Owner | Framework | HEAD / Date | Actors | Auth |
 |---|---|---|---|---|---|
 | `visa_eligibility_checker` | `tvgglobal` | React 19 + Vite 7 | `2d46af4e` / 2026-06-25 | Anonymous consumers | None (guest Frappe writes) |
 | `visaguy_business_client` | `tridz-dev` | Next.js 15.2.8 App Router | `6c3d365a` / 2026-03-27 | Business admins, standard business users | OAuth2 password grant |
 | `visaguy-website-client` | `tvgglobal` | Next.js 15.3.5 App Router | `3b066f6b` / 2025-08-10 | Consumer applicants | Email/OTP → API key/secret |
+| `visa_refusal_checker` | `tvgglobal` | React 19 + Vite 8 | `bbbcb4f` / 2026-09-14 | Anonymous UK visit visa applicants | None (no backend calls) |
 
 ## Frontend 1 — Public eligibility checker
 
@@ -141,6 +142,30 @@ VisaGuy has three independent web frontends. Each targets a different actor and 
 ### Environment variables
 
 - `NEXT_PUBLIC_FRAPPE_BASE_URL`
+
+## Frontend 4 — UK visa refusal risk checker (FEAT-005)
+
+### Framework and build
+
+- React 19, Vite 8, TypeScript 6, Tailwind CSS v4, Phosphor icons, React Compiler.
+- No routing library; single-page step machine in `refusal-checker.tsx`.
+- Build: `npm run build` (`tsc -b && vite build`); lint: `npm run lint`.
+- No automated test suite.
+
+### State and data flow
+
+- Local React state only. All scoring runs in the browser from `questions.json`; the model is documented in the repository's `SCORING.md`.
+- Name, mobile, answers and the refusal letter file name never leave the browser, except in the WhatsApp message the applicant chooses to send.
+- The refusal letter upload is simulated; the file is not transmitted or stored.
+- External requests: Google Fonts, and `wa.me` links opened by the applicant.
+
+### API contracts
+
+None.
+
+### Environment variables
+
+None. Brand name, logo, website URL and WhatsApp number are hardcoded in `src/config/brand.ts` for The Visa Guy UAE.
 
 ## Cross-frontend observations
 

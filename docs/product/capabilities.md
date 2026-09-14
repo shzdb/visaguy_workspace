@@ -18,6 +18,19 @@
 | Qualified Lead creation when score ≥ 55 | source-wired | `POST /api/resource/Lead` fire-and-forget |
 | WhatsApp CTA | source-wired | `result-screen.tsx` wa.me deep-link |
 
+## Public UK refusal risk check (FEAT-005)
+
+Browser-verified locally on 2026-09-14; not deployed, so none of these is runtime-verified.
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Refusal risk questions with inline insight notes | source-wired | `visa_refusal_checker` `refusal-checker.tsx`, `questions.json` |
+| Browser-side risk scoring, bands, hard and compound flags | source-wired | `scoring.ts`, `SCORING.md` reference profiles |
+| Result report with per-ground breakdown and fixes | source-wired | `result-screen.tsx` |
+| Consultation offer and WhatsApp hand-off | source-wired | `consult-modal.tsx`, `wa.me` deep link |
+| Refusal letter upload | present | `refusal-letter-upload.tsx`; simulated, no transmission |
+| Lead capture | not built | Name and mobile held in React state only |
+
 ## B2B business portal
 
 | Capability | Status | Evidence |
