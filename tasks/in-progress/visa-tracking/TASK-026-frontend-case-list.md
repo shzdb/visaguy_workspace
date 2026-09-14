@@ -27,7 +27,7 @@ updated: 2026-09-14
 
 ## Implementation (2026-09-14)
 
-`visa_tracker` `654b9f0` on `main`. Local, not pushed.
+`visa_tracker` `654b9f0` on `main`. Pushed 2026-09-14 (`49dd6b1..654b9f0`).
 
 - `src/types/tracking.ts`: `ApplicationSummary`, `ApplicationsResponse`;
   `visa_type` removed.

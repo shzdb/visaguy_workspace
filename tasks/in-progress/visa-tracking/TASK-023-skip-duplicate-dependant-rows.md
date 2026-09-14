@@ -82,7 +82,7 @@ dependant twice.
 - Evidence: against `de7c959` the suite failed 2 of 6 (the two partial-run
   tests). With the fix: **6/6 OK**. Run with
   `cd ~/bench/sites && ../env/bin/python -m unittest visaguy_crm.test_allocated_to_process_file`.
-- Committed locally, not pushed.
+- Pushed 2026-09-14 (see below).
 
 ## Owner decisions (2026-09-14)
 

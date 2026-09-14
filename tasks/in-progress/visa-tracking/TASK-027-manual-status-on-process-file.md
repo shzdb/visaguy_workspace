@@ -38,7 +38,7 @@ access).
 
 ## Implementation (2026-09-14)
 
-`the_visaguy` `896930f` (with TASK-024, TASK-025). Local, not pushed.
+`the_visaguy` `896930f` (with TASK-024, TASK-025). Pushed 2026-09-14.
 
 - `fixtures/custom_fields.json`: `read_only: 0`, `fetch_from`,
   `fetch_if_empty: 1`, new description. The existing `link_filters`

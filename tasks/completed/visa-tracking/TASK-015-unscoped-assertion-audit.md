@@ -2,13 +2,13 @@
 id: TASK-015
 feature: FEAT-001
 title: Audit visa-tracking tests for assertions that depend on global table state
-status: ready
+status: completed
 repository: the_visaguy
 owners: []
 depends_on:
   - TASK-011
 created: 2026-09-01
-updated: 2026-09-03
+updated: 2026-09-14
 ---
 
 # TASK-015: Audit visa-tracking tests for assertions that depend on global table state
@@ -138,3 +138,27 @@ audit rows, following the pattern already applied to the original
 `tearDown` cleanup where appropriate. Do not close this task on the original
 scope alone — the twice-in-a-row validation run must also cover these two
 tests.
+
+## Completion evidence (2026-09-14)
+
+**Audit** of every module under `visa_tracking/tests/` and
+`the_visa_guy/doctype/visa_tracking_application/test_visa_tracking_application.py`
+for unscoped counts, table-starts-empty assumptions, and shared identities on
+uniqueness-enforcing paths.
+
+| File | Outcome |
+|---|---|
+| `test_visa_tracking_application.py` | **Fixed** `test_invalid_combination_matches_not_found_shape`: audit rows filtered by endpoint + IP hash only; now also excludes rows that existed before the test. `test_audit_rows_contain_no_pii` was already scoped (2026-09-03). Other counts are scoped (`DocPerm` Guest rows is a genuine global invariant). |
+| `test_reconciliation_service.py` | No issue. `frappe.db.count("Passport Extraction")` is a before/after equality inside one test transaction with no workers; other counts filter by application or Process File. |
+| `test_lifecycle_service.py` | No issue. Counts filter by application or hash; identities `P0000101`/`P0000102` unique; `P0000000` only in direct inserts that bypass `create_tracking_application`. |
+| `test_public_api.py` | No issue. `P0000402` shared by two tests in one class, both clean up in `tearDown`; list endpoint assertions scoped to the session. |
+| `test_passport_extraction_auto_verify.py` | No issue. Counts filter by extraction; `P0000201` also appears in `test_pf_process_file_status_trigger.py`, but since ADR-015 reuse is per applicant row, not per identity, so they cannot collide. |
+| `test_audit_service.py` | No issue. Rows filtered by the names the test created. |
+| `test_fileflo_inspection.py`, `test_status_service.py`, `test_pf_process_file_status_trigger.py`, `test_response_service.py`, `test_recompute_lookup_hash_unkeyed.py`, `test_link_tracking_applications_patch.py`, `test_session_service.py` | No issue. Counts filter by application, collection or extraction. |
+| `test_lookup_service.py`, `test_rate_limit_service.py`, `test_security_utils.py`, `test_settings.py`, `test_status_resolution.py`, `test_request_handlers.py`, `test_process_file_status_validate.py` | No issue. Pure tests, no database. |
+
+**Change.** `the_visaguy` `12ded1a` (test only; no application code).
+
+**Validation.** Full on-site suite twice back to back on
+`visa-tracker-test.localhost`, no reset in between: **425 run, OK** and
+**425 run, OK** (before this session's work: 418 run).

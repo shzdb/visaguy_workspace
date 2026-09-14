@@ -2,14 +2,14 @@
 id: TASK-014
 feature: FEAT-001
 title: Investigate and close raw-traceback disclosure on non-JSON body to public verify_identity
-status: ready
+status: completed
 repository: the_visaguy
 owners: []
 depends_on:
   - ADR-005
   - TASK-007
 created: 2026-09-01
-updated: 2026-09-01
+updated: 2026-09-14
 ---
 
 # TASK-014: Investigate and close raw-traceback disclosure on non-JSON body to public verify_identity
@@ -124,3 +124,49 @@ needs to be determined before implementation.
 - Live-HTTP proof recorded.
 - Risk 24 in `docs/risks-and-open-questions.md` updated once the fix is
   runtime-verified.
+
+## Completion evidence (2026-09-14)
+
+**Root cause.** Frappe v15 `frappe/app.py`: `init_request` calls
+`make_form_dict`, which does `json.loads` on any body sent with
+`Content-Type: application/json`. That raises `JSONDecodeError` before
+routing and **before** `before_request` hooks run, so no app code can
+intercept it there. `handle_exception` → `report_error` then returns HTTP 500
+with the traceback, because `allow_error_traceback` is `1` — on the test site
+**and on `visaguy`**. Installed Frappe is 15.113.0; `make_form_dict` has no
+guard in this version.
+
+**Where the fix belongs.** `after_request` hooks run for every request,
+including one that failed in `init_request`, and receive the response object.
+Web-server mapping was rejected (the proxy config is not in any repository);
+a monkey-patch of `make_form_dict` was rejected (hooks load from cache, so an
+import-time patch is not guaranteed to be applied).
+
+**Fix.** `the_visaguy` `07c1872`:
+`visa_tracking/handlers/request_handlers.normalize_public_failure`, registered
+as `after_request` in `hooks.py`. For the four public methods
+(`verify_identity`, `get_tracking_status`, `list_applications`, `logout`) on
+`/api/method/`, `/api/v1/method/` and `/api/v2/method/`, a response that is
+not HTTP 200 is replaced with `response_service.generic_failure_response`,
+status 200, JSON. The endpoints always answer 200 themselves, so their own
+responses (including a lockout's `Retry-After`) are untouched. Other paths
+are untouched. The rejected request is not audited: its transaction is
+already rolled back when the hook runs.
+
+**Validation.**
+- `visa_tracking/tests/test_request_handlers.py`, 7 tests (50 subtests):
+  every public path and prefix, byte-identical body, 200 and lockout
+  untouched, other paths untouched, settings failure, hook registered.
+  Mutation: with the replacement disabled, all path/body tests fail; restored,
+  7/7 OK.
+- Full WSGI stack in-process (`werkzeug.test.Client(frappe.app.application)`,
+  `Host: visa-tracker-test.localhost`). Before the fix: non-JSON → HTTP 500,
+  traceback, md5 `90894652…`. After: verify, status and list each return
+  HTTP 200 md5 `8ea9c038…` for non-JSON, `[]`, wrong credentials and
+  `text/plain` — identical. `frappe.auth.get_logged_user` with a non-JSON body
+  still returns its own 500.
+- On-site suite: 425 run, OK (twice).
+
+**Outstanding.** Deploy. Separately, `allow_error_traceback` is on for
+`visaguy`: every other unhandled error on that site returns a traceback. That
+is a site setting for the owner. Risk 24 closes on deployment evidence.

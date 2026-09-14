@@ -44,7 +44,7 @@ can have several applications (ADR-015).
 ## Implementation (2026-09-14)
 
 `the_visaguy` `896930f` (together with TASK-025 and TASK-027; the three
-share constants, fixtures and tests). Local, not pushed.
+share constants, fixtures and tests). Pushed 2026-09-14 (`8cf4c64..896930f`).
 
 - `lifecycle_service`: `resolve_applicant_row`, `_reusable_application`,
   `_write_applicant_row_link`, `_link_lead_extraction`;

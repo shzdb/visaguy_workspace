@@ -34,7 +34,7 @@ Let a verified client see every case they are in (ADR-015 §10).
 
 ## Implementation (2026-09-14)
 
-`the_visaguy` `896930f` (with TASK-024, TASK-027). Local, not pushed.
+`the_visaguy` `896930f` (with TASK-024, TASK-027). Pushed 2026-09-14.
 
 - `session_service`: `create_session` takes one name or a list and stores
   `{"applications": [[ref, name], ...], "created_at"}`; references are

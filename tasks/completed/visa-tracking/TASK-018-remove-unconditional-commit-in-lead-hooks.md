@@ -2,14 +2,14 @@
 id: TASK-018
 feature: FEAT-001
 title: Investigate and remove unconditional frappe.db.commit() in visaguy_crm Lead hooks
-status: ready
+status: completed
 repository: visaguy_crm
 owners: []
 depends_on: []
 expected_files:
   - visaguy_crm/visaguy_crm/server_scripts/lead/lead_hooks.py
 created: 2026-09-02
-updated: 2026-09-02
+updated: 2026-09-14
 ---
 
 # TASK-018: Investigate and remove unconditional `frappe.db.commit()` in `visaguy_crm` Lead hooks
@@ -104,3 +104,38 @@ this commit was a workaround for) rather than being pure oversight.
 - Risk 26 in `docs/risks-and-open-questions.md` updated to reflect the fix
   once deployed (do not close it on implementation alone — deployment
   evidence is required, consistent with this workspace's standing rule).
+
+## Completion evidence (2026-09-14)
+
+**Scope as found.** The two Lead customer-sync hooks in `lead_hooks.py` were
+already fixed (`51f608e`). Risk 26 named three more sites; all eight commits
+on them were in these places:
+
+| Module | Where | Runs inside | Git history |
+|---|---|---|---|
+| `form_disable_via_pf_action.py` | `disable_form_with_action` (4), `disable_additional_documents` (2) | PF Process File `validate` | initial import `7af96a9` (2025-09-04), `f719140d` (2026-01-27); no reason given |
+| `file_collection_from_lead.py` | end of `generate_file_collection_lead`; workaround block in `create_ff_file_collection` after `db_set` | whitelisted action **and** Lead `before_save` via `reset_and_regenerate_on_destination_change` | `7af96a9`, `1c17d478` (2026-03-31) |
+| `allocated_to_process_file.py` | `create_process_file`, after creating process files and in the form-disable loop | whitelisted POST action | `7af96a9` |
+
+**Load-bearing?** No. Nothing on these paths enqueues a job that reads the
+new rows (`update_applicant_details` enqueues deletion of the *previous*
+collections only), emails use `frappe.sendmail(now=True)` inside the request,
+`publish_realtime` already uses `after_commit=True`, and the whitelisted
+actions are called with `frappe.call` (POST), which Frappe commits in
+`sync_database` on success. The commits only split one logical change into
+committed halves. `update_customer_name_from_button` keeps its commit: a
+standalone button action, never called from a hook.
+
+**Fix.** `visaguy_crm` `df74c46` removes all eight.
+
+**Validation.**
+- New `visaguy_crm/test_no_mid_request_commits.py` (4 tests): both PF validate
+  hooks save the collections and never commit; an AST scan of the four
+  save-path modules allows a commit only in
+  `update_customer_name_from_button`. Against the old code: 4/4 fail. With the
+  fix: 4/4 OK, plus `test_allocated_to_process_file` 6/6.
+- `visaguy_crm.server_scripts.lead.test_lead_hooks` on-site: 3/3 OK.
+- `the_visaguy` on-site suite (installs `visaguy_crm`): 425 run, OK, twice.
+- The `the_visaguy` fixture workarounds for leaked state are left in place.
+
+**Outstanding.** Deploy. Risk 26 closes on deployment evidence.

@@ -90,7 +90,7 @@ each `PF Process File` to the `Visa Tracking Application` it belongs to.
   `custom_visa_tracking_application is set`, so the older unlinked files
   are never scanned. Validation: `scheduler_events` parsed with `ast`
   shows the `hourly` entry; pure tier unchanged at 286 run / 19 skipped /
-  2 known errors. Committed locally, not pushed.
+  2 known errors. Pushed 2026-09-14.
 
 ## What remains
 
