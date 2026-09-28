@@ -53,3 +53,4 @@
 - 2026-09-28: Phase 3 dispatch (cursor-agent --force with merge/migrate rights on the installed bench checkouts and test site) was denied by the Claude Code auto-mode permission classifier. Prompt is ready at prompts/03-integration.txt. Waiting for the owner to allow it or run it.
 - 2026-09-28: Owner: merge and migrate the TEST site only; never run anything on `visaguy` (owner tests it). Patch may run on the test site. Integration done directly by the orchestrator. See 03-integration.md.
 - 2026-09-28: TASK-035 merged (`3872390`); test-site migrate OK; the_visaguy on-site 638 OK; report reasons match ensure_tracking. Tasks 031–036 moved to in-progress (awaiting owner visaguy test and deploy).
+- 2026-09-28: TASK-037 (HEIC message) merged `34a8806`; on-site 657 OK. TASK-038 (realtime alerts) planned, blocked on owner Q1–Q3.

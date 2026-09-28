@@ -2,7 +2,7 @@
 id: TASK-037
 feature: FEAT-001
 title: Clear message for unsupported passport file types (HEIC)
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -71,3 +71,18 @@ No change to `passport_extractor`. No new query per row in the report.
 ## Definition of done
 
 Validation passes and the commit SHA is recorded here.
+
+## Implementation (2026-09-28)
+
+`the_visaguy` `a11ad1f`, merged into `feat/visa-tracker` as `34a8806` on the bench. Not pushed or deployed.
+
+Evidence: 19 new pure tests (pure tier 556, only the 2 known errors). On
+`visa-tracker-test.localhost` (rolled back): a Failed extraction with
+`UNSUPPORTED_FILE_TYPE` gives `unsupported_file_type` with the new message in
+Generate, Retry is refused with the same message, the coverage report shows
+the same reason and Next Step; a `NO_MRZ_FOUND` failure keeps
+`extraction_failed`. Full on-site suite 657 OK.
+
+## What remains
+
+Owner test on `visaguy`, push and deploy.
