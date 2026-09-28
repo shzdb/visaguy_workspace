@@ -11,6 +11,7 @@ depends_on:
   - ADR-014
   - ADR-015
   - ADR-016
+  - TASK-036
 expected_files:
   - the_visaguy/visa_tracking/services/ensure_service.py
   - the_visaguy/visa_tracking/handlers/process_file_handlers.py
@@ -43,15 +44,15 @@ logic runs from a manual action on the form.
 
 - Legacy passport rows are already `Completed`, so the ADR-012 trigger
   never fires for them again.
-- No legacy primary passport row has a `field_id`. On `visaguy` the
-  Completed passport rows of open files are named `Passport` (7,359),
-  `Passport Copy - N` (2,688), `Passport - N` (1,956), `Passport Copy` (75),
-  `Passport1`/`Passport2` (45) and `Passport جواز سفر` (5).
-- Every such row is in `custom_lead_file_collection`, not `file_collection`.
-- Downstream code needs no `field_id`: `handle_verified_extraction` resolves
-  the Lead and the applicant row from the extraction's source collection.
-- `run_fileflo_inspection` skips rows without a configured `field_id`, so
-  this task must not call it for legacy rows.
+- TASK-036 sets `field_id = "passport"` on every primary passport row, on
+  templates and existing collections. **This task needs TASK-036 deployed
+  first.** It never matches file names.
+- On open files the passport row is in `custom_lead_file_collection`, not
+  `file_collection`.
+- `run_fileflo_inspection(collection)` already does what is needed per
+  collection: it takes rows whose `field_id` is in `passport_field_ids`,
+  skips rows that are not `Completed`, and creates or reuses one extraction
+  per row (idempotent). This task reuses it.
 - A file collection belongs to one person (owner, 2026-09-28). Several
   passport rows are pages of one passport.
 
@@ -70,25 +71,20 @@ Returns an outcome code and does these steps:
    already (for example the Lead-stage extraction was verified before the
    Process File existed). If it links, recompute the status (step 7) and
    return `linked_existing`.
-4. Find the passport rows in `custom_lead_file_collection`, then in
-   `file_collection`:
-   - rows whose `field_id` is in `passport_field_ids`; else
-   - rows whose normalized `file_name` matches the legacy list. Normalize:
-     trim, lower-case, merge whitespace, remove a trailing ` - N`, then
-     compare with `passport`, `passport copy`, `passport1`, `passport2`,
-     `passport جواز سفر`. Keep the list in one constant.
-   - Only rows with `status = Completed` and a `document`.
-   - Never rows named like "previous passport", "other nationality" or
-     "accompanying member".
-5. If no row is found, return `no_passport_row`, `passport_not_completed` or
-   `passport_no_file`.
-6. Look for an existing extraction for the collection. Reuse any status
-   except `Failed`, `Duplicate` and `Superseded`, and return
-   `extraction_pending` or `needs_review`. Otherwise create one with
-   `get_or_create_passport_extraction` for the first row (`Passport` or the
-   ` - 1` row first), then `enqueue_passport_extraction`. For legacy rows use
-   `source_field_id = "legacy_passport"`. Return `extraction_queued`. If
-   that extraction fails, try the next row in a later run.
+4. Call `run_fileflo_inspection` for `custom_lead_file_collection`, then
+   for `file_collection` (skip empty or equal values). Do not change it.
+5. Map its per-row results to one outcome code, in this order:
+   - a row `created` → `extraction_queued`;
+   - a row `reused` → `extraction_pending`, or `needs_review` when that
+     extraction is in `Needs Review`;
+   - only `FAILED_RECORD_EXISTS` → `extraction_failed` (the Retry action
+     applies);
+   - only `ROW_NOT_COMPLETED` → `passport_not_completed`;
+   - no passport row in either collection → `no_passport_row`;
+   - `no_field_ids` → `not_configured` (the setting is empty).
+6. Several passport rows (front and back pages) give one extraction each.
+   That is accepted: the page without an MRZ ends `Failed`, and the other
+   creates the application.
 7. After an application links, call `recompute_client_status` so the status
    comes from the workflow state and not from the Lead default status.
 
@@ -139,7 +135,7 @@ owner sets the setting at deploy (D9).
 - No bulk run. Do not add a scheduled job that processes all open files.
 - The save hook must not raise. Catch and log inside the job.
 - Do not change `run_fileflo_inspection` or the ADR-012 trigger.
-- Do not write to FileFlo rows. Do not set `field_id` on legacy rows.
+- Do not write to FileFlo rows. TASK-036 sets the field IDs once.
 - Do not log passport numbers, names or dates of birth.
 
 ## Expected changes
@@ -149,10 +145,9 @@ and a client script button. Tests for each outcome code.
 
 ## Validation
 
-- Pure tests for the file-name normalization, with each name in Context and
-  each excluded name.
+- Pure tests for the mapping from inspection results to outcome codes.
 - On-site tests on `visa-tracker-test.localhost`:
-  - a primary with a Completed legacy `Passport` row gets an application
+  - a primary with a Completed passport row with `field_id = passport` gets an application
     after the job and the extraction run;
   - a dependant file gets its own application;
   - a saved file that already has a link enqueues nothing;

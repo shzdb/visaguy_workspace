@@ -564,7 +564,8 @@ Owner decision, recorded in **ADR-016**: no bulk backfill for Process Files
 created before go-live. When a Process File is saved without a tracking
 application, the system creates one for the primary and its dependants. A
 manual **Generate Visa Tracking** action does the same. Legacy passport rows
-have no `field_id`, so they are found by file name. The feature then runs in
+have no `field_id`; a one-time patch (TASK-036) sets `field_id = passport`
+on templates and existing collections, so every path uses the field ID. The feature then runs in
 production for one to two weeks before it is marketed.
 
 A read-only review of the desk on 2026-09-28 found that no operations user
@@ -589,6 +590,8 @@ Plan, decisions D1–D10 and gaps:
   Passport Extraction (ready).
 - TASK-034 — roles and permissions for visa tracking (ready).
 - TASK-035 — tracking coverage report (ready; after TASK-031).
+- TASK-036 — patch that sets the passport field ID on templates and
+  existing collections (ready; first).
 
 ## Supporting specifications
 

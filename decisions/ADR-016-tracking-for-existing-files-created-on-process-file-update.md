@@ -87,6 +87,26 @@ Owner decision of 2026-09-28:
 - **Wait for `field_id` on legacy rows.** Rejected: no legacy row has one,
   and adding them to old collections is a separate data change.
 
+## Amendment (2026-09-28): field ID patch instead of file-name matching
+
+Owner decision, later the same day. Decision 4 ("legacy passport rows are
+found by file name") is replaced:
+
+- A one-time patch (TASK-036) sets `field_id` and `field_id_link` to the
+  existing `FF Field ID` `passport` on every primary passport row: 223
+  template rows and 37,490 rows in 29,176 existing collections on
+  `visaguy`.
+- The name rule is used once, in the patch, and its counts are reviewed in
+  a dry run. Live code (TASK-031, TASK-035, the ADR-012 trigger) uses only
+  `field_id`.
+- The patch writes without document saves, so it queues no OCR. Decision 1
+  (no bulk backfill) still holds.
+- `passport_field_ids` is set to `passport`.
+
+This also removes the "file-name match is a heuristic" consequence above
+from the running system. A passport under an unmatched name is found by
+the patch's dry-run counts, not later by the coverage report.
+
 ## Revisit when
 
 Coverage after the soft launch is too low for marketing, or untouched open

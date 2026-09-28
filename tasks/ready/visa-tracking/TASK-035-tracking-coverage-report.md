@@ -9,6 +9,7 @@ owners: []
 depends_on:
   - ADR-016
   - TASK-031
+  - TASK-036
 expected_files:
   - the_visaguy/the_visa_guy/report/visa_tracking_coverage/
 created: 2026-09-28
@@ -46,7 +47,8 @@ A summary row at the top: open files, tracked, and a count per reason.
 ## Constraints
 
 - Read-only. No passport number, DOB or MRZ in any column.
-- Share the passport-row matching with TASK-031. Do not copy it.
+- Find passport rows by `field_id` in `passport_field_ids` only
+  (TASK-036). Reuse TASK-031's outcome codes.
 - It must run in under 30 seconds for 15,000 open files. Use set-based
   queries, not a document load per file.
 

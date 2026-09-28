@@ -50,7 +50,7 @@ From the task records and a read-only check of the bench:
 |---|---|---|
 | Tracking is created on Process File save, for the primary and dependants | ADR-016. Without it, no legacy file is ever tracked. | TASK-031 |
 | Manual **Generate Visa Tracking** and **Retry passport extraction** actions | Recovery when a job fails, without a developer. | TASK-031 |
-| Legacy passport rows found by file name | No legacy row has a `field_id`. | TASK-031 |
+| `field_id = passport` on templates and existing collections | No legacy row has a `field_id`; after the patch every path uses it. | TASK-036 |
 | Operations can open the tracking link and use the status picker | Today every operations user gets a permission error. | TASK-034 |
 | A labelled **Visa Tracking** section on the Process File, with the name shown in the link | Today the link sits in an unlabelled section among reference fields, and shows an ID. | TASK-032 |
 | Application form ordered for reading: applicant, status, timeline, then references | Today the references come first and the timeline is not shown. | TASK-032 |
@@ -80,7 +80,6 @@ From the task records and a read-only check of the bench:
 - Close applications (`application_closed`) automatically after Documents
   Delivered plus N days, and a retention period for closed ones.
 - Delete the hidden Lead-level fields with an explicit patch (risk 39).
-- `field_id` on legacy templates, so the file-name match can be removed.
 
 ## Phases
 
@@ -91,7 +90,7 @@ TASK-034 are `ready`. D5–D10 remain.
 
 ### Phase 1: build
 
-Order: TASK-031 → TASK-034 → TASK-011 → TASK-033 → TASK-032 → TASK-035. Test each on
+Order: TASK-036 → TASK-031 → TASK-034 → TASK-011 → TASK-033 → TASK-032 → TASK-035. Test each on
 `visa-tracker-test.localhost`. Close TASK-016, TASK-017 and TASK-022 to
 TASK-027 together, because they deploy together.
 
@@ -110,7 +109,8 @@ TASK-027 together, because they deploy together.
 7. **Visa Tracker Settings**:
    - `enabled`, `enable_passport_extraction`,
      `auto_create_tracking_application`, `auto_link_verified_passport`: on.
-   - `passport_field_ids`: the `field_id` values used on new templates.
+   - `passport_field_ids`: `passport`. Before the deploy, run the TASK-036
+     dry run on production and record its counts.
    - `require_manual_verification`: **off** (D2).
    - `extraction_queue`: `long`. `inspection_queue`: `short`.
    - `default_lead_status`, `process_file_created_status`,
