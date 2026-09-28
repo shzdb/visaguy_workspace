@@ -2,7 +2,7 @@
 id: TASK-032
 feature: FEAT-001
 title: Desk layout and navigation for visa tracking
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -125,3 +125,17 @@ Shortcuts, with counts where Frappe supports them:
 
 Validation passes, and screenshots of the Process File section and the
 Application form are attached to the completion note.
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `f800d3f`, `ffcacb3`, merged `021f636`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: Static fixture tests; on the test site the PF field order is custom_form_submitted → Visa Tracking section (link, Client Status, note, column, updated on, enabled) → Application Form; Application title/sections/list/filters/links, workspace, hidden Lead-level fields and applicant grid column verified with frappe.get_meta. The PF `field_order` Property Setter (from visaguy_crm) does not list the tracking fields; an idempotent after_migrate hook guards the order. Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

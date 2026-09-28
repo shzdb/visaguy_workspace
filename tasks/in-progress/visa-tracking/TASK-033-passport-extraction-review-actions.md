@@ -2,7 +2,7 @@
 id: TASK-033
 feature: FEAT-001
 title: Needs Review verification, retry, search and list view for Passport Extraction
-status: ready
+status: in-progress
 repository: passport_extractor
 app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
@@ -98,3 +98,17 @@ automatic (ADR-007 amendment, 2026-09-28).
 ## Definition of done
 
 Validation passes and the commit SHA is recorded here.
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `passport_extractor` on the bench (installed checkout), commits `2a00d00`, merged `fa97752`, test fix `84da2fe`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: 25 pure tests; on-site suite 98 OK; smoke test verified a Needs Review record through the normal save and the tracking hook. Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

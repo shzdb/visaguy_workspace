@@ -1,0 +1,30 @@
+CORRECTIVE FOR TASK-032 (you continue on branch sl/task-032; your earlier log is 01e-task-032.md — read it first).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-032/the_visaguy. Bench worktree name: task-032-the_visaguy.
+Output file: 01e2-task-032-field-order.md
+
+NEW FACT (orchestrator verified on both sites, 2026-09-28): PF Process File has a Property Setter with property
+"field_order" (45 field names, starting workflow_state, applicant_name, process_, ...). It is shipped by the
+visaguy_hrms app's fixtures/property_setter.json, so every migrate re-imports it. The Custom Field
+PF Process File-custom_section_break_mw0ux also has insert_after custom_form_submitted — the same anchor as your new
+section. In Frappe v15, a field_order Property Setter decides the order of the fields it lists; insert_after only
+places fields that are NOT in that list. So moving custom_visa_tracking_application and custom_client_status by
+changing insert_after most likely has no effect, and the new section's position relative to custom_section_break_mw0ux
+is ambiguous.
+
+TASK IDS:
+F1. Confirm the behaviour by reading the v15 source read-only on the bench: frappe/model/meta.py (sort_fields or
+    equivalent, field_order handling) and frappe/migrate.py (order of fixture sync vs after_migrate hooks). Quote the
+    relevant function names and line numbers in your output file.
+F2. If confirmed: add an idempotent after_migrate hook in the_visaguy (hooks.py after_migrate list; you own it for this
+    corrective) that loads the PF Process File field_order Property Setter (do nothing if absent), removes
+    custom_visa_tracking_section, custom_visa_tracking_application, custom_client_status, custom_tracking_empty_note,
+    custom_tracking_column_break, custom_tracking_updated_on, custom_tracking_enabled from the list, and re-inserts them
+    in that order directly after custom_form_submitted (so custom_section_break_mw0ux follows them). Write the value
+    with frappe.db.set_value on the Property Setter (no other field changes), then frappe.clear_cache(doctype=...).
+    Never touch visaguy_hrms files. Keep insert_after values as a fallback for sites without a field_order.
+F3. Pure test for F2 with a synthetic field_order list: correct final order, idempotent on a second run, no-op when the
+    Property Setter is missing, no-op when custom_form_submitted is missing from the list (log a warning instead).
+F4. List in the output file the exact on-site checks for the integration phase (frappe.get_meta order after migrate).
+
+GATES: py_compile; pure tier on the bench under the flock wrapper: no new errors vs baseline; commit on sl/task-032 and
+push to bench.

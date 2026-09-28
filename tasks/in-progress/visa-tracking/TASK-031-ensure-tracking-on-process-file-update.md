@@ -2,7 +2,7 @@
 id: TASK-031
 feature: FEAT-001
 title: Create tracking on Process File update, and a manual Generate action
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -179,3 +179,17 @@ and a client script button. Tests for each outcome code.
 
 All validation passes, the commit SHA is recorded here, and the soft-launch
 plan's "Coverage" check can read the outcome codes.
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `ca06256`, merged `e775273`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: 78 pure tests; smoke test S1–S13 on the test site (save enqueues, extraction queued, Needs Review, verify, link, status recompute, same-Lead guard, Rejected skip, role refusal). Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

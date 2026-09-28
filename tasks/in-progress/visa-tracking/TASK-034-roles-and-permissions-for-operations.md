@@ -2,7 +2,7 @@
 id: TASK-034
 feature: FEAT-001
 title: Roles and permissions for visa tracking
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -113,3 +113,17 @@ On `visa-tracker-test.localhost`, with a test user per role:
 
 Validation passes, the fixture rows are listed here with the commit SHA,
 and the permission rows on the production site are checked after migrate.
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `aa94c86`, `7ecfbd3`, merged `5790c7f`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: Static matrix tests; on the test site Custom DocPerm rows present for all five DocTypes with the standard rows kept, including System Manager on Visa Tracker Settings (it was locked out before). Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

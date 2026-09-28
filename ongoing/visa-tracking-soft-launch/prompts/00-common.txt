@@ -1,0 +1,84 @@
+GROUND FACTS (already verified by the orchestrator — do not re-derive):
+
+- Workspace (documentation, authoritative for intent; READ-ONLY for you except your one output file):
+  /Users/shzd/Projects/tridz/workspaces/visaguy_workspace
+  Your task contract is in tasks/ready/visa-tracking/. It is the authority for required behaviour,
+  constraints and validation. Related ADRs are in decisions/ (ADR-007, ADR-010, ADR-012, ADR-014,
+  ADR-015, ADR-016). Soft-launch plan: features/ongoing/visa-tracking/07-soft-launch-plan.md.
+- Application repositories are Frappe v15 apps, Python 3.10. Source of truth lives on the remote bench,
+  reachable as ssh host alias `erpcode` (key auth works, no password):
+    /home/shahzad/bench/apps/the_visaguy        branch feat/visa-tracker, HEAD 12ded1a
+    /home/shahzad/bench/apps/passport_extractor branch feat/visa-tracker, HEAD 0febf6c
+  Bench python: /home/shahzad/bench/env/bin/python. Test site: visa-tracker-test.localhost.
+- You edit in a LOCAL git worktree (path given in your task section). Its remote named `bench` points at
+  erpcode:/home/shahzad/bench/apps/<repo>. Frappe is NOT installed locally; tests run on the bench.
+- Test loop (the only allowed way to run tests in this phase):
+    1. commit locally on your branch;
+    2. git push bench <your-branch>     (this pushes a branch into the bench's own repo; allowed.
+       Never push to any other remote, never push feat/visa-tracker or main. --force only on your own
+       sl/* branch if you rewrote it);
+    3. on the bench, use a dedicated worktree for your branch:
+         ssh erpcode 'git -C /home/shahzad/bench/apps/<repo> worktree add --detach /home/shahzad/sl-worktrees/<task>-<repo> <your-branch> 2>/dev/null || git -C /home/shahzad/sl-worktrees/<task>-<repo> checkout -q --detach <your-branch>'
+    4. run the pure tier there:
+         ssh erpcode 'cd /home/shahzad/sl-worktrees/<task>-<repo> && flock -w 3600 /home/shahzad/sl-worktrees/.test.lock timeout 900 /home/shahzad/bench/env/bin/python -m unittest discover -s the_visaguy/visa_tracking/tests 2>&1 | tail -30'
+       Baseline at 12ded1a: "Ran 324 tests", FAILED (errors=2, skipped=20). The 2 errors are the known
+       test_lifecycle_service.TestProcessFileHandler "AttributeError: site" cases. Your branch must not add
+       any new error or failure. For passport_extractor, run its pure tests the same way from the
+       worktree root with -s passport_extractor (tests that need a site will error with site context;
+       record the baseline count first and compare).
+- The bench is memory-starved (swap is full) and four other executors share it. ALWAYS wrap bench test runs in
+  `flock -w 3600 /home/shahzad/sl-worktrees/.test.lock timeout 900 ...` as shown, so only one runs at a time.
+- FORBIDDEN in this phase: modifying anything under /home/shahzad/bench/apps/* or /home/shahzad/bench/sites/*;
+  `bench migrate`, `bench run-tests`, `bench console`, `bench execute` against any site; touching site
+  `visaguy`; installing packages. On-site verification happens in a later integration phase — list the
+  on-site checks you could not run in your output file instead.
+- Security/privacy: never put passport numbers, names, dates of birth or real file names in code, tests,
+  commits or logs. Use synthetic fixtures.
+- Commits: normal author config, conventional message like "feat(TASK-031): ...". Do NOT add any
+  Co-Authored-By or AI attribution trailer.
+- Style: match the surrounding code (indentation, naming, docstring density). Keep functions small.
+  Frappe idioms: frappe.db.get_value / frappe.get_all with explicit fields, frappe.enqueue with
+  enqueue_after_commit=True, whitelisted methods check permissions server-side, no raw SQL string
+  formatting with user input.
+
+SHARED-FILE OWNERSHIP (five tasks run in parallel on separate branches; touching a file you do not own
+causes merge conflicts — if you truly need a change there, do NOT make it; describe it in your output
+file under "Needs from another task"):
+- the_visaguy/fixtures/client_scripts.json ................ TASK-031 only
+- the_visaguy/fixtures/custom_fields.json, property_setters.json, workspace.json, and the `fixtures`
+  list in hooks.py ......................................... TASK-032 only
+- the_visaguy/fixtures/custom_docperm.json ................. TASK-034 only
+- the_visaguy/patches.txt and the_visaguy/patches/ ......... TASK-036 only
+- visa_tracking/services/lifecycle_service.py, handlers/process_file_handlers.py, a new
+  services/ensure_service.py, a new api/desk.py, doc_events in hooks.py ... TASK-031 only
+- visa_tracking/jobs.py: TASK-031 adds its ensure job; TASK-036 adds a guard inside
+  enqueue_missing_fileflo_extractions. Each touches only its own function.
+- visa_tracking/services/reconciliation_service.py ......... TASK-036 only
+- the passport_extractor repository ........................ TASK-033 only
+- Visa Tracking Application DocType folder (json/js/list js) TASK-032 only
+
+CROSS-TASK CONTRACTS (implement or consume exactly these signatures):
+- C1 (TASK-033 provides, TASK-031 consumes):
+    passport_extractor.passport_extractor.api.create_retry_extraction(extraction_name: str) -> str
+      No permission check (server-side helper). Raises frappe.ValidationError unless the record's status
+      is "Failed". Inserts a NEW Passport Extraction copying passport_file and the source fields
+      (source_doctype, source_document, source_field_id, source_row), status "Queued",
+      triggered_by "Retry", requested_by = session user; enqueues
+      "passport_extractor.passport_extractor.jobs.run_passport_extraction" on the "long" queue with
+      enqueue_after_commit=True; returns the new name.
+    passport_extractor.passport_extractor.api.retry_extraction(extraction_name)  @frappe.whitelist()
+      Checks frappe.has_permission("Passport Extraction", "create") then calls the helper.
+  TASK-031 must import C1 lazily (frappe.get_attr) and mock it in pure tests.
+- C2 (TASK-031 provides, TASK-035 consumes later): outcome codes as string constants in
+  the_visaguy/visa_tracking/utils/constants.py, names ENSURE_OUTCOME_<CODE> for every code listed in
+  TASK-031 plus `duplicate_identity_in_lead`, and a tuple ENSURE_OUTCOMES of all of them.
+
+OUTPUT: write a detailed log to
+/Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/visa-tracking-soft-launch/<NN>-<task>.md
+with sections: Summary; Commits (sha + message); Files changed; Design notes and every deviation from the
+task contract with the reason; Tests added (names) and pure-tier result (exact "Ran N" line and failure
+summary); On-site checks still to run (exact steps, mapped to the task's Validation list); Needs from
+another task; Open questions.
+
+REPLY ONLY with one line: <branch> <head-sha> <pure-tier "Ran N ... " summary> <verdict: done|partial|blocked> <short note>.
+Do not paste file contents or diffs in the reply.

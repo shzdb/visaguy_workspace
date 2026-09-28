@@ -1,0 +1,28 @@
+YOUR TASK: implement TASK-035 — tasks/ready/visa-tracking/TASK-035-tracking-coverage-report.md (read it fully).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-035/the_visaguy (branch sl/task-035, based on
+feat/visa-tracker at 021f636, which already contains TASK-031/032/034/036 merged). Bench worktree name: task-035-the_visaguy.
+Output file: 04-task-035.md
+Pure-tier baseline at 021f636: Ran 477, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+
+READ FIRST: 01b-task-031.md (outcome codes and ensure_service design), 03-integration.md.
+Ownership for this phase: you own a new Script Report folder the_visaguy/the_visa_guy/report/visa_tracking_coverage/,
+and fixtures/workspace.json (add the report shortcut to the "Visa Tracking" workspace only). Do not change ensure_service
+behaviour; you may add a pure, read-only helper there if you must share logic — prefer reading the constants.
+
+TASK IDS:
+K1. Script Report "Visa Tracking Coverage" (ref_doctype PF Process File, module The Visa Guy, is_standard Yes), with the
+    filters in the task. Columns per the task. No passport number, DOB, MRZ or passport values in any column.
+K2. Reason per row from the C2 outcome codes (ENSURE_OUTCOMES in visa_tracking/utils/constants.py). Compute set-based:
+    a few bulk queries (Process Files, their collections' passport rows by field_id in passport_field_ids, latest
+    Passport Extraction per collection, applicant rows, Error Log review flags for duplicate_identity_in_lead /
+    applicant_row_unresolved / no_destination by Lead) — never a document load per file. `not_saved_since_launch` = no
+    link and modified earlier than a "launch date" filter (default: empty = not used).
+K3. A summary line at the top (report summary or first row): open files, tracked, count per reason.
+K4. Permissions: the report's roles = the roles that can read PF Process File per TASK-034's read list (reuse the list;
+    at minimum Operations Associate, Operations Team Lead, System Manager).
+K5. Workspace shortcut to the report in "Visa Tracking".
+K6. Pure tests with frappe.db mocked for the reason mapping and the summary; a timing note: estimate query count (must
+    be constant, not per row).
+
+GATES: py_compile; report JSON valid; pure tier on the bench under the flock wrapper: no new errors vs 477 baseline;
+commit on sl/task-035 and push to bench.

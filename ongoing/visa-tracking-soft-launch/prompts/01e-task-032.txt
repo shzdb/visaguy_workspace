@@ -1,0 +1,42 @@
+YOUR TASK: implement TASK-032 — tasks/ready/visa-tracking/TASK-032-desk-layout-and-navigation.md (read it fully).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-032/the_visaguy (branch sl/task-032). Bench worktree name: task-032-the_visaguy.
+Output file: 01e-task-032.md
+
+FACTS about PF Process File on the live-copy site (frappe.get_meta, 2026-09-28): the unlabelled section
+custom_section_break_xzg1p holds, in order: custom_reference_type, custom_reference_name, custom_type, custom_destination,
+custom_number_of_applicants, custom_column_break_odjkn, custom_primary_process_file, file_collection,
+custom_visa_tracking_application, custom_client_status, custom_lead_file_collection, custom_operations_appointment_date,
+custom_lead_appointment_date, custom_application_completed_date, custom_documents_delivered_date, custom_form_saved,
+custom_form_submitted; then Section Break custom_section_break_mw0ux "Application Form". Only
+custom_visa_tracking_application and custom_client_status are owned by the_visaguy fixtures; the other fields belong to
+other apps — do not touch them.
+
+TASK IDS:
+E1. PF Process File: a new collapsible Section Break custom_visa_tracking_section, label "Visa Tracking", inserted after
+    custom_form_submitted. Move custom_visa_tracking_application and custom_client_status into it (change only their
+    insert_after; keep every other property, especially TASK-027's fetch_from, fetch_if_empty, depends_on and
+    link_filters). Add custom_tracking_updated_on (Datetime, read_only, fetch_from
+    custom_visa_tracking_application.status_updated_on), custom_tracking_enabled (Check, read_only, fetch_from
+    custom_visa_tracking_application.tracking_enabled), a Column Break, and an HTML note field shown only when the link
+    is empty (depends_on). Check the insert_after chain: custom_lead_file_collection must still follow file_collection's
+    old neighbours correctly after the two fields move out, and custom_section_break_mw0ux must still start the next section.
+E2. Visa Tracking Application DocType: section order and collapsibles per task section 2; title_field
+    applicant_display_name and show_title_field_in_link 1; in_list_view, in_standard_filter and search_fields per task;
+    a "links" entry for Visa Tracking Status Log (link_fieldname tracking_application); a form script that fills the
+    timeline HTML field from Visa Tracking Status Log (frappe.db.get_list ordered by effective_on desc; show date,
+    status, visible_to_client, changed_by) and adds an "Open Process File" button. Do not rename or remove any field,
+    and do not change field types or permissions.
+E3. Property Setters in fixtures/property_setters.json (follow its existing record format): hidden 1 on Lead, CRM Lead and
+    Customer custom_visa_tracking_application. For Applicant Information.visa_tracking_application set in_list_view 1 in
+    its Custom Field record in custom_fields.json.
+E4. Workspace "Visa Tracking" (module "The Visa Guy") in fixtures/workspace.json, and add its name to the Workspace
+    filter in the hooks.py fixtures list. Shortcuts: Passport Extraction with status = Needs Review, Passport Extraction
+    with status = Failed, Visa Tracking Application list, Visa Tracker Settings. Leave out the coverage report
+    (TASK-035 adds it later). Copy the JSON shape of the existing workspace record.
+E5. Pure test: static checks that load the JSON files only (insert_after chain, new fields, title_field, list and filter
+    flags, property setters present, workspace shortcuts).
+
+POLICIES: Custom Fields only through fixtures/custom_fields.json by name (risk 25: never a bare-string fixture entry).
+No change to field names the public API or the SPA reads.
+GATES: JSON valid; every insert_after target exists (in fixtures or in the FACTS list); pure tier on the bench: no new
+errors or failures.

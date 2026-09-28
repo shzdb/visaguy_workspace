@@ -583,15 +583,11 @@ tracking (D3); Operations Associate and Operations Team Lead can create it
 Plan, decisions D1–D10 and gaps:
 [Soft launch plan](07-soft-launch-plan.md). New tasks:
 
-- TASK-031 — create tracking on Process File save, and the manual actions
-  (ready).
-- TASK-032 — desk layout and navigation (ready).
-- TASK-033 — Needs Review verification, retry, search and list view for
-  Passport Extraction (ready).
-- TASK-034 — roles and permissions for visa tracking (ready).
-- TASK-035 — tracking coverage report (ready; after TASK-031).
-- TASK-036 — patch that sets the passport field ID on templates and
-  existing collections (ready; first).
+- TASK-031 to TASK-036 — built, tested on `visa-tracker-test.localhost`
+  and merged into `feat/visa-tracker` on the bench on 2026-09-28
+  (`the_visaguy` `3872390`, `passport_extractor` `84da2fe`); not pushed or
+  deployed. The owner migrates and tests `visaguy`. Record:
+  `ongoing/visa-tracking-soft-launch/06-final-report.md`.
 
 ## Supporting specifications
 

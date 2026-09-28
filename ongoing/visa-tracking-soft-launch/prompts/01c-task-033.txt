@@ -1,0 +1,33 @@
+YOUR TASK: implement TASK-033 — tasks/ready/visa-tracking/TASK-033-passport-extraction-review-actions.md (read it fully), in the
+passport_extractor repository. Also read ADR-007 including "Amendment (2026-09-28)", and ADR-003 (the extractor must not
+import the_visaguy, fileflo, processflo or Lead).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-033/passport_extractor (branch sl/task-033). Bench worktree name: task-033-passport_extractor.
+Output file: 01c-task-033.md
+Note: the pure-tier command in the common facts is for the_visaguy. For this repo, find where its pure tests live and
+run them from the bench worktree root with the bench python (unittest discover). Record the baseline on an untouched
+checkout of your branch base first.
+
+TASK IDS:
+C1. Implement contract C1 (create_retry_extraction and whitelisted retry_extraction) exactly as specified in the common
+    ground facts, in the module passport_extractor.passport_extractor.api. Read jobs.py (run_passport_extraction) and
+    utils.py (status transitions, retry bounds) first; respect _enforce_retry_bounds and the controller validations.
+C2. @frappe.whitelist() verify_extraction(extraction_name, values, notes=None): values is a dict or JSON string with
+    passport_number, date_of_birth, surname, given_names, nationality, expiry_date. Checks: status must be
+    "Needs Review"; the user must have write permission on that document; passport_number and date_of_birth are
+    required. Set the values, status "Verified", verified_by, verified_on, and verification_notes = a sentence saying
+    the values were checked by hand and which fields changed (field names only, never values), plus the user's notes.
+    Save through the normal document save, so doc hooks run. No Reject action. No Verify on Extracted.
+C3. Form script passport_extraction.js: "Verify" button (Needs Review only, users who can write) opening a dialog with
+    the file preview (image tag for images, iframe for PDF) beside the editable values; "Retry extraction" button
+    (Failed only, users who can create); a file preview near the top of the form for image/PDF; a red expiry note when
+    expiry_date is before today (it does not block).
+C4. passport_extraction_list.js with status indicators. DocType JSON: in_list_view for status, confidence, error_code,
+    source_document, requested_on; in_standard_filter for status and error_code; search_fields
+    "passport_number_normalized,surname,given_names". Do not change field permlevels or field order.
+C5. Pure tests for verify_extraction and create_retry_extraction with frappe mocked, placed where this repo's pure tests
+    live (if none exist, add a tests module that runs under unittest discover without a site). Cover allowed and refused
+    statuses, permission refusal, required fields, audit fields, notes never containing values, and that retry copies
+    the source fields and enqueues on "long".
+
+GATES: py_compile; DocType JSON valid; no import of the_visaguy, fileflo or processflo anywhere in the repo (grep);
+pure tests on the bench: no new failures vs your recorded baseline.

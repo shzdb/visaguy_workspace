@@ -2,7 +2,7 @@
 id: TASK-036
 feature: FEAT-001
 title: Patch that sets the passport field ID on templates and existing collections
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -124,3 +124,17 @@ the field ID from the template.
 
 Validation passes, the dry-run and patch counts from production are
 recorded here, and the commit SHA is recorded.
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `5d0a3b8`, `5f1cf81`, merged `6f1db0d`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: 24 pure tests; patch ran on test-site migrate (created FF Field ID `passport`; 0 rows, no FileFlo data there); second run updates 0. Not run on `visaguy` (owner). Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

@@ -1,0 +1,26 @@
+YOUR TASK: implement TASK-034 — tasks/ready/visa-tracking/TASK-034-roles-and-permissions-for-operations.md (read it fully, including
+Owner decisions and section 2a). Also read TASK-027 (tasks/in-progress/visa-tracking/) for the Client Status field context.
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-034/the_visaguy (branch sl/task-034). Bench worktree name: task-034-the_visaguy.
+Output file: 01d-task-034.md
+
+TASK IDS:
+D1. Read fixtures/custom_docperm.json and copy its record format exactly (name scheme, fields, flags).
+D2. Read rows: add read (plus select if the existing rows use it) on Visa Tracking Application, Visa Tracking Status and
+    Visa Tracking Status Log for every role listed in the task.
+D3. Create rows: Operations Associate and Operations Team Lead also get create on Visa Tracking Application.
+D4. Passport Extraction (section 2a): Operations Associate and Operations Team Lead get read and write at permlevel 0.
+    CRITICAL: on a DocType whose permissions come only from its JSON, the first Custom DocPerm row REPLACES all
+    standard permissions. So the fixture must ALSO contain Custom DocPerm copies of every standard permission row in
+    passport_extractor's passport_extraction.json (System Manager, Passport Extractor User at permlevel 0 and 1, with
+    identical flags). Read that JSON read-only:
+    ssh erpcode 'cat /home/shahzad/bench/apps/passport_extractor/passport_extractor/passport_extractor/doctype/passport_extraction/passport_extraction.json'
+    Do the same union check for the three Visa Tracking DocTypes (their JSON is in your worktree): keep the existing
+    Visa Tracker Manager/Operator rows and make sure every standard row (e.g. System Manager) is also present.
+D5. Visa Tracker Settings: no new rows.
+D6. Confirm that every role name you add exists, by read-only grep on the bench app sources and fixtures
+    (e.g. ssh erpcode 'grep -rl "\"Desk User\"" /home/shahzad/bench/apps/frappe/frappe | head -3').
+    Record which roles you could only confirm from the task text (they come from a live database query of 2026-09-28).
+D7. Pure test: a static test that loads custom_docperm.json and asserts the matrix in the task (read roles, create
+    roles, the Passport Extraction union, no write on Visa Tracking Application for non-manager roles).
+
+GATES: JSON valid; no duplicate (parent, role, permlevel) rows; pure tier on the bench: no new errors or failures.

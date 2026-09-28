@@ -2,7 +2,7 @@
 id: TASK-035
 feature: FEAT-001
 title: Tracking coverage report for the soft launch
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -63,3 +63,17 @@ A summary row at the top: open files, tracked, and a count per reason.
 
 Validation passes, and the report is on the "Visa Tracking" workspace
 (TASK-032).
+
+## Implementation (2026-09-28)
+
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `d0f7474`, merged `3872390`. Not pushed, not deployed.
+Built by Cursor executors, reviewed and merged by the orchestrator; records in
+`ongoing/visa-tracking-soft-launch/`.
+
+Evidence: 60 pure tests; on the test site the report's reason matched `ensure_tracking` for no_passport_row, passport_not_completed, passport_no_file and extraction_pending; Rejected files are left out; summary counts correct; shortcut on the Visa Tracking workspace. Full suites on `visa-tracker-test.localhost` after all merges: `the_visaguy` 638 OK, `passport_extractor` 98 OK (`--skip-test-records`).
+
+## What remains
+
+1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
+2. Browser check of the desk UI.
+3. Push and deploy (owner).

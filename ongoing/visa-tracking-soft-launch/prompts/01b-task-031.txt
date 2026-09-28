@@ -1,0 +1,49 @@
+YOUR TASK: implement TASK-031 — tasks/ready/visa-tracking/TASK-031-ensure-tracking-on-process-file-update.md (read it fully,
+including "Owner decisions", section 3a and Validation). Also read ADR-016 with its amendment, ADR-015, ADR-014, ADR-012.
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-031/the_visaguy (branch sl/task-031). Bench worktree name: task-031-the_visaguy.
+Output file: 01b-task-031.md
+
+Existing code you build on (read it; do not re-invent): visa_tracking/services/fileflo_inspection_service.py
+(run_fileflo_inspection), services/lifecycle_service.py (link_process_file_to_tracking, create_tracking_application,
+resolve_applicant_row, _flag_review, _maybe_link_process_file_for_application, get_process_file_family if present —
+otherwise find how dependants link through PF Process File.custom_primary_process_file), handlers/process_file_handlers.py,
+handlers/passport_extraction_handlers.py, jobs.py (recompute_client_status), fixtures/client_scripts.json.
+
+TASK IDS:
+B1. Contract C2 constants in visa_tracking/utils/constants.py.
+B2. services/ensure_service.py: ensure_tracking(process_file_name) returning a dict {outcome, process_file, details},
+    implementing steps 0–7 of the task exactly. TASK-036 sets field_id "passport" on legacy rows; you never match
+    file names.
+B3. Save trigger in process_file_handlers.on_update: settings enabled, no link, state not "Rejected" -> enqueue
+    the_visaguy.visa_tracking.jobs.ensure_tracking_job(process_file_name) on "short" with
+    job_id "visa_tracking_ensure::<name>", deduplicate=True, enqueue_after_commit=True. For a primary, also enqueue
+    for each dependant without a link. The hook never raises.
+B4. After verification (the passport_extraction_handlers -> create_tracking_application path), make sure the linked
+    Process File gets recompute_client_status (task step 7 and section 3).
+B5. Section 3a guard in create_tracking_application: the same verification_lookup_hash already linked on another
+    applicant row of the same Lead -> create nothing, flag review, return None; ensure_tracking maps it to
+    ENSURE_OUTCOME_DUPLICATE_IDENTITY_IN_LEAD. The same identity on a different Lead stays allowed.
+B6. Error Log deduplication for review flags: at most one Error Log per (process file or lead, reason) per 7 days.
+    Implement inside _flag_review with optional reference_doctype/reference_name; keep old call sites working.
+B7. api/desk.py: @frappe.whitelist() generate_visa_tracking(process_file) and retry_passport_extraction(process_file).
+    Server-side role check: Operations Associate, Operations Team Lead, System Manager (else frappe.PermissionError).
+    generate: returns a list of {process_file, outcome, message} for the file and its dependants, with plain-English
+    messages computed synchronously by a read-only "diagnose" mode of ensure_tracking that never writes or enqueues;
+    then enqueues the real run (no inline OCR).
+    retry: finds the latest Failed Passport Extraction for the file's passport collection(s) and calls contract C1
+    lazily via frappe.get_attr; returns the new extraction name.
+B8. fixtures/client_scripts.json: a NEW, separately named Client Script record for PF Process File adding buttons in
+    the "Actions" group — "Generate Visa Tracking" (only when custom_visa_tracking_application is empty) and
+    "Retry passport extraction" (let the server decide; show it to the roles and display the server's message).
+    Visible only to the three roles (frappe.user.has_role). Keep the existing
+    "PF Process File-visa-tracking-client" record unchanged.
+B9. Pure tests: test_ensure_service.py covering every outcome code, the Rejected skip, disabled settings, the job id
+    dedupe, dependant fan-out, the 3a guard, Error Log dedupe, desk role checks, and the retry path (C1 mocked).
+
+POLICIES:
+- Do not change run_fileflo_inspection or the ADR-012 Completed trigger.
+- enable_process_file_created_transition: leave link_process_file_to_tracking's behaviour as is (task step 6).
+- If the task text and existing code disagree, follow the task and record the deviation.
+
+GATES: py_compile every changed .py; client_scripts.json is valid JSON and each record has name, dt, script, enabled;
+pure tier on the bench: no new errors or failures vs baseline.

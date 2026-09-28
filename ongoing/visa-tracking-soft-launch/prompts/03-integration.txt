@@ -1,0 +1,57 @@
+PHASE 3 — INTEGRATION ON THE BENCH. This phase REPLACES the "FORBIDDEN in this phase" rules of the common facts with
+the rules below. Everything else in the common facts still applies (privacy, commits, no Co-Authored-By, flock for tests).
+
+READ FIRST (all in /Users/shzd/Projects/tridz/workspaces/visaguy_workspace/ongoing/visa-tracking-soft-launch/):
+STATE.md, 01a-task-036.md, 01b-task-031.md, 01c-task-033.md, 01d-task-034.md, 01d2-task-034-settings.md, 01e-task-032.md,
+01e2-task-032-field-order.md. They list each branch's on-site checks.
+
+BRANCHES (already pushed into the bench repos; accepted by the orchestrator):
+- the_visaguy: sl/task-036 (5f1cf81), sl/task-031 (ca06256), sl/task-034 (7ecfbd3), sl/task-032 (ffcacb3)
+- passport_extractor: sl/task-033 (2a00d00)
+Target: branch feat/visa-tracker in the INSTALLED checkouts /home/shahzad/bench/apps/the_visaguy (HEAD 12ded1a, clean)
+and /home/shahzad/bench/apps/passport_extractor (HEAD 0febf6c, clean).
+
+ALLOWED IN THIS PHASE:
+- git merges into feat/visa-tracker in those two installed checkouts (git merge --no-ff, one merge commit per branch,
+  message "Merge sl/task-0NN: <title>"), and small fix commits on feat/visa-tracker when a merge or on-site test needs it
+  (message "fix(TASK-0NN): ...").
+- On site visa-tracker-test.localhost ONLY: bench --site visa-tracker-test.localhost backup (first), migrate,
+  run-tests, console, execute; bench build is NOT needed unless a JS asset fails to load.
+- On site visaguy ONLY this read-only command:
+  bench --site visaguy execute the_visaguy.patches.v1_0.set_passport_field_id.dry_run
+  Nothing else on visaguy: no migrate, no patch execute, no console writes.
+FORBIDDEN: git push to any remote; changes to any other app; bench restart/setup; touching sites/visaguy files.
+
+TASK IDS:
+I1. Merge order in the_visaguy: sl/task-036, sl/task-031, sl/task-034, sl/task-032. Resolve conflicts by keeping both
+    sides (they own disjoint functions/records by design; expected overlaps: visa_tracking/jobs.py 031+036,
+    hooks.py 032 only, constants.py 031 only). After each merge: python -m py_compile on changed .py, JSON validation of
+    changed fixtures, no conflict markers (git grep -n '^<<<<<<<\|^>>>>>>>').
+    Merge sl/task-033 into passport_extractor.
+I2. Pure tier on the installed checkout (flock wrapper): report the Ran line. Expect about 324 + all new tests, with only
+    the 2 known TestProcessFileHandler errors.
+I3. bench --site visa-tracker-test.localhost backup, then migrate. Record the patch output of
+    the_visaguy.patches.v1_0.set_passport_field_id (counts) and any migrate error in full.
+I4. On-site suites (flock wrapper, generous timeout, one at a time):
+    bench --site visa-tracker-test.localhost run-tests --app the_visaguy --skip-test-records
+    bench --site visa-tracker-test.localhost run-tests --app passport_extractor
+    Last recorded the_visaguy on-site result: 418 run, OK (2026-09-14). Any new failure: diagnose; if it is caused by this
+    work, fix it on feat/visa-tracker (small, targeted) and re-run; if it is pre-existing/environmental, prove it by
+    running the same test at 12ded1a in a bench worktree and record the evidence.
+I5. Static on-site checks via bench console on the test site (record output):
+    - frappe.get_meta("PF Process File") field order from custom_form_submitted to custom_section_break_mw0ux;
+    - PF field_order Property Setter still valid and the after_migrate hook idempotent (run it twice);
+    - Custom DocPerm rows exist for the five DocTypes with the expected roles; System Manager can read Visa Tracker Settings;
+    - Visa Tracking Application meta: title_field, show_title_field_in_link, links to Status Log;
+    - Workspace "Visa Tracking" exists; property setters hidden=1 on Lead/CRM Lead/Customer custom_visa_tracking_application;
+    - Client Script records for PF Process File are enabled;
+    - FF Field ID "passport" exists; a second run of the patch execute() updates 0 rows.
+I6. Run the visaguy dry run command above and record its full printed count block.
+I7. Refresh the local clones so later phases can read the merged code:
+    (local) git -C /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/the_visaguy fetch bench && git -C ... merge --ff-only bench/feat/visa-tracker
+    and the same for passport_extractor.
+
+OUTPUT: 03-integration.md with: merge SHAs and conflicts resolved (how), every fix commit with reason, pure-tier line,
+migrate log summary + patch counts, on-site suite results for both apps (exact Ran/OK/FAILED lines and each failure's
+test id + one-line cause + pre-existing or caused-by-us evidence), I5 outputs, I6 dry-run block, and anything left.
+REPLY ONLY with: <the_visaguy feat HEAD> <passport_extractor feat HEAD> <tvg on-site Ran/result> <pe on-site Ran/result> <verdict> <note>.

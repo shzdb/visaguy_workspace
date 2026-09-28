@@ -1,0 +1,37 @@
+YOUR TASK: implement TASK-036 — tasks/ready/visa-tracking/TASK-036-backfill-passport-field-id.md (read it fully first; also ADR-016 "Amendment").
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-036/the_visaguy  (branch sl/task-036). Bench worktree name: task-036-the_visaguy.
+Output file: 01a-task-036.md
+
+TASK IDS:
+A1. Patch module the_visaguy/patches/v1_0/set_passport_field_id.py with execute() and dry_run(); register it in
+    the_visaguy/patches.txt under [post_model_sync] (create the section if missing; keep existing entries and order).
+A2. Name normalization as a small pure function (unit-testable without a site), exactly per the task's
+    "Matching rule". Keep the matched-name set in one constant.
+A3. Updates via chunked, parameterized bulk UPDATE (chunks of at most 1000 names; WHERE name IN %(names)s AND
+    IFNULL(field_id,'') = ''), for tabFF File Template File and tabFF File Collection File. Set field_id and
+    field_id_link to "passport". Never a document save; never change the modified column.
+A4. If FF Field ID "passport" does not exist, create it (field_id "passport", field_label "Passport") before the
+    updates (a plain insert of FF Field ID is fine). dry_run reports whether it exists and does not create it.
+A5. dry_run() and execute() print the same count block: template rows matched / updated / already set /
+    other field_id; collection rows matched / updated / already set / other field_id; matched collection rows by
+    status (Completed, Uploaded, blank, Rejected, other) and by has-document; the top 20 UNMATCHED file names that
+    contain "passport" (label text only, never people's names or file URLs) so the owner can review exclusions.
+A6. Guards: enqueue_missing_fileflo_extractions (visa_tracking/jobs.py) and reconcile_missing_extractions
+    (services/reconciliation_service.py) must refuse to scan the whole site. Add optional parameters
+    collections (list or None) and limit (int or None); when both are None, log one line and return an empty
+    result without enqueuing. When given, restrict the query accordingly. Update existing callers and tests that
+    relied on the old behaviour. Touch nothing else in jobs.py.
+A7. Pure tests: the_visaguy/visa_tracking/tests/test_set_passport_field_id_patch.py — normalization (every matched
+    and excluded name in the task, non-breaking spaces, " - 12", double spaces), chunking, and that execute()
+    issues only UPDATE statements that carry the empty-field_id guard (mock frappe.db). Guard tests for A6.
+A8. Do NOT edit the workspace; write the runbook text you propose into your output file.
+
+POLICIES:
+- Matching is by normalized file_name only (collection templates are unreliable — see task context).
+- Rows whose field_id is non-empty and different: count them, never change them.
+- The patch is idempotent (a second run updates 0 rows).
+
+GATES (before your final commit):
+- python3 -m py_compile on every changed .py file (locally).
+- The patches.txt entry resolves to a real module path.
+- Pure tier on the bench: no new errors or failures vs baseline.

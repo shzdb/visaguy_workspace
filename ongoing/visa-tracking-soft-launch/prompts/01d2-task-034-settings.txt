@@ -1,0 +1,16 @@
+CORRECTIVE FOR TASK-034 (continue on branch sl/task-034; read your earlier log 01d-task-034.md first).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-034/the_visaguy. Bench worktree name: task-034-the_visaguy.
+Output file: 01d2-task-034-settings.md
+
+Orchestrator decision on your open questions:
+- Visa Tracker Settings: add a System Manager Custom DocPerm row with the same flags as the DocType JSON's standard
+  System Manager row (the existing two Custom DocPerm rows replace the standard permissions, so System Manager is
+  currently locked out). Apply the same union rule you used elsewhere. No other role gets Settings access.
+- Visa Tracker Operator write on Visa Tracking Application: keep as is (no holders; out of scope).
+- Desk User: keep the row (owner decision D3 says every role that reads Lead or Process File; Desk User is on Lead).
+
+TASK IDS:
+G1. Add the System Manager row for Visa Tracker Settings in the existing record format.
+G2. Extend your static test to assert the Settings union.
+GATES: JSON valid; no duplicate (parent, role, permlevel); pure tier on the bench under the flock wrapper: no new errors;
+commit on sl/task-034 and push to bench.
