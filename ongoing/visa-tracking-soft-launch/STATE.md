@@ -54,3 +54,4 @@
 - 2026-09-28: Owner: merge and migrate the TEST site only; never run anything on `visaguy` (owner tests it). Patch may run on the test site. Integration done directly by the orchestrator. See 03-integration.md.
 - 2026-09-28: TASK-035 merged (`3872390`); test-site migrate OK; the_visaguy on-site 638 OK; report reasons match ensure_tracking. Tasks 031–036 moved to in-progress (awaiting owner visaguy test and deploy).
 - 2026-09-28: TASK-037 (HEIC message) merged `34a8806`; on-site 657 OK. TASK-038 (realtime alerts) planned, blocked on owner Q1–Q3.
+- 2026-09-28: TASK-038 (realtime alerts, owner Q1 none / Q2 roles / Q3 no headline) merged `ed1590d`; on-site 719 OK. Found: cursor-agent adds `Co-authored-by: Cursor` to its commits (8 commits: tvg 7ecfbd3 a11ad1f aa94c86 ca06256 d0f7474 f800d3f ffcacb3; pe 2a00d00) because ~/.cursor/cli-config.json has attribution.attributeCommitsToAgent true. Nothing pushed. Owner decision pending on rewriting.

@@ -2,7 +2,7 @@
 id: TASK-038
 feature: FEAT-001
 title: Realtime alerts for visa tracking in the desk
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -100,3 +100,23 @@ form (remove it on unload), that checks `docname`, calls
 ## Definition of done
 
 Validation passes and the commit SHA is recorded here.
+
+## Implementation (2026-09-28)
+
+`the_visaguy` `d9644c4`, merged into `feat/visa-tracker` as `ed1590d` on the bench. Not pushed or deployed.
+
+Evidence: 62 new pure tests (pure tier 618, only the 2 known errors). On
+`visa-tracker-test.localhost` (rolled back, `publish_realtime` captured):
+ensure job → `extraction_queued` (orange); extraction Needs Review →
+`needs_review` (orange); verify → `application_created` (green); recompute →
+`status_changed` (green) to both the Process File and the Application rooms;
+every event `after_commit=True`; no passport values in any payload. Migrate
+OK; full on-site suite 719 OK.
+
+Deviations: the form listener is registered in `refresh` and removed in
+`on_hide` (Frappe v15 forms have no unload event); A4/A6 are sent from
+`handle_verified_extraction` with a notify flag.
+
+## What remains
+
+Browser check of the toasts and automatic reload (owner, on `visaguy`), push and deploy.
