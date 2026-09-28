@@ -19,8 +19,9 @@ depends_on:
   - ADR-008
   - ADR-009
   - ADR-010
+  - ADR-016
 created: 2026-07-20
-updated: 2026-09-01
+updated: 2026-09-28
 ---
 
 # Visa application tracking and passport extraction
@@ -557,8 +558,34 @@ verified passport identity" and the exclusion of a case selector.
 New risks: 39 (stale Lead-level links), 40 (headline vs timeline after a
 manual change), 41 (unresolvable applicant rows).
 
+## Existing files and the soft launch (2026-09-28)
+
+Owner decision, recorded in **ADR-016**: no bulk backfill for Process Files
+created before go-live. When a Process File is saved without a tracking
+application, the system creates one for the primary and its dependants. A
+manual **Generate Visa Tracking** action does the same. Legacy passport rows
+have no `field_id`, so they are found by file name. The feature then runs in
+production for one to two weeks before it is marketed.
+
+A read-only review of the desk on 2026-09-28 found that no operations user
+can open a tracking record (risk 45), that there is no desk path to verify
+an extraction (risk 46), and that the Process File and Application forms
+are hard to read.
+
+Plan, decisions D1–D10 and gaps:
+[Soft launch plan](07-soft-launch-plan.md). New tasks:
+
+- TASK-031 — create tracking on Process File save, and the manual actions
+  (blocked on D1, D4, D9).
+- TASK-032 — desk layout and navigation (ready).
+- TASK-033 — verify, reject and retry actions on Passport Extraction
+  (ready).
+- TASK-034 — roles and permissions for operations (blocked on D2, D3).
+- TASK-035 — tracking coverage report (ready; after TASK-031).
+
 ## Supporting specifications
 
+- [Soft launch plan](07-soft-launch-plan.md)
 - [Architecture and data model](01-architecture-and-data-model.md)
 - [Backend workflows and API contracts](02-backend-workflows-and-api-contracts.md)
 - [Frontend design and layout](03-frontend-design-and-layout.md)
