@@ -124,6 +124,38 @@ TASK-027 together, because they deploy together.
 
 ### Phase 3: internal pilot (2–3 days)
 
+**Test batch.** Site `visaguy` is a database restore of live from about a
+week before 2026-09-28, without the uploaded files (about 80 GB). The
+owner copies the passport files of a chosen batch from live. The batch
+list (Process File, row, file path) is kept outside this workspace
+because it names clients. It covers 38 Process Files and 36 files:
+
+| # | Scenario |
+|---|---|
+| S01–S05 | One applicant, image passport, in each workflow state: Unassigned, Assigned, Inprogress, Hold, Documents Delivered; UK, USA, France, Japan; Indian, Pakistani, Jordanian, Filipino nationals |
+| S06 | Workflow state Completed |
+| S07–S08 | PDF passport (Germany / Russian, Switzerland / Bangladeshi) |
+| S09 | Two passport pages as two images |
+| S10 | Two passport rows: one image, one PDF |
+| S11 | Family: primary, spouse, two children, each with their own file |
+| S12 | Family: primary and three dependants, own files, another destination |
+| S13 | Family where two children's passports are Uploaded, not Completed |
+| S14 | Passport Uploaded, not Completed (mark it Completed during the test) |
+| S15 | Rejected Process File: no tracking expected |
+| S16 | CRM Lead source |
+| S17 | Business Client Visa Order source: no Lead, so no tracking expected |
+| S18 | HEIC file: not a supported format |
+| S19 | PNG screenshot |
+| S20 | Lead without nationality |
+| S21 | South African passport (PDF) |
+| S22–S23 | Rows named "Passport Copy" and "Passport Copy - 1" |
+| S24 | Family with one file uploaded for all four members (risk 48) |
+| S25 | The same person in two cases on different Leads (ADR-015) |
+
+Order: run the TASK-036 patch, then save each Process File (or use
+**Generate Visa Tracking**), then check the coverage report and the public
+tracker for each scenario.
+
 - Operations save 20 real open files: primaries with dependants, a file
   with a PDF passport, one with front and back images, one with a passport
   not yet Completed.

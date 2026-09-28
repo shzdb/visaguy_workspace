@@ -103,6 +103,17 @@ The extraction is asynchronous. When `handle_verified_extraction` creates or
 reuses the application, the existing `_maybe_link_process_file_for_application`
 links the Process File. Make sure step 7 also runs on this path.
 
+### 3a. Same identity twice in one Lead (risk 48)
+
+In `create_tracking_application`, before a new application is created:
+if another applicant row **on the same Lead** already links an application
+with the same `verification_lookup_hash`, create nothing and flag for
+review ("same passport on several applicants of one Lead"). One person is
+never two applicants in one case. The usual cause is one scan of several
+passports uploaded for every family member. The same identity on a
+different Lead stays allowed (ADR-015). Outcome code:
+`duplicate_identity_in_lead`. Add it to TASK-035's reasons.
+
 ### 4. Error Log deduplication
 
 Outcomes that need a person (`applicant row not resolved`, `lead has no
@@ -158,7 +169,9 @@ and a client script button. Tests for each outcome code.
   - the status after linking matches `resolve_client_status` for the
     workflow state;
   - the manual action refuses a user without one of the three roles;
-  - a `Rejected` file enqueues nothing; a `Completed` file is tracked.
+  - a `Rejected` file enqueues nothing; a `Completed` file is tracked;
+  - two applicant rows of one Lead with the same passport: the first gets
+    an application, the second is flagged and gets none.
 - Desk check by an Operations user: the button, the message, and the link
   appearing after refresh.
 

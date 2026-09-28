@@ -37,7 +37,7 @@ One row per Process File:
 - **Reason**, the same outcome codes that TASK-031's `ensure_tracking`
   returns: `already_linked`, `no_passport_row`, `passport_not_completed`,
   `passport_no_file`, `extraction_pending`, `needs_review`,
-  `extraction_failed`, `applicant_row_unresolved`, `no_destination`,
+  `extraction_failed`, `applicant_row_unresolved`, `no_destination`, `duplicate_identity_in_lead`,
   `not_saved_since_launch`.
 
 The report computes the reason read-only. It never enqueues or writes.
