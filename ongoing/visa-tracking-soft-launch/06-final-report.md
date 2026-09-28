@@ -43,4 +43,4 @@ Nothing is pushed or deployed, and nothing was run on `visaguy`.
 4. Push and deploy, together with the undeployed SPA work (TASK-017, 025, 026).
 
 Open gaps: `05-runtime-verification-and-gaps.md` (G2 passport_field_ids, G4
-HEIC, G5 = risk 49, G7 preview access).
+HEIC, G5 = risk 49, closed by the owner as not applicable, G7 preview access).
