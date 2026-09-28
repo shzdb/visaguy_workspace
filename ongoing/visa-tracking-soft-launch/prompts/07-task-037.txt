@@ -1,0 +1,19 @@
+YOUR TASK: implement TASK-037 — tasks/ready/visa-tracking/TASK-037-unsupported-file-type-message.md (read it fully).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-037/the_visaguy (branch sl/task-037, based on
+feat/visa-tracker at 3872390, which contains TASK-031 to TASK-036 merged). Bench worktree name: task-037-the_visaguy.
+Output file: 07-task-037.md
+Pure-tier baseline at 3872390: Ran 537, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+READ FIRST: 01b-task-031.md and 04-task-035.md (ensure_service, desk.py, coverage report design).
+Ownership: you may edit visa_tracking/utils/constants.py, services/ensure_service.py, api/desk.py, the coverage report
+module, and their tests. Nothing else.
+
+TASK IDS:
+H1. Constants: ENSURE_OUTCOME_UNSUPPORTED_FILE_TYPE = "unsupported_file_type" (in ENSURE_OUTCOMES) and
+    EXTRACTION_ERROR_UNSUPPORTED_FILE_TYPE = "UNSUPPORTED_FILE_TYPE".
+H2. ensure_service: refine extraction_failed to unsupported_file_type per task item 2 (one query, both normal and
+    diagnose modes).
+H3. desk.py: message per task item 3; retry refusal per item 4.
+H4. Coverage report: reason + Next Step per item 5 (error_code added to the existing extraction query).
+H5. Pure tests per Validation.
+
+GATES: py_compile; pure tier on the bench under the flock wrapper: no new errors vs 537; commit on sl/task-037 and push to bench.
