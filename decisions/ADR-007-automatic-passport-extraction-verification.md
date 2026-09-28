@@ -105,3 +105,23 @@ until the residual misread risk has been quantified against real documents.
 The public tracker serves real applicants, a misread is observed in practice, or
 regulatory requirements demand attributable human verification of identity
 documents.
+
+## Amendment (2026-09-28): automatic verification in production
+
+Owner decision of 2026-09-28. This replaces "Recommendation for a production
+environment" above.
+
+- `require_manual_verification` is **off** in production. Verification is
+  always automatic.
+- The human check is the FileFlo review: staff mark the passport row
+  `Completed` only after they confirm the upload is a valid passport
+  (ADR-012). There is no separate manual verification step, and none is
+  planned.
+- An extraction that does not reach `Extracted` (`Needs Review`, `Failed`)
+  creates no tracking application. How such a record is handled is an open
+  question (risk 46).
+
+Consequences: risk 19 (an OCR result becomes a public credential with no
+review of the extracted values) is accepted by the owner. The check digits
+remain the control against misreads. TASK-011 (tests for automatic
+verification) becomes a soft-launch requirement.

@@ -1,6 +1,6 @@
 # Visa tracking: soft launch plan
 
-Status: draft, 2026-09-28. Owner decisions D1–D10 are open.
+Status: draft, 2026-09-28. D1–D4 decided 2026-09-28; D5–D10 open.
 
 ## Goal
 
@@ -31,15 +31,15 @@ From the task records and a read-only check of the bench:
 
 | # | Decision | Recommendation | Blocks |
 |---|---|---|---|
-| D1 | Which Process File workflow states create tracking on save. | All open states and Documents Delivered. Not Rejected. Not Completed. | TASK-031 |
-| D2 | Manual or automatic passport verification (`require_manual_verification`). | Automatic, because staff already check the passport before they mark the row Completed. Record it as an ADR-007 amendment. If manual: name the reviewers, and TASK-033 must ship first. | TASK-034, settings |
-| D3 | Who gets which role (table in TASK-034). Who holds `Visa Tracker Manager`. | Operations Associate and Team Lead: read. Two named managers. | TASK-034 |
-| D4 | Who can use **Generate Visa Tracking** and **Retry passport extraction**. | Operations Team Lead, Visa Tracker Manager, System Manager. | TASK-031 |
+| D1 | Which Process File workflow states create tracking on save. | **Decided 2026-09-28:** every state except Rejected. Completed and Documents Delivered files are tracked. | – |
+| D2 | Manual or automatic passport verification (`require_manual_verification`). | **Decided 2026-09-28:** always automatic; the setting is off. The Completed row is the human check. ADR-007 amendment. | – |
+| D3 | Who can read tracking records. | **Decided 2026-09-28:** every role that can read `PF Process File` or `Lead` gets read on Application, Status and Status Log. Permissions live in `the_visaguy`. | – |
+| D4 | Who can create tracking (**Generate Visa Tracking**, **Retry passport extraction**). | **Decided 2026-09-28:** `Operations Associate` and `Operations Team Lead` (and `System Manager`). | – |
 | D5 | What the client sees for a Rejected (refused) file. ADR-010 leaves it unhandled. | Exclude Rejected files from tracking for the soft launch (D1). Decide the wording before marketing. | Marketing |
 | D6 | Public titles and messages of the six statuses, and the ON_HOLD wording. | Business review of the `Visa Tracking Status` records before the pilot. | Pilot |
 | D7 | During the soft launch, is the tracker link sent to any clients? | Yes, by hand, to 10–20 clients chosen by operations, so real client use is tested. | Phase 4 |
 | D8 | Security gate before marketing. | TASK-012 deployed (risk 18). Required before the link is public. | Marketing |
-| D9 | For legacy files, apply `process_file_created_status` when linking? | No. Recompute from the workflow state at once, so the timeline has one real entry. | TASK-031 |
+| D9 | For legacy files, apply `process_file_created_status` when linking? | Configuration, not code: set `enable_process_file_created_transition` at deploy. Recommendation: off, so the timeline starts with the recomputed status. | Phase 2 |
 | D10 | What happens to open files nobody saves during the soft launch. | Look at the coverage report on the last day. Run `ensure_tracking` once over them if coverage is too low (ADR-016 "Revisit when"). | Marketing |
 
 ## Gaps
@@ -55,7 +55,8 @@ From the task records and a read-only check of the bench:
 | A labelled **Visa Tracking** section on the Process File, with the name shown in the link | Today the link sits in an unlabelled section among reference fields, and shows an ID. | TASK-032 |
 | Application form ordered for reading: applicant, status, timeline, then references | Today the references come first and the timeline is not shown. | TASK-032 |
 | Stale Lead / CRM Lead / Customer tracking fields hidden | ADR-015 stopped writing them; they can point at the wrong case. | TASK-032 |
-| A desk path to verify, reject and retry extractions | `status` is read-only and there is no button. `Needs Review` records are stuck. | TASK-033 |
+| Retry, list filters and search on Passport Extraction | A failed extraction needs a retry without a developer, and support needs to find a record. | TASK-033 |
+| Auto-verification tests | D2: verification is always automatic, and the ADR-007 code has no tests. | TASK-011 |
 | Coverage report | The only way to measure the soft launch and find stuck files. | TASK-035 |
 | One Error Log entry per file and reason | Otherwise every save of an unresolved file writes a new entry. | TASK-031 |
 
@@ -64,7 +65,6 @@ From the task records and a read-only check of the bench:
 | Gap | Why | Task |
 |---|---|---|
 | Rate-limit hardening | Risk 18: the deployed limiter does not stop enumeration of passport + DOB pairs. | TASK-012 |
-| Auto-verification tests | Only if D2 is automatic. ADR-007 code has no tests. | TASK-011 |
 | The tracker link in client messages | Clients can only find the tracker if someone tells them. Add it to the WhatsApp templates for "Process File created" and for status changes, and on the website. | New task after D7 |
 | Rejected file wording | D5. | New task after D5 |
 | Staff guide | One page for operations: the Process File section, what each reason in the coverage report means, and when to use each button. | Workspace doc |
@@ -86,11 +86,12 @@ From the task records and a read-only check of the bench:
 
 ### Phase 0: decisions (owner)
 
-Record D1–D10. Move TASK-031 and TASK-034 to `ready/`.
+D1–D4 recorded 2026-09-28; TASK-031 and TASK-034 are `ready`. D5–D10
+and the `Needs Review` question (risk 46) remain.
 
 ### Phase 1: build
 
-Order: TASK-031 → TASK-034 → TASK-033 → TASK-032 → TASK-035. Test each on
+Order: TASK-031 → TASK-034 → TASK-011 → TASK-033 → TASK-032 → TASK-035. Test each on
 `visa-tracker-test.localhost`. Close TASK-016, TASK-017 and TASK-022 to
 TASK-027 together, because they deploy together.
 
@@ -103,12 +104,14 @@ TASK-027 together, because they deploy together.
 4. Deploy `fileflo`, `visaguy_crm`, `passport_extractor`, `the_visaguy`, then
    `visa_tracker`. Backend before frontend (TASK-017, TASK-025).
 5. Read the printed counts of the ADR-015 link patch (risk 41).
-6. Assign roles (D3).
+6. Migrate syncs the role permissions (TASK-034). No role assignment is
+   needed for operations; assign `Visa Tracker Manager` to the people who
+   change settings.
 7. **Visa Tracker Settings**:
    - `enabled`, `enable_passport_extraction`,
      `auto_create_tracking_application`, `auto_link_verified_passport`: on.
    - `passport_field_ids`: the `field_id` values used on new templates.
-   - `require_manual_verification`: per D2.
+   - `require_manual_verification`: **off** (D2).
    - `extraction_queue`: `long`. `inspection_queue`: `short`.
    - `default_lead_status`, `process_file_created_status`,
      `enable_process_file_created_transition` (D9).
@@ -138,7 +141,7 @@ TASK-027 together, because they deploy together.
 Daily, from the coverage report and the Visa Tracker Audit Log:
 
 - open files saved since launch, and how many are tracked;
-- counts per reason; files in `Needs Review` for more than a day;
+- counts per reason; extractions in `Needs Review` (no tracking is created for them);
 - extractions `Failed` and the error codes;
 - Error Log entries for visa tracking;
 - public lookups per day: successful and failed;
@@ -154,7 +157,8 @@ Market the tracker only when all of these are true:
 - No case showed another person's data.
 - At least 90% of open files saved since launch are tracked, or each
   untracked one has a reason operations accept.
-- `Needs Review` is cleared within one working day.
+- The number of `Needs Review` and `Failed` extractions is known, and
+  each has an owner (risk 46).
 - TASK-012 is deployed (D8), and D5 and D10 are decided.
 - The link is in client messages (D7 follow-up).
 

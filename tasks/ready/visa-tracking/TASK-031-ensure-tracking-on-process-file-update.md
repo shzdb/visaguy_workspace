@@ -2,7 +2,7 @@
 id: TASK-031
 feature: FEAT-001
 title: Create tracking on Process File update, and a manual Generate action
-status: blocked
+status: ready
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -24,11 +24,14 @@ updated: 2026-09-28
 
 # TASK-031: Create tracking on Process File update, and a manual Generate action
 
-## Blocked on
+## Owner decisions (2026-09-28)
 
-Owner decisions D1, D4 and D9 in
-`features/ongoing/visa-tracking/07-soft-launch-plan.md`. When they are
-recorded, move this task to `ready/`.
+- D1: tracking is created in every workflow state except `Rejected`.
+  Completed and Documents Delivered files are tracked.
+- D2: verification is always automatic (ADR-007 amendment).
+- D4: `Operations Associate` and `Operations Team Lead` can create tracking
+  (the manual actions). `System Manager` keeps access.
+- D9 is a deploy setting, not code. See step 6.
 
 ## Objective
 
@@ -62,7 +65,7 @@ Returns an outcome code and does these steps:
    hook checks this too, before it enqueues, so turning the setting off is a
    rollback (soft-launch plan, "Rollback").
 1. If `custom_visa_tracking_application` is set, return `already_linked`.
-2. If the workflow state is excluded (decision D1), return `excluded_state`.
+2. If the workflow state is `Rejected` (D1), return `excluded_state`.
 3. Try `link_process_file_to_tracking` first. An application can exist
    already (for example the Lead-stage extraction was verified before the
    Process File existed). If it links, recompute the status (step 7) and
@@ -112,8 +115,8 @@ not one per save.
 
 ### 5. Manual action: "Generate Visa Tracking"
 
-- A button in the form's **Actions** menu when the link is empty. Roles:
-  decision D4.
+- A button in the form's **Actions** menu when the link is empty, for
+  `Operations Associate`, `Operations Team Lead` and `System Manager` (D4).
 - It calls a whitelisted method that runs `ensure_tracking` for this file
   and its dependants. It enqueues; it does not run OCR in the request.
 - It shows the outcome per file in a message, in plain words. Example:
@@ -128,7 +131,8 @@ not one per save.
 
 `link_process_file_to_tracking` applies `process_file_created_status` when
 `enable_process_file_created_transition` is set. For a legacy file this adds
-a timeline entry that step 7 replaces at once. Follow decision D9.
+a timeline entry that step 7 replaces at once. Do not change this code. The
+owner sets the setting at deploy (D9).
 
 ## Constraints
 
@@ -158,7 +162,8 @@ and a client script button. Tests for each outcome code.
     saves;
   - the status after linking matches `resolve_client_status` for the
     workflow state;
-  - the manual action refuses a user without the role.
+  - the manual action refuses a user without one of the three roles;
+  - a `Rejected` file enqueues nothing; a `Completed` file is tracked.
 - Desk check by an Operations user: the button, the message, and the link
   appearing after refresh.
 
