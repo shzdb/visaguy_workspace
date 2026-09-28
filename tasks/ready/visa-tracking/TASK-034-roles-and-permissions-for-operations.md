@@ -22,7 +22,9 @@ updated: 2026-09-28
   tracking records. The permissions are defined in `the_visaguy`.
 - D4: `Operations Associate` and `Operations Team Lead` can create
   tracking. `System Manager` keeps access.
-- D2: verification is always automatic. No reviewer role is needed.
+- D2: verification is automatic, except that `Operations Associate` and
+  `Operations Team Lead` may correct and verify a `Needs Review`
+  extraction (ADR-007 amendment).
 
 ## Objective
 
@@ -68,10 +70,17 @@ anyway, so the intent is clear if `Desk User` is removed from Lead later.
 
 - `Operations Associate` and `Operations Team Lead`: `create` on `Visa
   Tracking Application`, in addition to read.
-- The TASK-031 manual actions check these roles on the server. They create
-  the Passport Extraction with `ignore_permissions`, so these roles need no
-  permission on `Passport Extraction`. That keeps passport values hidden
-  from them.
+- The TASK-031 manual actions check these roles on the server and create
+  the Passport Extraction with `ignore_permissions`.
+
+### 2a. Passport Extraction (D2 exception)
+
+- `Operations Associate` and `Operations Team Lead`: `read` and `write` at
+  permlevel 0 on `Passport Extraction`, so they can open and verify a
+  `Needs Review` record (TASK-033). No `create`, no `delete`, and no
+  permlevel 1: the raw OCR text and MRZ lines stay hidden.
+- These rows live in `the_visaguy` fixtures, not in `passport_extractor`,
+  so the extractor stays free of VisaGuy roles (ADR-003).
 
 ### 3. Write
 
@@ -94,7 +103,8 @@ On `visa-tracker-test.localhost`, with a test user per role:
 - `Lead Role` and `Consultant Role`: open the tracking link from a Lead's
   applicant row and from a Process File; cannot edit the Application;
   cannot open `Visa Tracker Settings` or `Passport Extraction`.
-- `Operations Associate`: open the link; pick a status in
+- `Operations Associate`: verify a `Needs Review` extraction and cannot see
+  the raw OCR fields; open the link; pick a status in
   `custom_client_status` (TASK-027); run **Generate Visa Tracking**
   (TASK-031).
 - A user without any listed role gets a permission error.

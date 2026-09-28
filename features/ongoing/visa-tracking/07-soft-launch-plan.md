@@ -32,7 +32,7 @@ From the task records and a read-only check of the bench:
 | # | Decision | Recommendation | Blocks |
 |---|---|---|---|
 | D1 | Which Process File workflow states create tracking on save. | **Decided 2026-09-28:** every state except Rejected. Completed and Documents Delivered files are tracked. | – |
-| D2 | Manual or automatic passport verification (`require_manual_verification`). | **Decided 2026-09-28:** always automatic; the setting is off. The Completed row is the human check. ADR-007 amendment. | – |
+| D2 | Manual or automatic passport verification (`require_manual_verification`). | **Decided 2026-09-28:** automatic; the setting is off. The Completed row is the human check. Exception: Operations Associate and Team Lead may correct and verify a `Needs Review` record; no Reject. ADR-007 amendment. | – |
 | D3 | Who can read tracking records. | **Decided 2026-09-28:** every role that can read `PF Process File` or `Lead` gets read on Application, Status and Status Log. Permissions live in `the_visaguy`. | – |
 | D4 | Who can create tracking (**Generate Visa Tracking**, **Retry passport extraction**). | **Decided 2026-09-28:** `Operations Associate` and `Operations Team Lead` (and `System Manager`). | – |
 | D5 | What the client sees for a Rejected (refused) file. ADR-010 leaves it unhandled. | Exclude Rejected files from tracking for the soft launch (D1). Decide the wording before marketing. | Marketing |
@@ -55,7 +55,7 @@ From the task records and a read-only check of the bench:
 | A labelled **Visa Tracking** section on the Process File, with the name shown in the link | Today the link sits in an unlabelled section among reference fields, and shows an ID. | TASK-032 |
 | Application form ordered for reading: applicant, status, timeline, then references | Today the references come first and the timeline is not shown. | TASK-032 |
 | Stale Lead / CRM Lead / Customer tracking fields hidden | ADR-015 stopped writing them; they can point at the wrong case. | TASK-032 |
-| Retry, list filters and search on Passport Extraction | A failed extraction needs a retry without a developer, and support needs to find a record. | TASK-033 |
+| Verify for `Needs Review`, retry for `Failed`, list filters and search on Passport Extraction | Otherwise a `Needs Review` passport never gets tracking; a failed one needs a retry without a developer; support needs to find a record. | TASK-033 |
 | Auto-verification tests | D2: verification is always automatic, and the ADR-007 code has no tests. | TASK-011 |
 | Coverage report | The only way to measure the soft launch and find stuck files. | TASK-035 |
 | One Error Log entry per file and reason | Otherwise every save of an unresolved file writes a new entry. | TASK-031 |
@@ -86,8 +86,8 @@ From the task records and a read-only check of the bench:
 
 ### Phase 0: decisions (owner)
 
-D1–D4 recorded 2026-09-28; TASK-031 and TASK-034 are `ready`. D5–D10
-and the `Needs Review` question (risk 46) remain.
+D1–D4 and the `Needs Review` exception recorded 2026-09-28; TASK-031 and
+TASK-034 are `ready`. D5–D10 remain.
 
 ### Phase 1: build
 
@@ -141,7 +141,7 @@ TASK-027 together, because they deploy together.
 Daily, from the coverage report and the Visa Tracker Audit Log:
 
 - open files saved since launch, and how many are tracked;
-- counts per reason; extractions in `Needs Review` (no tracking is created for them);
+- counts per reason; extractions in `Needs Review` waiting for a person to verify them;
 - extractions `Failed` and the error codes;
 - Error Log entries for visa tracking;
 - public lookups per day: successful and failed;
@@ -157,8 +157,8 @@ Market the tracker only when all of these are true:
 - No case showed another person's data.
 - At least 90% of open files saved since launch are tracked, or each
   untracked one has a reason operations accept.
-- The number of `Needs Review` and `Failed` extractions is known, and
-  each has an owner (risk 46).
+- `Needs Review` extractions are verified within one working day, and
+  the ones that cannot be fixed have a new upload requested.
 - TASK-012 is deployed (D8), and D5 and D10 are decided.
 - The link is in client messages (D7 follow-up).
 

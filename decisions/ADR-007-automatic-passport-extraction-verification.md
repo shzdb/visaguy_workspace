@@ -117,11 +117,16 @@ environment" above.
   `Completed` only after they confirm the upload is a valid passport
   (ADR-012). There is no separate manual verification step, and none is
   planned.
-- An extraction that does not reach `Extracted` (`Needs Review`, `Failed`)
-  creates no tracking application. How such a record is handled is an open
-  question (risk 46).
+- **Exception: `Needs Review` only** (owner, 2026-09-28, later the same
+  day). A person may correct the values of a `Needs Review` extraction and
+  verify it. Allowed roles: `Operations Associate` and `Operations Team
+  Lead`. There is no Reject action: a record that cannot be fixed stays in
+  `Needs Review`, and staff ask the client for a new upload, which creates
+  a new extraction. `Extracted` records are still verified automatically.
+  `Failed` records are retried, not verified (TASK-033).
 
 Consequences: risk 19 (an OCR result becomes a public credential with no
 review of the extracted values) is accepted by the owner. The check digits
 remain the control against misreads. TASK-011 (tests for automatic
-verification) becomes a soft-launch requirement.
+verification) becomes a soft-launch requirement. The `Needs Review` exception
+is implemented in TASK-033.

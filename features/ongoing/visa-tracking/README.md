@@ -573,7 +573,8 @@ an extraction (risk 46), and that the Process File and Application forms
 are hard to read.
 
 Owner decisions of 2026-09-28: tracking in every workflow state except
-Rejected (D1); verification always automatic, recorded as an ADR-007
+Rejected (D1); verification automatic except that operations may
+correct and verify a `Needs Review` extraction, recorded as an ADR-007
 amendment (D2); every role that reads a Lead or Process File can read
 tracking (D3); Operations Associate and Operations Team Lead can create it
 (D4).
@@ -584,7 +585,8 @@ Plan, decisions D1–D10 and gaps:
 - TASK-031 — create tracking on Process File save, and the manual actions
   (ready).
 - TASK-032 — desk layout and navigation (ready).
-- TASK-033 — retry, search and list view for Passport Extraction (ready).
+- TASK-033 — Needs Review verification, retry, search and list view for
+  Passport Extraction (ready).
 - TASK-034 — roles and permissions for visa tracking (ready).
 - TASK-035 — tracking coverage report (ready; after TASK-031).
 
