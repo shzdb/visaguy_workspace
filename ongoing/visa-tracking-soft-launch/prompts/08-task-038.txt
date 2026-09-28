@@ -1,0 +1,40 @@
+YOUR TASK: implement TASK-038 — tasks/ready/visa-tracking/TASK-038-realtime-alerts.md (read it fully, including Owner decisions).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-038/the_visaguy (branch sl/task-038, based on
+feat/visa-tracker at 34a8806, which contains TASK-031 to TASK-037 merged). Bench worktree name: task-038-the_visaguy.
+Output file: 08-task-038.md
+Pure-tier baseline at 34a8806: Ran 556, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+READ FIRST: 01b-task-031.md, 07-task-037.md, and the existing code: visa_tracking/services/ensure_service.py, lifecycle_service.py,
+handlers/process_file_handlers.py, handlers/passport_extraction_handlers.py, jobs.py (ensure_tracking_job, recompute_client_status),
+api/desk.py (OUTCOME_MESSAGES), fixtures/client_scripts.json ("PF Process File-visa-tracking-actions").
+
+Frappe v15 facts (verified on the bench): frappe.publish_realtime(event, message, room=None, user=None, doctype=None, docname=None,
+task_id=None, after_commit=False) — with doctype+docname it targets the room of that open document; an open desk form joins that
+room automatically. frappe.msgprint(msg, alert=True, indicator=...) inside a request shows a toast after the response.
+socket.io runs on the bench.
+
+TASK IDS:
+R1. services/alert_service.py: notify_process_file(process_file, outcome, message=None, extra=None) publishing event
+    "visa_tracking_update" with {process_file, outcome, message, indicator, tracking_application, client_status} to the
+    PF Process File document room, after_commit=True; notify_application(application, ...) for the Visa Tracking Application
+    room (A5). Messages reuse OUTCOME_MESSAGES (move them to a shared place without changing texts, or import them without
+    a cycle). Indicator: green for linked/verified/status change, orange for pending/queued/needs review, red for failures and
+    review flags. Never raise; never include passport values.
+R2. A1: in process_file_handlers when ensure is newly enqueued (not deduplicated) and the session user has one of the three
+    roles, frappe.msgprint(..., alert=True). Not in background jobs, not for other users.
+R3. A2: ensure_tracking_job publishes its outcome at the end (not in diagnose mode).
+R4. A3/A4/A6: in the extraction status path (passport_extraction_handlers on_update: Needs Review, Failed, Verified) and in
+    create_tracking_application / link paths (created & linked; duplicate identity / applicant row / destination flags),
+    publish to every Process File whose lead-stage or process-stage collection is the extraction's source collection
+    (one query).
+R5. A5: after the client status changes (the status service or recompute path — find the single place a status change is
+    committed), publish to the Process File and the Application rooms with the public title.
+R6. Client script: extend "PF Process File-visa-tracking-actions": register one listener per form
+    (frappe.realtime.on("visa_tracking_update", handler) in onload, frappe.realtime.off in on unload / before re-registering,
+    ignore events whose process_file != frm.doc.name), frappe.show_alert({message, indicator}), and frm.reload_doc() when
+    !frm.is_dirty(). Add the same listener for Visa Tracking Application in its doctype JS (TASK-032 owns that file, but it
+    is merged now; you may edit it).
+R7. Pure tests for R1–R5 (publish args incl. after_commit, rooms, no passport values, A1 role gate and dedupe gate, no
+    Notification Log calls).
+
+GATES: py_compile; client_scripts.json valid; pure tier on the bench under the flock wrapper: no new errors vs 556; commit on
+sl/task-038 and push to bench.

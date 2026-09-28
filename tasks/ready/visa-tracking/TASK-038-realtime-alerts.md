@@ -2,7 +2,7 @@
 id: TASK-038
 feature: FEAT-001
 title: Realtime alerts for visa tracking in the desk
-status: blocked
+status: ready
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -22,9 +22,16 @@ updated: 2026-09-28
 
 # TASK-038: Realtime alerts for visa tracking in the desk
 
-## Blocked on
+## Owner decisions (2026-09-28)
 
-Owner decisions Q1–Q3 below.
+- Q1: **no bell notifications (Notification Log) for now.** Realtime toasts only.
+- Q2: the save toast (A1) is shown **only to the three tracking roles**
+  (Operations Associate, Operations Team Lead, System Manager).
+- Q3: **no headline (A7 dropped).** A Process File is created only after its
+  mandatory file rows are Completed (`visaguy_crm`
+  `allocated_to_process_file.check_lead_verification`). Note: that check skips
+  rows with a blank status and non-mandatory rows; the coverage report
+  (TASK-035) covers those rare files.
 
 ## Current state (verified 2026-09-28, `the_visaguy` `3872390`, `passport_extractor` `84da2fe`)
 
@@ -54,36 +61,22 @@ Owner decisions Q1–Q3 below.
 One service `alert_service.notify_process_file(process_file, outcome, **details)`
 used by every step. It publishes
 `frappe.publish_realtime("visa_tracking_update", {...}, doctype="PF Process File", docname=<pf>, after_commit=True)`
-and, where decided in Q1, writes a Notification Log.
+No Notification Log (Q1).
 
 | # | When | Who sees it | What |
 |---|---|---|---|
-| A1 | A save enqueues tracking | The user who saved (toast after the save response, `msgprint(alert=True)`) | "Visa tracking: checking the passport for this file." Only when the job is newly enqueued; roles per Q2. |
+| A1 | A save enqueues tracking | The user who saved (toast after the save response, `msgprint(alert=True)`) | "Visa tracking: checking the passport for this file." Only when the job is newly enqueued; tracking roles only (Q2). |
 | A2 | The ensure job ends | Everyone with the file open (realtime) | Toast with the outcome message (the TASK-031 messages), coloured green / orange / red. |
-| A3 | Extraction ends `Needs Review` / `Failed` / `Verified` | Everyone with the file open; Notification Log per Q1 | "Passport needs review", "Passport extraction failed: <reason>", "Passport verified". |
+| A3 | Extraction ends `Needs Review` / `Failed` / `Verified` | Everyone with the file open | "Passport needs review", "Passport extraction failed: <reason>", "Passport verified". |
 | A4 | Application created and linked | Everyone with the file open | Toast "Visa Tracking Application created" and the form reloads if it has no unsaved changes, so the link, section and buttons update. |
 | A5 | Client status recomputed | Everyone with the Process File or the Application open | Toast "Client status is now <public title>" and reload if not dirty. |
-| A6 | Review flag (duplicate identity, applicant row, destination) | Everyone with the file open; Notification Log per Q1 | Toast in red with the TASK-031 message. |
-| A7 | Opening an unlinked Process File | The viewer | Per Q3: a headline in the Visa Tracking section with the current reason (diagnose mode, read-only). |
+| A6 | Review flag (duplicate identity, applicant row, destination) | Everyone with the file open | Toast in red with the TASK-031 message. |
+| A7 | (dropped, Q3) | – | – |
 
 Client side: one listener in the TASK-031 client script
 (`frappe.realtime.on("visa_tracking_update", ...)`), registered once per
 form (remove it on unload), that checks `docname`, calls
 `frappe.show_alert`, and `frm.reload_doc()` when `!frm.is_dirty()`.
-
-## Owner decisions needed
-
-- **Q1 — bell notifications (Notification Log).** Realtime toasts reach
-  only people who have the form open. For events that need action (A3
-  Needs Review / Failed, A6), who gets a bell notification?
-  Options: the Process File's `custom_designated_to` user; all Operations
-  Team Leads; nobody (toasts and the coverage report only).
-  Recommendation: `custom_designated_to`, falling back to nobody.
-- **Q2 — A1 save toast.** Show it to every user who saves, or only to the
-  three tracking roles? Recommendation: tracking roles only.
-- **Q3 — A7 headline.** Show the reason when an unlinked Process File is
-  opened? It costs one read-only server call per form load of an unlinked
-  file. Recommendation: yes.
 
 ## Constraints
 
@@ -98,7 +91,8 @@ form (remove it on unload), that checks `docname`, calls
 
 - Pure tests: each step calls `notify_process_file` with the right outcome;
   publish arguments (event, doctype, docname, after_commit); no passport
-  values in payloads; Notification Log recipients per Q1.
+  values in payloads; no Notification Log is written; A1 only for the
+  three roles.
 - Test site: with a Process File form open in a browser, save → A1 toast;
   run the jobs → A2/A4 toasts and automatic reload; change workflow →
   A5 toast; review flag → A6.
