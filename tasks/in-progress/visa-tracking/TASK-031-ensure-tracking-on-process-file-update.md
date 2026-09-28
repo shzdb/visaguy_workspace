@@ -182,7 +182,7 @@ plan's "Coverage" check can read the outcome codes.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `ca06256`, merged `e775273`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `e238e1f`, merged `ceb30cd`. Not pushed, not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 

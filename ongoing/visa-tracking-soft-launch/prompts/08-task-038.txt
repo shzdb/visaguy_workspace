@@ -1,8 +1,8 @@
 YOUR TASK: implement TASK-038 — tasks/ready/visa-tracking/TASK-038-realtime-alerts.md (read it fully, including Owner decisions).
 Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-038/the_visaguy (branch sl/task-038, based on
-feat/visa-tracker at 34a8806, which contains TASK-031 to TASK-037 merged). Bench worktree name: task-038-the_visaguy.
+feat/visa-tracker at a318f8c, which contains TASK-031 to TASK-037 merged). Bench worktree name: task-038-the_visaguy.
 Output file: 08-task-038.md
-Pure-tier baseline at 34a8806: Ran 556, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+Pure-tier baseline at a318f8c: Ran 556, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
 READ FIRST: 01b-task-031.md, 07-task-037.md, and the existing code: visa_tracking/services/ensure_service.py, lifecycle_service.py,
 handlers/process_file_handlers.py, handlers/passport_extraction_handlers.py, jobs.py (ensure_tracking_job, recompute_client_status),
 api/desk.py (OUTCOME_MESSAGES), fixtures/client_scripts.json ("PF Process File-visa-tracking-actions").

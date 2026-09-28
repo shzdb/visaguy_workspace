@@ -6,8 +6,8 @@ STATE.md, 01a-task-036.md, 01b-task-031.md, 01c-task-033.md, 01d-task-034.md, 01
 01e2-task-032-field-order.md. They list each branch's on-site checks.
 
 BRANCHES (already pushed into the bench repos; accepted by the orchestrator):
-- the_visaguy: sl/task-036 (5f1cf81), sl/task-031 (ca06256), sl/task-034 (7ecfbd3), sl/task-032 (ffcacb3)
-- passport_extractor: sl/task-033 (2a00d00)
+- the_visaguy: sl/task-036 (5f1cf81), sl/task-031 (e238e1f), sl/task-034 (1d070d0), sl/task-032 (d46364c)
+- passport_extractor: sl/task-033 (cec7708)
 Target: branch feat/visa-tracker in the INSTALLED checkouts /home/shahzad/bench/apps/the_visaguy (HEAD 12ded1a, clean)
 and /home/shahzad/bench/apps/passport_extractor (HEAD 0febf6c, clean).
 

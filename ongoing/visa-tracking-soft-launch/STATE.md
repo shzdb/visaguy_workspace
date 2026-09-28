@@ -28,13 +28,13 @@
 | # | Phase | Output | Status |
 |---|---|---|---|
 | 1a | TASK-036 field ID patch | `01a-task-036.md` | done `5f1cf81` (348 pure, 2 known errors); orchestrator spot-check OK |
-| 1b | TASK-031 ensure tracking + manual actions | `01b-task-031.md` | done `ca06256` (402 pure, 2 known errors); spot-check OK |
-| 1c | TASK-033 extraction review actions (passport_extractor) | `01c-task-033.md` | done `2a00d00` (25 new pure OK; doctype tier 37 with 2 baseline errors); spot-check OK |
-| 1d | TASK-034 roles and permissions | `01d-task-034.md` | done `7ecfbd3` (incl. corrective 01d2); verified |
-| 1e | TASK-032 desk layout and navigation | `01e-task-032.md` | done `f800d3f`; corrective 01e2 (PF field_order) IN PROGRESS (bg bopzo1n3d) |
+| 1b | TASK-031 ensure tracking + manual actions | `01b-task-031.md` | done `e238e1f` (402 pure, 2 known errors); spot-check OK |
+| 1c | TASK-033 extraction review actions (passport_extractor) | `01c-task-033.md` | done `cec7708` (25 new pure OK; doctype tier 37 with 2 baseline errors); spot-check OK |
+| 1d | TASK-034 roles and permissions | `01d-task-034.md` | done `1d070d0` (incl. corrective 01d2); verified |
+| 1e | TASK-032 desk layout and navigation | `01e-task-032.md` | done `07e7c73`; corrective 01e2 (PF field_order) IN PROGRESS (bg bopzo1n3d) |
 | 2 | Orchestrator review of wave 1 | `02-review.md` | pending |
 | 3 | Integration: merge into `feat/visa-tracker` on the bench, migrate test site, on-site suites | `03-integration.md` | pending |
-| 4 | TASK-035 coverage report | `04-task-035.md` | done `d0f7474`, merged `3872390`; report verified on test site |
+| 4 | TASK-035 coverage report | `04-task-035.md` | done `3cb73cd`, merged `1118035`; report verified on test site |
 | 5 | Runtime smoke test + gap recon | `05-runtime-verification-and-gaps.md` | done (13/13 pass; 10 gaps listed) |
 | 6 | Final report | `06-final-report.md` | done |
 
@@ -52,6 +52,7 @@
 - 2026-09-28: 1b accepted. Spot-checked: 3a guard runs after same-row reuse and before creation, flags once per Lead; save hook enqueue-only with job_id + deduplicate, wrapped in try/except; desk actions check roles server-side; Error Log dedupe keys on Error Log.method (= title in v15) + reference within 7 days. Accepted deviations: 6 extra outcome codes (no_source_lead, verified_not_linked, inspection_error, and three TASK-035 reasons), dependants resolved via custom_primary_process_file, review-flag dedupe per Lead.
 - 2026-09-28: Phase 3 dispatch (cursor-agent --force with merge/migrate rights on the installed bench checkouts and test site) was denied by the Claude Code auto-mode permission classifier. Prompt is ready at prompts/03-integration.txt. Waiting for the owner to allow it or run it.
 - 2026-09-28: Owner: merge and migrate the TEST site only; never run anything on `visaguy` (owner tests it). Patch may run on the test site. Integration done directly by the orchestrator. See 03-integration.md.
-- 2026-09-28: TASK-035 merged (`3872390`); test-site migrate OK; the_visaguy on-site 638 OK; report reasons match ensure_tracking. Tasks 031–036 moved to in-progress (awaiting owner visaguy test and deploy).
-- 2026-09-28: TASK-037 (HEIC message) merged `34a8806`; on-site 657 OK. TASK-038 (realtime alerts) planned, blocked on owner Q1–Q3.
-- 2026-09-28: TASK-038 (realtime alerts, owner Q1 none / Q2 roles / Q3 no headline) merged `ed1590d`; on-site 719 OK. Found: cursor-agent adds `Co-authored-by: Cursor` to its commits (8 commits: tvg 7ecfbd3 a11ad1f aa94c86 ca06256 d0f7474 f800d3f ffcacb3; pe 2a00d00) because ~/.cursor/cli-config.json has attribution.attributeCommitsToAgent true. Nothing pushed. Owner decision pending on rewriting.
+- 2026-09-28: TASK-035 merged (`1118035`); test-site migrate OK; the_visaguy on-site 638 OK; report reasons match ensure_tracking. Tasks 031–036 moved to in-progress (awaiting owner visaguy test and deploy).
+- 2026-09-28: TASK-037 (HEIC message) merged `a318f8c`; on-site 657 OK. TASK-038 (realtime alerts) planned, blocked on owner Q1–Q3.
+- 2026-09-28: TASK-038 (realtime alerts, owner Q1 none / Q2 roles / Q3 no headline) merged `b372f73`; on-site 719 OK. Found: cursor-agent adds `Co-authored-by: Cursor` to its commits (8 commits: tvg 1d070d0 96dadd4 924480e e238e1f 3cb73cd 07e7c73 d46364c; pe cec7708) because ~/.cursor/cli-config.json has attribution.attributeCommitsToAgent true. Nothing pushed. Owner decision pending on rewriting.
+- 2026-09-28: Owner approved removing the `Co-authored-by: Cursor` trailer. On the bench, `git filter-branch --msg-filter` rewrote only commit messages from 12ded1a (the_visaguy) and 0febf6c (passport_extractor) to feat/visa-tracker; trees, authors, dates and subjects are identical; 0 trailers left. New heads: the_visaguy `b372f73`, passport_extractor `eb6684a`. Old commits kept under refs/original/ as a backup. All sl/* branches and task worktrees deleted on the bench and locally. ~/.cursor/cli-config.json attribution.attributeCommitsToAgent set to false (backup .bak-2026-09-28). Workspace SHAs updated to the rewritten ones.

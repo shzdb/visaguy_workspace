@@ -7,17 +7,17 @@ Done by the orchestrator directly (the owner chose this over an unsupervised exe
 | Repo | Merge | SHA |
 |---|---|---|
 | the_visaguy | sl/task-036 | `6f1db0d` |
-| the_visaguy | sl/task-031 | `e775273` (auto-merge in `visa_tracking/jobs.py`, both functions kept) |
-| the_visaguy | sl/task-034 | `5790c7f` |
-| the_visaguy | sl/task-032 | `021f636` (HEAD) |
-| passport_extractor | sl/task-033 | `fa97752` |
-| passport_extractor | fix commit | `84da2fe` (HEAD) |
+| the_visaguy | sl/task-031 | `ceb30cd` (auto-merge in `visa_tracking/jobs.py`, both functions kept) |
+| the_visaguy | sl/task-034 | `2e89b0e` |
+| the_visaguy | sl/task-032 | `7c737b1` (HEAD) |
+| passport_extractor | sl/task-033 | `26cc5f0` |
+| passport_extractor | fix commit | `eb6684a` (HEAD) |
 
 Gates: `py_compile` on all changed Python, JSON validation of all changed JSON, no conflict markers.
 
 ## Fix during integration
 
-`84da2fe fix(TASK-033)`: the new review-action tests patched `frappe.local.flags` with `mock.patch.object(..., create=True)`. On a werkzeug `Local` the attribute is not in `__dict__`, so mock deleted it on exit, and `bench run-tests` crashed after the suite ("RuntimeError: object is not bound", exit 1, all tests OK). The test now saves and restores the flags by hand.
+`eb6684a fix(TASK-033)`: the new review-action tests patched `frappe.local.flags` with `mock.patch.object(..., create=True)`. On a werkzeug `Local` the attribute is not in `__dict__`, so mock deleted it on exit, and `bench run-tests` crashed after the suite ("RuntimeError: object is not bound", exit 1, all tests OK). The test now saves and restores the flags by hand.
 
 ## Results (visa-tracker-test.localhost)
 
@@ -27,7 +27,7 @@ Gates: `py_compile` on all changed Python, JSON validation of all changed JSON, 
 | Backup | `20260928_080800-visa-tracker-test_localhost-database.sql.gz` |
 | Migrate | rc 0. Patch `set_passport_field_id` executed: FF Field ID `passport` created; 0 template and 0 collection rows (no FileFlo data on the test site). Pre-existing notice: fixture `custom_field.json` skipped because DocType GoCardless Mandate is missing. |
 | the_visaguy on-site (`--skip-test-records`) | Ran 578, OK (was 418 on 2026-09-14) |
-| passport_extractor on-site | Plain run aborts in Frappe's test-record bootstrap (`DocType Company Print Options not found`, environmental, as in earlier phases). With `--skip-test-records`: Ran 98, OK, rc 0 after `84da2fe` |
+| passport_extractor on-site | Plain run aborts in Frappe's test-record bootstrap (`DocType Company Print Options not found`, environmental, as in earlier phases). With `--skip-test-records`: Ran 98, OK, rc 0 after `eb6684a` |
 | Patch second run | updates 0 |
 
 ## Static on-site checks

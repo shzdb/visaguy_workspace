@@ -101,7 +101,7 @@ Validation passes and the commit SHA is recorded here.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `passport_extractor` on the bench (installed checkout), commits `2a00d00`, merged `fa97752`, test fix `84da2fe`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `passport_extractor` on the bench (installed checkout), commits `cec7708`, merged `26cc5f0`, test fix `eb6684a`. Not pushed, not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 

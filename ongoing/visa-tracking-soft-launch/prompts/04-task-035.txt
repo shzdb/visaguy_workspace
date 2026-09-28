@@ -1,8 +1,8 @@
 YOUR TASK: implement TASK-035 — tasks/ready/visa-tracking/TASK-035-tracking-coverage-report.md (read it fully).
 Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-035/the_visaguy (branch sl/task-035, based on
-feat/visa-tracker at 021f636, which already contains TASK-031/032/034/036 merged). Bench worktree name: task-035-the_visaguy.
+feat/visa-tracker at 7c737b1, which already contains TASK-031/032/034/036 merged). Bench worktree name: task-035-the_visaguy.
 Output file: 04-task-035.md
-Pure-tier baseline at 021f636: Ran 477, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+Pure-tier baseline at 7c737b1: Ran 477, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
 
 READ FIRST: 01b-task-031.md (outcome codes and ensure_service design), 03-integration.md.
 Ownership for this phase: you own a new Script Report folder the_visaguy/the_visa_guy/report/visa_tracking_coverage/,

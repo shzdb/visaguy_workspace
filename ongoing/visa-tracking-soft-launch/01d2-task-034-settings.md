@@ -2,8 +2,8 @@
 
 - Repository: `the_visaguy`
 - Branch: `sl/task-034` (local worktree `wt/task-034/the_visaguy`, pushed to the bench repo)
-- Previous head: `aa94c86` (see `01d-task-034.md`)
-- Head: `7ecfbd3`
+- Previous head: `924480e` (see `01d-task-034.md`)
+- Head: `1d070d0`
 - Bench worktree: `/home/shahzad/sl-worktrees/task-034-the_visaguy`
 - Verdict: done
 
@@ -31,8 +31,8 @@
 
 | SHA | Message |
 |---|---|
-| `aa94c86` | `feat(TASK-034): grant tracking read, operations create and extraction review permissions` (earlier run) |
-| `7ecfbd3` | `fix(TASK-034): keep System Manager access to Visa Tracker Settings` |
+| `924480e` | `feat(TASK-034): grant tracking read, operations create and extraction review permissions` (earlier run) |
+| `1d070d0` | `fix(TASK-034): keep System Manager access to Visa Tracker Settings` |
 
 ## Files changed
 
@@ -73,14 +73,14 @@ The existing `test_read_roles_cannot_open_settings` is unchanged and still passe
 - JSON is valid (65 rows).
 - No duplicate `(parent, role, permlevel)` keys, and no duplicate names.
 
-### Pure-tier result (bench worktree, `7ecfbd3`, under the flock wrapper)
+### Pure-tier result (bench worktree, `1d070d0`, under the flock wrapper)
 
 ```
 Ran 343 tests in 0.839s
 FAILED (errors=2, skipped=20)
 ```
 
-- Previous run (`aa94c86`): Ran 341, FAILED (errors=2, skipped=20). The new count is 341 + 2 new tests.
+- Previous run (`924480e`): Ran 341, FAILED (errors=2, skipped=20). The new count is 341 + 2 new tests.
 - Baseline (`12ded1a`): Ran 324, FAILED (errors=2, skipped=20).
 - The only errors are the 2 known cases in
   `test_lifecycle_service.TestProcessFileHandler`
@@ -91,7 +91,7 @@ FAILED (errors=2, skipped=20)
 
 ## On-site checks still to run
 
-All the checks in `01d-task-034.md` still apply. Use SHA `7ecfbd3` in step 7
+All the checks in `01d-task-034.md` still apply. Use SHA `1d070d0` in step 7
 of that list. Add these Settings checks. Run them on
 `visa-tracker-test.localhost` after migrate in the integration phase:
 

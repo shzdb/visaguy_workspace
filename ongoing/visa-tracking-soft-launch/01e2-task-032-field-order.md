@@ -16,7 +16,7 @@
   a Customize Form save), or if an upstream list changes.
 - F3: 9 new pure tests.
 - F4: The on-site checks are listed below.
-- Pure tier on the bench at `ffcacb3`: `Ran 356 tests`,
+- Pure tier on the bench at `d46364c`: `Ran 356 tests`,
   `FAILED (errors=2, skipped=20)`. This is 347 + 9. The only errors are
   the 2 known `TestProcessFileHandler` "AttributeError: site" cases.
 
@@ -24,11 +24,11 @@
 
 | sha | message |
 |---|---|
-| `f800d3f` | feat(TASK-032): desk layout and navigation for visa tracking (earlier) |
-| `ffcacb3` | feat(TASK-032): keep visa tracking fields in PF Process File field_order after migrate |
+| `07e7c73` | feat(TASK-032): desk layout and navigation for visa tracking (earlier) |
+| `d46364c` | feat(TASK-032): keep visa tracking fields in PF Process File field_order after migrate |
 
 I pushed `sl/task-032` to `bench`. The bench worktree is
-`/home/shahzad/sl-worktrees/task-032-the_visaguy`, detached at `ffcacb3`.
+`/home/shahzad/sl-worktrees/task-032-the_visaguy`, detached at `d46364c`.
 
 ## Files changed (this corrective)
 
@@ -185,7 +185,7 @@ removed and re-inserted.
 Gates:
 
 - `py_compile` passes on `desk_layout.py`, the test file and `hooks.py`.
-- Pure tier (bench worktree `task-032-the_visaguy` at `ffcacb3`, under the
+- Pure tier (bench worktree `task-032-the_visaguy` at `d46364c`, under the
   flock and timeout wrapper):
 
 ```

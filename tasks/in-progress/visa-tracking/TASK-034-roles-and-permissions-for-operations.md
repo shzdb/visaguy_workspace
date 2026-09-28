@@ -116,7 +116,7 @@ and the permission rows on the production site are checked after migrate.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `aa94c86`, `7ecfbd3`, merged `5790c7f`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `924480e`, `1d070d0`, merged `2e89b0e`. Not pushed, not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 

@@ -1,8 +1,8 @@
 YOUR TASK: implement TASK-037 — tasks/ready/visa-tracking/TASK-037-unsupported-file-type-message.md (read it fully).
 Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-037/the_visaguy (branch sl/task-037, based on
-feat/visa-tracker at 3872390, which contains TASK-031 to TASK-036 merged). Bench worktree name: task-037-the_visaguy.
+feat/visa-tracker at 1118035, which contains TASK-031 to TASK-036 merged). Bench worktree name: task-037-the_visaguy.
 Output file: 07-task-037.md
-Pure-tier baseline at 3872390: Ran 537, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+Pure-tier baseline at 1118035: Ran 537, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
 READ FIRST: 01b-task-031.md and 04-task-035.md (ensure_service, desk.py, coverage report design).
 Ownership: you may edit visa_tracking/utils/constants.py, services/ensure_service.py, api/desk.py, the coverage report
 module, and their tests. Nothing else.

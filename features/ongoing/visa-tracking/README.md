@@ -585,7 +585,7 @@ Plan, decisions D1–D10 and gaps:
 
 - TASK-031 to TASK-036 — built, tested on `visa-tracker-test.localhost`
   and merged into `feat/visa-tracker` on the bench on 2026-09-28
-  (`the_visaguy` `3872390`, `passport_extractor` `84da2fe`); not pushed or
+  (`the_visaguy` `1118035`, `passport_extractor` `eb6684a`); not pushed or
   deployed. The owner migrates and tests `visaguy`. Record:
   `ongoing/visa-tracking-soft-launch/06-final-report.md`.
 

@@ -33,7 +33,7 @@ updated: 2026-09-28
   rows with a blank status and non-mandatory rows; the coverage report
   (TASK-035) covers those rare files.
 
-## Current state (verified 2026-09-28, `the_visaguy` `3872390`, `passport_extractor` `84da2fe`)
+## Current state (verified 2026-09-28, `the_visaguy` `1118035`, `passport_extractor` `eb6684a`)
 
 - No `frappe.publish_realtime`, Notification Log or server-side alert in
   `the_visaguy.visa_tracking` or `passport_extractor`.
@@ -103,7 +103,7 @@ Validation passes and the commit SHA is recorded here.
 
 ## Implementation (2026-09-28)
 
-`the_visaguy` `d9644c4`, merged into `feat/visa-tracker` as `ed1590d` on the bench. Not pushed or deployed.
+`the_visaguy` `a5549e9`, merged into `feat/visa-tracker` as `b372f73` on the bench. Not pushed or deployed.
 
 Evidence: 62 new pure tests (pure tier 618, only the 2 known errors). On
 `visa-tracker-test.localhost` (rolled back, `publish_realtime` captured):

@@ -8,8 +8,8 @@ Nothing is pushed or deployed, and nothing was run on `visaguy`.
 
 | Repo | HEAD | On-site suite |
 |---|---|---|
-| the_visaguy | `3872390` | 638 run, OK (`--skip-test-records`) |
-| passport_extractor | `84da2fe` | 98 run, OK (`--skip-test-records`) |
+| the_visaguy | `1118035` | 638 run, OK (`--skip-test-records`) |
+| passport_extractor | `eb6684a` | 98 run, OK (`--skip-test-records`) |
 
 ## How it was built
 
@@ -18,7 +18,7 @@ Nothing is pushed or deployed, and nothing was run on `visaguy`.
   (TASK-034 Settings System Manager row; TASK-032 field_order guard).
 - Integration by the orchestrator (owner choice after the permission check
   refused an unsupervised merge agent): merges, test-site migrate, suites,
-  one test fix (`84da2fe`).
+  one test fix (`eb6684a`).
 - TASK-035 by a sixth executor after TASK-031 fixed the outcome codes.
 
 ## Verification level

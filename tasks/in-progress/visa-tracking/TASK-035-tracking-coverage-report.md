@@ -66,7 +66,7 @@ Validation passes, and the report is on the "Visa Tracking" workspace
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `d0f7474`, merged `3872390`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `3cb73cd`, merged `1118035`. Not pushed, not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 
