@@ -103,7 +103,7 @@ Validation passes and the commit SHA is recorded here.
 
 ## Implementation (2026-09-28)
 
-`the_visaguy` `a5549e9`, merged into `feat/visa-tracker` as `b372f73` on the bench. Not pushed or deployed.
+`the_visaguy` `a5549e9`, merged into `feat/visa-tracker` as `b372f73` on the bench. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 
 Evidence: 62 new pure tests (pure tier 618, only the 2 known errors). On
 `visa-tracker-test.localhost` (rolled back, `publish_realtime` captured):
@@ -119,4 +119,4 @@ Deviations: the form listener is registered in `refresh` and removed in
 
 ## What remains
 
-Browser check of the toasts and automatic reload (owner, on `visaguy`), push and deploy.
+Browser check of the toasts and automatic reload (owner, on `visaguy`) and deploy (pushed 2026-10-05).

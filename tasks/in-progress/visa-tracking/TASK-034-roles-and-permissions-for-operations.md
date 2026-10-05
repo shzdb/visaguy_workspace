@@ -116,7 +116,7 @@ and the permission rows on the production site are checked after migrate.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `924480e`, `1d070d0`, merged `2e89b0e`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `924480e`, `1d070d0`, merged `2e89b0e`. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 
@@ -126,4 +126,4 @@ Evidence: Static matrix tests; on the test site Custom DocPerm rows present for 
 
 1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
 2. Browser check of the desk UI.
-3. Push and deploy (owner).
+3. Deploy (owner). Pushed 2026-10-05.

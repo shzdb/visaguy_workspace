@@ -66,7 +66,7 @@ Validation passes, and the report is on the "Visa Tracking" workspace
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `3cb73cd`, merged `1118035`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `3cb73cd`, merged `1118035`. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 
@@ -76,4 +76,4 @@ Evidence: 60 pure tests; on the test site the report's reason matched `ensure_tr
 
 1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
 2. Browser check of the desk UI.
-3. Push and deploy (owner).
+3. Deploy (owner). Pushed 2026-10-05.

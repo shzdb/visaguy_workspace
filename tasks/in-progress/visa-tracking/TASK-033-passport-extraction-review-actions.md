@@ -101,7 +101,7 @@ Validation passes and the commit SHA is recorded here.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `passport_extractor` on the bench (installed checkout), commits `cec7708`, merged `26cc5f0`, test fix `eb6684a`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `passport_extractor` on the bench (installed checkout), commits `cec7708`, merged `26cc5f0`, test fix `eb6684a`. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 
@@ -111,4 +111,4 @@ Evidence: 25 pure tests; on-site suite 98 OK; smoke test verified a Needs Review
 
 1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
 2. Browser check of the desk UI.
-3. Push and deploy (owner).
+3. Deploy (owner). Pushed 2026-10-05.

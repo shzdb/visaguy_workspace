@@ -281,8 +281,8 @@ before the switch is turned on for any zone; that step is outside this task.
 
 ## Implementation record (2026-10-05)
 
-- the_visaguy: `6272ad7`, `c5f25d3`, `84601a7`, `80a5c3a` on `feat/visa-tracker` (local; not pushed).
-- passport_extractor: `316154e` on `feat/visa-tracker` (local; not pushed).
+- the_visaguy: `6272ad7`, `c5f25d3`, `84601a7`, `80a5c3a` on `feat/visa-tracker`, pushed 2026-10-05.
+- passport_extractor: `316154e` on `feat/visa-tracker`, pushed 2026-10-05.
 - Merged on the bench by fast-forward; test site migrated. On-site: the_visaguy 778 OK, passport_extractor 103 OK.
 - Test-site checks done: schema and layout, patch ran, a real change queues one message, silent and same-status calls queue none, sender sends nothing with the switch off.
 - Still open before this task is `completed`: a real send on a test zone with an approved Meta template and the button suffix; the first-save-of-an-old-file case end to end; the layout viewed in the browser; the owner's deploy. See `ongoing/visa-tracking-soft-launch/10-task-040.md`.

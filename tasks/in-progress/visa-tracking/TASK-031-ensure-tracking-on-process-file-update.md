@@ -182,7 +182,7 @@ plan's "Coverage" check can read the outcome codes.
 
 ## Implementation (2026-09-28)
 
-Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `e238e1f`, merged `ceb30cd`. Not pushed, not deployed.
+Branch `feat/visa-tracker` in `the_visaguy` on the bench (installed checkout), commits `e238e1f`, merged `ceb30cd`. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 Built by Cursor executors, reviewed and merged by the orchestrator; records in
 `ongoing/visa-tracking-soft-launch/`.
 
@@ -192,4 +192,4 @@ Evidence: 78 pure tests; smoke test S1–S13 on the test site (save enqueues, ex
 
 1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
 2. Browser check of the desk UI.
-3. Push and deploy (owner).
+3. Deploy (owner). Pushed 2026-10-05.

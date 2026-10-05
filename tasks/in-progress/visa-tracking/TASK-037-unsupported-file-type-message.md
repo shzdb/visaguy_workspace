@@ -74,7 +74,7 @@ Validation passes and the commit SHA is recorded here.
 
 ## Implementation (2026-09-28)
 
-`the_visaguy` `96dadd4`, merged into `feat/visa-tracker` as `a318f8c` on the bench. Not pushed or deployed.
+`the_visaguy` `96dadd4`, merged into `feat/visa-tracker` as `a318f8c` on the bench. Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 
 Evidence: 19 new pure tests (pure tier 556, only the 2 known errors). On
 `visa-tracker-test.localhost` (rolled back): a Failed extraction with
@@ -85,4 +85,4 @@ the same reason and Next Step; a `NO_MRZ_FOUND` failure keeps
 
 ## What remains
 
-Owner test on `visaguy`, push and deploy.
+Owner test on `visaguy` and deploy (pushed 2026-10-05).

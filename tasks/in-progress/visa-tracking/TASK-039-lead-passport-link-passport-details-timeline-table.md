@@ -108,7 +108,7 @@ Validation passes and the commit SHA is recorded here.
 Built by two Sonnet sub-agents (Parts A + B server; Part B fields + C), reviewed
 and merged by the orchestrator into `feat/visa-tracker` on the bench:
 `the_visaguy` `e6632e6` + orchestrator fix `458f551`, `6718c89`; merges `5381de1`,
-`a9a74a1` (HEAD). Not pushed or deployed.
+`a9a74a1` (HEAD). Pushed 2026-10-05 (`the_visaguy` `feat/visa-tracker` `80a5c3a`, `passport_extractor` `316154e`); not deployed.
 
 Orchestrator fix `458f551`: the Customer was found through `Customer.lead_name`,
 which ERPNext sets only for Leads, so CRM Leads never got the Customer passport
@@ -134,4 +134,4 @@ nothing is sent) and `visaguy_frappe_crm` (its bench checkout has an uncommitted
 
 ## What remains
 
-Owner test on `visaguy`, browser check of the Open links, push and deploy.
+Owner test on `visaguy`, browser check of the Open links, deploy (pushed 2026-10-05).

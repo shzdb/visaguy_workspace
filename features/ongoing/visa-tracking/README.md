@@ -21,7 +21,7 @@ depends_on:
   - ADR-010
   - ADR-016
 created: 2026-07-20
-updated: 2026-09-28
+updated: 2026-10-05
 ---
 
 # Visa application tracking and passport extraction
@@ -589,9 +589,18 @@ Plan, decisions D1–D10 and gaps:
   deployed. The owner migrates and tests `visaguy`. Record:
   `ongoing/visa-tracking-soft-launch/06-final-report.md`.
 
+## Pushed for deployment (2026-10-05)
+
+TASK-031 to TASK-040 are merged on `feat/visa-tracker` and pushed:
+`the_visaguy` `80a5c3a`, `passport_extractor` `316154e`. `fileflo`
+(`219c9aa`), `visaguy_crm` (`df74c46`) and `visa_tracker` (`654b9f0`) were
+already pushed. Nothing is deployed. Steps from merge to pilot:
+[Go-live checklist](08-go-live-checklist.md).
+
 ## Supporting specifications
 
 - [Soft launch plan](07-soft-launch-plan.md)
+- [Go-live checklist](08-go-live-checklist.md)
 - [Architecture and data model](01-architecture-and-data-model.md)
 - [Backend workflows and API contracts](02-backend-workflows-and-api-contracts.md)
 - [Frontend design and layout](03-frontend-design-and-layout.md)
