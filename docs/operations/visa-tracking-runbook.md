@@ -63,7 +63,7 @@ useful to know, both as a safety property and as a diagnosis.
 | `enable_public_tracking` | Opens the three public endpoints. |
 | `enable_passport_extraction` | Enables the FileFlo inspection path. |
 | `passport_field_ids` | **Must match `FF File Collection File.field_id` exactly.** Newline-separated. No wildcards. A wrong value fails silently — `jobs.py:57` returns `[]`. |
-| ~~`frontend_base_url`~~ | Removed by TASK-040; it had no runtime use. CORS is `allow_cors` in `site_config.json` (ADR-008, ADR-013). The tracker URL used in client messages is `Whatsapp Default.tracking_url`, set per zone. |
+| ~~`frontend_base_url`~~ | Removed by TASK-040; it had no runtime use. CORS is `allow_cors` in `site_config.json` (ADR-008, ADR-013). The tracker link in client messages is the static button of the approved WhatsApp template. |
 | `require_manual_verification` | Per ADR-007: unset means automatic verification. **Leave set in any real production environment.** |
 
 ## FileFlo template prerequisite

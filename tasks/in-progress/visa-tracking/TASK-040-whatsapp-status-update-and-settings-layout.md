@@ -41,6 +41,26 @@ Verification labels below follow `.agents/rules/project-rules.md`. Source was
 read on the bench on 2026-10-05; nothing was run (source-wired, not
 runtime-verified).
 
+## Amendment (2026-10-06): static template button
+
+Owner tested a real send on `visaguy`: Meta returned 400, because the approved
+template's button is a static link and waflo sent a button parameter for it.
+Owner decision: **static button**. This replaces the earlier text:
+
+- The template's button URL is fixed in the template (the tracker address).
+  The sender sends **no** `button_url_map`. The template section above and
+  Part A step 2 "Button" no longer apply.
+- `Whatsapp Default.tracking_url` is removed (field, validation, tests). The
+  "Visa Tracking" tab keeps only `notify_visa_tracking_updates`. Part B steps 1
+  and 2 apply without the URL.
+- Switch-on validation requires `whatsapp_account` and a `Visa Tracking
+  Update` template row.
+- Fix commit: the_visaguy `fe91389`. Pure tier 677 (2 known errors); on-site
+  the_visaguy 776 OK on the test site.
+- Template to create in Meta: Utility; body "Hello, your visa application
+  status for {{1}} has been updated to {{2}}." with a static "Track
+  Application" URL button; no button variable.
+
 ## Objective
 
 1. Send one WhatsApp template message to the client when the status of their
@@ -281,7 +301,7 @@ before the switch is turned on for any zone; that step is outside this task.
 
 ## Implementation record (2026-10-05)
 
-- the_visaguy: `6272ad7`, `c5f25d3`, `84601a7`, `80a5c3a` on `feat/visa-tracker`, pushed 2026-10-05.
+- the_visaguy: `6272ad7`, `c5f25d3`, `84601a7`, `80a5c3a`, `fe91389` on `feat/visa-tracker`, pushed 2026-10-05.
 - passport_extractor: `316154e` on `feat/visa-tracker`, pushed 2026-10-05.
 - Merged on the bench by fast-forward; test site migrated. On-site: the_visaguy 778 OK, passport_extractor 103 OK.
 - Test-site checks done: schema and layout, patch ran, a real change queues one message, silent and same-status calls queue none, sender sends nothing with the switch off.

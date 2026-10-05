@@ -98,4 +98,4 @@ authentication scheme was out of scope.
 
 ## Amendment (2026-10-05)
 
-`Visa Tracker Settings.frontend_base_url` was removed by TASK-040 because it had no runtime use. The tracker URL for client messages now lives in `Whatsapp Default.tracking_url`, per zone.
+`Visa Tracker Settings.frontend_base_url` was removed by TASK-040 because it had no runtime use. The tracker link in client messages is the static button of the WhatsApp template; no setting holds it.
