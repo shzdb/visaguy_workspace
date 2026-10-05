@@ -1,0 +1,24 @@
+YOUR TASK: implement TASK-039 — tasks/ready/visa-tracking/TASK-039-lead-passport-link-passport-details-timeline-table.md (read it fully; three parts A, B, C).
+Your local worktree: /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/wt/task-039/the_visaguy (branch sl/task-039, based on
+feat/visa-tracker at b372f73). Bench worktree name: task-039-the_visaguy.
+Output file: 09-task-039.md
+Pure-tier baseline at b372f73: Ran 618, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler errors.
+READ FIRST: 01d-task-034.md (Custom DocPerm record format and union rule), 01e-task-032.md (Visa Tracking Application layout),
+and the code paths named in the task.
+You own every file this task needs in the_visaguy. Patches: add them under the_visaguy/patches/v1_0/ and register in
+patches.txt ([post_model_sync], after the existing entries). New DocType: create the standard folder with json, py, __init__.py.
+
+TASK IDS:
+L1. Part A items 1–5.
+L2. Part B items 1–5.
+L3. Part C items 1–5.
+L4. Pure tests for each part; update existing tests that relied on the removed Lead link or the timeline HTML.
+L5. In your output file, list the exact on-site checks for the orchestrator (migrate, permission checks per role, smoke chain).
+
+POLICIES:
+- Never delete Custom Fields through fixtures; only the explicit patch (risk 25).
+- No passport values in logs, tests (use synthetic X1234567 / 1990-01-01), commits or the output file.
+- Commit messages: no Co-authored-by or any AI attribution trailer (check with git log before pushing).
+
+GATES: py_compile; all JSON valid; pure tier on the bench under the flock wrapper: no new errors vs 618; commit on
+sl/task-039 and push to bench.
