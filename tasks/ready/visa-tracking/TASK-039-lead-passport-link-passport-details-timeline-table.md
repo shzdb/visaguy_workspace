@@ -1,7 +1,7 @@
 ---
 id: TASK-039
 feature: FEAT-001
-title: Drop the Lead passport link, show passport number and DOB on the application, timeline as a child table
+title: Drop the Lead passport link, show passport number and DOB on the application, open the status log from the timeline
 status: ready
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
@@ -13,7 +13,7 @@ created: 2026-10-05
 updated: 2026-10-05
 ---
 
-# TASK-039: Drop the Lead passport link, show passport number and DOB on the application, timeline as a child table
+# TASK-039: Drop the Lead passport link, show passport number and DOB on the application, open the status log from the timeline
 
 Owner requests of 2026-10-05. Three independent parts.
 
@@ -77,39 +77,26 @@ Required:
    extraction (db update, no save).
 5. Public API and SPA unchanged; no new key in any response.
 
-## Part C — timeline as a Frappe child table
+## Part C — open the status log from each timeline row
 
-Owner: replace the HTML timeline with a normal child table.
+Owner (2026-10-05, replacing the earlier child-table request): keep the
+existing HTML timeline on Visa Tracking Application and add, on each row, a
+link that opens that row's `Visa Tracking Status Log` record.
 
-`Visa Tracking Status Log` is a standalone, immutable DocType read by the
-public API, so it cannot become the child table. Instead:
-
-1. New child DocType **Visa Tracking Timeline** (`istable`, module The Visa
-   Guy): `effective_on` (Datetime), `status` (Link Visa Tracking Status),
-   `previous_status` (Link), `public_message` (Small Text),
-   `visible_to_client` (Check), `changed_by` (Link User), `source_doctype`
-   (Link DocType), `source_document` (Dynamic Link), `status_log` (Link
-   Visa Tracking Status Log). All read-only, list-view columns: effective
-   on, status, visible to client, changed by.
-2. Visa Tracking Application: replace `timeline_html` with a Table field
-   `timeline` (options Visa Tracking Timeline, read_only) in the Timeline
-   section; remove the HTML render code from the form script.
-3. `status_service.append_status_log` inserts the matching child row
-   directly (child `insert` with parent, parenttype, parentfield; no parent
-   save, no `modified` change), in the same transaction as the log.
-4. Patch: backfill rows for existing applications from their Status Logs,
-   ordered by `effective_on`.
-5. Status Log stays the canonical record; the public timeline API still
-   reads Status Log.
+1. The form script already loads the logs with `frappe.db.get_list`; also
+   fetch `name` and render an "Open" link per row to
+   `/app/visa-tracking-status-log/<name>` (use `frappe.utils.get_form_link`
+   or the route helper; escape every value).
+2. No new DocType, no new field, no change to `status_service`.
 
 ## Validation
 
 - Pure tests for each part.
 - Test site: migrate; the two Lead fields are gone and the Lead form still
   renders the tracking link in place; creating an application through the
-  smoke chain sets the Customer link, the passport number and DOB, and adds
-  timeline rows; an Operations Associate can read the two fields, a
-  `Lead Role` user cannot see them; the backfill patches fill existing
+  smoke chain sets the Customer link, the passport number and DOB; each
+  timeline row links to its Status Log; an Operations Associate can read the two fields, a
+  `Lead Role` user cannot see them; the backfill patch fills existing
   applications; on-site suite passes.
 
 ## Definition of done
