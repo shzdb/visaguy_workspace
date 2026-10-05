@@ -63,7 +63,7 @@ useful to know, both as a safety property and as a diagnosis.
 | `enable_public_tracking` | Opens the three public endpoints. |
 | `enable_passport_extraction` | Enables the FileFlo inspection path. |
 | `passport_field_ids` | **Must match `FF File Collection File.field_id` exactly.** Newline-separated. No wildcards. A wrong value fails silently — `jobs.py:57` returns `[]`. |
-| `frontend_base_url` | The single approved CORS origin. One value means one environment. |
+| ~~`frontend_base_url`~~ | Removed by TASK-040; it had no runtime use. CORS is `allow_cors` in `site_config.json` (ADR-008, ADR-013). The tracker URL used in client messages is `Whatsapp Default.tracking_url`, set per zone. |
 | `require_manual_verification` | Per ADR-007: unset means automatic verification. **Leave set in any real production environment.** |
 
 ## FileFlo template prerequisite
@@ -112,7 +112,7 @@ bench --site <site> mariadb -e "SELECT name FROM \`tabVisa Tracking Status\`;"
 
 # exactly ONE header expected (see ADR-008)
 curl -s -i -X POST '<base>/api/method/the_visaguy.visa_tracking.api.verification.verify_identity' \
-  -H 'Origin: <frontend_base_url>' -H 'Content-Type: application/json' \
+  -H 'Origin: <origin listed in allow_cors>' -H 'Content-Type: application/json' \
   -d '{"passport_number":"P0000000","date_of_birth":"1990-01-01"}' \
   | grep -ci 'access-control-allow-origin'
 ```
@@ -328,7 +328,6 @@ rounds of configuration archaeology.
 
    | Field | Test-site value | Note |
    |---|---|---|
-   | `frontend_base_url` | `https://tracker-test.example.com` | **differs** from `visaguy` (`http://localhost:5173/`); asserted by `test_cors_against_live_settings` |
    | `support_link` | `https://tracker-test.example.com/support` | **differs**; asserted by `test_status_payload_against_live_documents` |
    | `passport_field_ids` | `passport_front` + `passport_back`, newline-separated | **differs** from `visaguy` (`passport`); required by the FileFlo inspection and reconciliation integration tests. This value was undocumented before 2026-09-02 and had to be recovered from a test fixture comment |
    | `enabled` / `enable_public_tracking` / `enable_passport_extraction` | `1` | |

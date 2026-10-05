@@ -2,7 +2,7 @@
 id: TASK-040
 feature: FEAT-001
 title: WhatsApp message on tracking status change, tracker URL in Whatsapp Default, tabbed settings and extraction forms
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -278,3 +278,11 @@ before the switch is turned on for any zone; that step is outside this task.
   origin in `site_config` and the per-zone `tracking_url`.
 - ADR-013: add a one-line note that `Visa Tracker Settings.frontend_base_url`
   was removed by TASK-040. Do not rewrite the accepted text.
+
+## Implementation record (2026-10-05)
+
+- the_visaguy: `6272ad7`, `c5f25d3`, `84601a7`, `80a5c3a` on `feat/visa-tracker` (local; not pushed).
+- passport_extractor: `316154e` on `feat/visa-tracker` (local; not pushed).
+- Merged on the bench by fast-forward; test site migrated. On-site: the_visaguy 778 OK, passport_extractor 103 OK.
+- Test-site checks done: schema and layout, patch ran, a real change queues one message, silent and same-status calls queue none, sender sends nothing with the switch off.
+- Still open before this task is `completed`: a real send on a test zone with an approved Meta template and the button suffix; the first-save-of-an-old-file case end to end; the layout viewed in the browser; the owner's deploy. See `ongoing/visa-tracking-soft-launch/10-task-040.md`.

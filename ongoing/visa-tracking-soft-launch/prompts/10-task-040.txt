@@ -1,0 +1,38 @@
+YOUR TASK: implement TASK-040 — tasks/ready/visa-tracking/TASK-040-whatsapp-status-update-and-settings-layout.md (read it fully; parts A, B, C).
+Read prompts/00-common.txt first for the ground facts and the test loop, with these CHANGES (they override it):
+
+- BRANCH: work directly on `feat/visa-tracker` in the two local clones (no task branch, no worktree):
+    /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/the_visaguy          (HEAD a9a74a1)
+    /Users/shzd/Projects/tridz/worktrees/visa-soft-launch/passport_extractor   (HEAD eb6684a)
+  Commit there, on feat/visa-tracker. Never push `feat/visa-tracker` to any remote.
+- TEST LOOP: you cannot push feat/visa-tracker to the bench (it is checked out there). For each pure-tier run, push your
+  HEAD to a scratch branch on the bench remote: `git push bench HEAD:refs/heads/sl/task-040 --force` (the_visaguy) or the
+  same for passport_extractor, then use the bench worktrees named task-040-the_visaguy / task-040-passport_extractor as in
+  00-common.txt step 3-4 (checkout --detach sl/task-040). Always use the flock wrapper.
+- Pure-tier baseline for the_visaguy at a9a74a1: Ran 619, FAILED (errors=2, skipped=20) — the 2 known TestProcessFileHandler
+  errors. For passport_extractor, record its baseline at eb6684a first, then compare.
+- Everything else in 00-common.txt stays: no change to /home/shahzad/bench/apps/* or sites/*, no bench migrate/run-tests/
+  console/execute, never touch site `visaguy`, no secrets, no passport values (synthetic X1234567 / 1990-01-01), no
+  Co-Authored-By or AI attribution trailer on any commit.
+- Ignore the "SHARED-FILE OWNERSHIP" and "CROSS-TASK CONTRACTS" parts of 00-common.txt: you are the only executor now and
+  you own every file this task needs in both repositories.
+- Patches go under the_visaguy/patches/v1_0/ and are registered in patches.txt ([post_model_sync], after the existing entries).
+- Existing fixtures for Visa Tracking Status: if status records ship as fixtures (hooks.py fixtures / fixtures/*.json),
+  add `notify_client: 1` there so the six statuses ship with it on.
+
+Output file (write it in the workspace): ongoing/visa-tracking-soft-launch/10-task-040.md, same format as 09b-task-039-c.md:
+Summary, Commits (SHA + subject), Files changed, Deviations (be explicit), Tests and pure tier (counts vs baseline, both repos),
+On-site checks for the orchestrator (exact: migrate, each Part A/B/C check from the task's Validation section), Open questions.
+
+TASK IDS:
+L1. Part A steps 1–7 (sender, enqueue in update_tracking_status, silent flag in ensure/manual/repair paths, notify_client on
+    Visa Tracking Status). The message uses the `status_name` field of the status record, per the task.
+L2. Part B steps 1–5 (Whatsapp Default tab + validation, remove frontend_base_url, patch, test updates).
+L3. Part C: tabs and sections for Visa Tracker Settings (the_visaguy) and Passport Extraction (passport_extractor). Check the
+    fixtures for a field_order Property Setter on either doctype first.
+L4. Pure tests listed under "Validation" in the task, including the layout tests (every original fieldname present once).
+L5. Do not add `Visa Tracking Update` to REQUIRED_EVENT_TYPES; keep `notify_visa_tracking_updates` default 0.
+
+GATES: py_compile on every changed .py; all changed JSON valid; `node --check` on changed JS; pure tier on the bench under the
+flock wrapper with no new error or failure vs baseline, in both repositories; commits on feat/visa-tracker in each local
+clone; `git log -3 --format=%B` shows no trailer. Do not push anything except the scratch branch sl/task-040.

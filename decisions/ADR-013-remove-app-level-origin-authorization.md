@@ -95,3 +95,7 @@ control, and a reasonable future step if server-to-server access needs
 authentication. It is a different decision from this one, which is about not
 mistaking a forgeable browser hint for authorization; introducing an
 authentication scheme was out of scope.
+
+## Amendment (2026-10-05)
+
+`Visa Tracker Settings.frontend_base_url` was removed by TASK-040 because it had no runtime use. The tracker URL for client messages now lives in `Whatsapp Default.tracking_url`, per zone.
