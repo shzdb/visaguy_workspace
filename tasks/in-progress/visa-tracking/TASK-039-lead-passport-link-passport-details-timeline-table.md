@@ -2,7 +2,7 @@
 id: TASK-039
 feature: FEAT-001
 title: Drop the Lead passport link, show passport number and DOB on the application, open the status log from the timeline
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -102,3 +102,36 @@ link that opens that row's `Visa Tracking Status Log` record.
 ## Definition of done
 
 Validation passes and the commit SHA is recorded here.
+
+## Implementation (2026-10-05)
+
+Built by two Sonnet sub-agents (Parts A + B server; Part B fields + C), reviewed
+and merged by the orchestrator into `feat/visa-tracker` on the bench:
+`the_visaguy` `e6632e6` + orchestrator fix `458f551`, `6718c89`; merges `5381de1`,
+`a9a74a1` (HEAD). Not pushed or deployed.
+
+Orchestrator fix `458f551`: the Customer was found through `Customer.lead_name`,
+which ERPNext sets only for Leads, so CRM Leads never got the Customer passport
+link. It now reads `custom_customer_id` (Lead and CRM Lead), then `customer`,
+then `Customer.lead_name`.
+
+Evidence on `visa-tracker-test.localhost`:
+- Migrate ran both patches. The two Custom Fields are gone. The Lead DB column
+  remains (Frappe does not drop a column when a Custom Field is deleted).
+- Pure tier 630 (2 known errors); on-site suite 731 OK.
+- CRM Lead end to end with a real passport (rolled back): CRM Lead with a Primary
+  applicant row and Customer; `extraction_queued` → OCR Extracted 99.3% in 60 s →
+  auto-verified → application with `crm_lead` set, linked to the Process File and
+  the applicant row, `IN_PROGRESS`, passport number and DOB set, Customer passport
+  link set, 2 status logs, `already_linked` afterwards.
+- Field permissions with single-role users: Lead Role and Consultant Role read the
+  application but not permlevel 1; Operations Associate and Team Lead read both.
+
+Test-site setup for the CRM Lead run: installed `frappe_conversions_api` (it
+provides `Lead External IDs`; no provider, account or event records exist, so
+nothing is sent) and `visaguy_frappe_crm` (its bench checkout has an uncommitted
+`fixtures/property_setter.json` change, left untouched), then migrated.
+
+## What remains
+
+Owner test on `visaguy`, browser check of the Open links, push and deploy.
