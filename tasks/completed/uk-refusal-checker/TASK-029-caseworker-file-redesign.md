@@ -20,7 +20,7 @@ expected_files:
   - public/uk/
   - README.md
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-10-05
 ---
 
 # TASK-029: Caseworker's file redesign, landing and footer fixes
@@ -82,6 +82,8 @@ to the tracker's.
 - `270238e` phone layout for the landing visual; "UK Standard Visitor visa"
   pill removed (owner request).
 - `4e4648e` footer reduced to the copyright line (owner request).
+- `0f581c8` landing call to action lifted above the fold on phones (owner
+  request, 2026-10-05): the button and the grounds list swap order below `lg`.
 
 ## Deviations and limitations
 
