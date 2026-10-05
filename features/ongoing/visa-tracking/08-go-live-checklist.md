@@ -139,8 +139,17 @@ after the backend is live.
 - `Whatsapp Default.notify_visa_tracking_updates` off: no client messages.
 - `Visa Tracker Settings.enabled` off: no new extraction or application;
   Process File saves are unaffected.
-- Code rollback: restore the backup taken in step 3. The patches are one-way
-  (Lead passport fields deleted, `field_id` set on passport rows).
+- Code rollback: redeploy the previous code. The patches change little data and
+  are reversible without the backup:
+  - `remove_lead_passport_extraction_field` deletes only the Custom Field
+    definitions of the "Passport Extraction" link on Lead and CRM Lead. Frappe
+    keeps the DB column and its values; re-creating a Custom Field named
+    `custom_passport_extraction` shows them again.
+  - `set_passport_field_id` only fills empty `field_id` / `field_id_link` with
+    `passport` on passport rows; it can be cleared by an UPDATE.
+  - `backfill_application_passport_number_and_dob` writes only the two new
+    application fields.
+  The step-3 backup is the safety net for anything else.
 
 ## Before marketing (not part of the pilot)
 
