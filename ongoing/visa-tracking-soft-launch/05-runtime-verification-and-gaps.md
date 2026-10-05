@@ -38,3 +38,23 @@ browser UI (buttons, dialogs, previews), a real worker run of the queued jobs.
 | G8 | Tracker link is not in any client message. | Needed before marketing only. | Plan: after D7. |
 | G9 | The installed `the_visaguy` code is now merged; the `visaguy` site runs it on the next worker reload. `passport_extractor` is not installed there yet. | The save hook enqueues jobs that cannot run extraction. | Install `passport_extractor` and migrate `visaguy`, or keep `Visa Tracker Settings.enabled` off until then. |
 | G10 | `application_closed` is never set automatically. | Later item in the plan. | None for soft launch. |
+
+## Real OCR on the test site (2026-10-05, rolled back)
+
+Five of the owner's pilot passports, copied to the test site only for the run
+and deleted afterwards. Real `run_passport_extraction` and
+`auto_verify_extraction`; enqueue captured. No passport values printed.
+
+| Scenario | Result | Tracking | Time |
+|---|---|---|---|
+| S01 JPEG (WhatsApp) | Extracted, conf 88.8, MRZ valid → Verified | linked, IN_PROGRESS | 194 s |
+| S07 PDF (Russian) | Extracted, conf 98.3, MRZ valid → Verified | linked, IN_PROGRESS | 522 s |
+| S19 PNG screenshot | Extracted, conf 99.3, MRZ valid → Verified | linked, IN_PROGRESS | 81 s |
+| S21 PDF (South Africa) | Extracted, conf 99.0, MRZ valid → Verified | linked, IN_PROGRESS | 392 s |
+| S18 HEIC | Failed UNSUPPORTED_FILE_TYPE | `unsupported_file_type` | 1 s |
+
+G11: OCR takes 1.5–9 minutes per file on this bench, and one worker serves all
+queues, so OCR blocks ensure jobs, recomputes and alerts. Production needs a
+separate `long`-queue worker.
+
+The 36 pilot files were copied (checksums verified) into `sites/visaguy/private/files` at the owner's request on 2026-10-05.
