@@ -2,7 +2,7 @@
 id: TASK-041
 feature: FEAT-001
 title: Visa Tracking workspace dashboard — reports, number cards and charts
-status: ready
+status: in-progress
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -117,3 +117,32 @@ standard report folders.
   Dashboard Chart docs exist and are linked in `content`); each report runs
   with seeded rolled-back data and gives correct counts per day, per reason
   and per origin; the chart data matches the report rows.
+
+## Implementation (2026-10-06)
+
+Built by a Sonnet sub-agent (`de65996`, `fb9d433`, `49f2426` from `main`
+`b014ae2`), reviewed and merged by the orchestrator into a new branch
+`feat/visa-tracking-dashboard` on the bench (`9882273`), which is now the
+installed checkout. Not pushed.
+
+Delivered: 3 Script Reports (Passport Extraction Daily Summary, Failed
+Passport Extractions, Visa Tracking Applications Created), 5 Number Cards,
+4 Dashboard Charts, the workspace layout, and `hooks.py` fixtures by name.
+Report roles equal the current readers of each ref DocType; no permission
+changed. No passport number, DOB, MRZ, `error_message` or file name appears.
+
+Evidence on `visa-tracker-test.localhost` (seeded rows, rolled back):
+migrate OK; all records present and placed in the workspace in the planned
+order; Daily Summary today row 2 Extracted / 1 Verified / 1 Needs Review /
+2 Failed as seeded; Applications Created 2 New from Lead / 1 Existing file as
+seeded; number cards with the "today" filter: Extracted Today 4, Failed Today
+2, Applications Created Today 3 (baseline 0); Failed by Reason chart groups by
+error code. Pure tier 718 (2 known errors); on-site suite 817 OK.
+
+Known cosmetic points: the fifth number card wraps to a second row; a blank
+error code is not shown in the Group By chart (the Failed report lists it as
+"Unknown").
+
+## What remains
+
+Owner review in the browser on `visaguy` after migrate, push and deploy.
