@@ -7,11 +7,11 @@
 - Treat application repositories as authoritative for implementation, tests, generated schemas, builds, and releases.
 - VisaGuy maintained organizations are `tridz-dev` and `tvgglobal`. Repositories owned by these organizations are internally maintained; `crm` and `helpdesk` are maintained forks. All other owners are external.
 
-## Remote read-only default
+## Local bench evidence
 
-- Application repositories and the remote bench are read-only sources of evidence.
-- Do not execute SSH commands that mutate the remote bench or application repositories unless explicitly authorized by a task.
-- Prefer local workspace files and already-accepted reconnaissance reports over new remote extraction.
+- The local bench and application repositories are sources of evidence and implementation.
+- You may execute local commands (`bench`, `git`) in the workspace and application repositories to read state or apply changes when authorized by a task.
+- Prefer local workspace files and already-accepted reconnaissance reports over repeated extraction.
 
 ## No secrets, data, or generated artifacts
 

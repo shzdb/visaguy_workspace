@@ -1,10 +1,10 @@
 # Environment Configuration
 
-No local bench. All access is via SSH to a remote server with key-based authentication.
+Development is done using a local Frappe bench setup.
 
 | Variable | Value |
 |----------|-------|
-| SSH Host | `erpcode.tridz.in` (195.201.61.166:2257, user: fasil) |
-| Bench Path | `/home/fasil/fasil-bench-v15` |
-| Apps Directory | `/home/fasil/fasil-bench-v15/apps/` |
-| Site URL | `https://visaguy-hrms.erpcode.tridz.in/app` |
+| Bench Path | `/home/fasil/Tridz/bench_v15/` |
+| Apps Directory | `/home/fasil/Tridz/bench_v15/apps/` |
+| Site Name | `visaguy` |
+| Site URL | `http://visaguy:8000/app` |

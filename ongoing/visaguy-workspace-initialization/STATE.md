@@ -7,13 +7,13 @@
 - Local frontend repository: `/home/fasil/Tridz/visa_eligibility_checker` (`tvgglobal/visa_eligibility_checker`).
 - Local frontend repository: `/home/fasil/Tridz/visaguy_business_client` (`tridz-dev/visaguy_business_client`).
 - Local frontend repository: `/home/fasil/Tridz/visaguy-website-client` (`tvgglobal/visaguy-website-client`).
-- Remote environment: `ssh -p 2257 fasil@erpcode.tridz.in`; Frappe bench verified at `/home/fasil/fasil-bench-v15`.
+- Environment: Local Frappe bench verified at `/home/fasil/Tridz/bench_v15/`.
 - Executor: Kimi Code CLI (`kimi -p`).
-- SSH public-key authentication and remote command execution were verified on 2026-07-20. The initial delay was caused by an overly broad home-directory scan, not authentication.
-- Remote bench contains 29 app directories; all 29 are listed in `sites/apps.txt`.
-- Remote site directory: `/home/fasil/fasil-bench-v15/sites/visaguy` (do not read secrets or production data from it).
+- (Historical) SSH public-key authentication and remote command execution were verified on 2026-07-20. The initial delay was caused by an overly broad home-directory scan, not authentication.
+- Local bench contains 29 app directories; all 29 are listed in `sites/apps.txt`.
+- Site directory: `/home/fasil/Tridz/bench_v15/sites/visaguy` (do not read secrets or production data from it).
 - `bench --site visaguy list-apps` confirms 27 installed apps. `employee_self_service` and `mansico_meta_integration` are bench-only, not installed on this site.
-- All investigation is read-only against application repositories and the remote server. Only this workspace may be edited.
+- All investigation is read-only against application repositories and the local bench. Only this workspace may be edited.
 
 # Phase table
 
