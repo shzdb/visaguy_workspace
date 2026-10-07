@@ -39,6 +39,11 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 
 - All HR/HRMS-related custom code and customizations must be placed in the `visaguy_hrms` app. This includes hooks, doc_events, class overrides, server scripts, client scripts, and fixtures that extend or modify HRMS, Employee, Leave, Payroll, or related doctypes.
 
+## Customizations discipline
+
+- **Do not use fixtures for standard DocType customizations.** This includes Custom Fields, Property Setters, and Custom DocPerms.
+- Always use the **Export Customizations** action from the Customize Form view (which generates JSON files in the app's `custom/` directory) for any modifications or permission changes to standard DocTypes.
+
 ## Decision and planning discipline
 
 - Record significant architecture decisions as ADRs in `decisions/`.

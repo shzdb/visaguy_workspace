@@ -66,9 +66,15 @@ Key event wiring by app:
 - `visaguy_helpdesk`: HD Ticket.
 - `the_visaguy`: Raw Lead.
 
+## Standard DocType Customizations (JSON Exports)
+
+According to ADR 004, all customizations to standard Frappe/ERPNext DocTypes (including `Custom DocPerm`, `Custom Field`, and `Property Setter`) **must** be managed using the native **Export Customizations** feature (accessed via Customize Form -> Actions -> Export Customizations). This generates JSON files in the app's `custom/` folder.
+
+**Do not use fixtures for standard DocType customizations.**
+
 ## Fixtures
 
-Apps shipping fixtures must run `bench --site visaguy migrate` or `bench --site visaguy export-fixtures` after configuration changes.
+For non-standard or other metadata records, apps shipping fixtures must run `bench --site visaguy migrate` or `bench --site visaguy export-fixtures` after configuration changes. Note: `Custom DocPerm`, `Custom Field`, and `Property Setter` may still be listed below historically, but should be migrated to `custom/` JSON exports per ADR 004.
 
 | App | Fixture target DocTypes |
 |---|---|
@@ -77,7 +83,7 @@ Apps shipping fixtures must run `bench --site visaguy migrate` or `bench --site 
 | `visaguy_crm` | Workflow, Workflow State, Workflow Action Master, Client Script, Insights Dashboard/Query/Chart, Role, Print Format, Custom HTML Block, Workspace |
 | `visaguy_helpdesk` | Role |
 | `the_visaguy` | Custom Field, Workspace, Custom HTML Block, Insights Query, Insights Chart |
-| `visaguy_frappe_crm` | CRM Fields Layout, CRM Global Settings, Property Setter, Custom DocPerm |
+| `visaguy_frappe_crm` | CRM Fields Layout, CRM Global Settings |
 | `frappe_notifier` | Role, Custom DocPerm |
 | `visaguy_website` | Custom Field, Role |
 | `visaguy_raven` | Raven Bot, Raven User, Raven Document Notification |
