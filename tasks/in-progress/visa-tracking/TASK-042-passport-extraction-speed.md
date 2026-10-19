@@ -2,14 +2,14 @@
 id: TASK-042
 feature: FEAT-001
 title: Make passport extraction faster without changing its results
-status: ready
+status: in-progress
 repository: passport_extractor
 app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
 depends_on:
   - TASK-003
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-19
 ---
 
 # TASK-042: Make passport extraction faster without changing its results
@@ -118,3 +118,23 @@ rows as JSON lines to a path given by the caller. No database writes.
   `new`; no file gets worse; report the time per file and the average.
   Then a second `new` run with textline orientation off, reported separately
   for the owner's decision.
+
+## Results (2026-10-19)
+
+Benchmark on `visa-tracker-test.localhost`, 36 pilot passports plus one
+`.txt` (skipped). Status, error code and number/birth-date fingerprint are
+identical to `legacy` for all 37 files in both new modes.
+
+| Mode | Average | Median | Max | OCR passes |
+|---|---|---|---|---|
+| legacy | 126.7 s | 104.7 s | 363.9 s | 288 |
+| new | 77.6 s | 38.7 s | 557.4 s | 135 |
+| new, textline orientation off | 46.1 s | 25.4 s | 314.2 s | 138 |
+
+Files with no MRZ take longer in `new` (the full-resolution fallback adds
+passes). Textline orientation off is an owner decision (site config
+`passport_extractor_textline_orientation: 0`); it did not change any result.
+
+Shipped in tridz-dev/passport_extractor#5 together with TASK-043 and
+TASK-044 (https://github.com/tridz-dev/passport_extractor/pull/5).
+

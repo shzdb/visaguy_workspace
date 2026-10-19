@@ -18,6 +18,22 @@ ADR-007 amendment, soft-launch plan D1–D4 and TASK-038 Q1–Q3.
 Not part of the release: `frappe_conversions_api` was installed on the test
 site only, so that `visaguy_frappe_crm` could install there.
 
+## 0b. Merge status (2026-10-19, checked against GitHub)
+
+| App | Live branch | Visa tracking work already merged | Still to merge |
+|---|---|---|---|
+| `the_visaguy` | `main` `3a11dad` | everything through TASK-041: `feat/visa-tracker` `fe91389` (incl. the static WhatsApp button fix) and `feat/visa-tracking-dashboard` `9882273` | tvgglobal/the_visaguy#47 (TASK-044 queue option) |
+| `passport_extractor` | `main` `b8f41d8` | through TASK-040 (`316154e`) | tridz-dev/passport_extractor#5 (TASK-042 speed, TASK-043 MRZ recovery, TASK-044 queue) |
+| `fileflo` | `main` `955e490` | `feat/visa-tracker` `219c9aa` | nothing |
+| `visaguy_crm` | `main` `daa863e` | `feat/visa-tracker` `df74c46` | nothing |
+| `visa_tracker` (SPA) | `main` `654b9f0` | case list for several applications | nothing |
+| `waflo` | `develop` `c705be5` (only branch) | WhatsApp retry: 25 h spacing and 3-attempt cap (`1063e38`), chain-wide cap and 72 h age (`8d9c649`), webhook index (`d18e5d4`); all six `feat/waflo-correctness` commits are on `develop` as equivalent patches | nothing |
+| `frappe_conversions_api` | — | no change for visa tracking | nothing |
+| `processflo`, `visaguy_frappe_crm` | — | no change; the bench checkouts carry unrelated uncommitted edits, do not deploy them | nothing |
+
+`the_visaguy` `develop` is 39 commits ahead of `main` with marketing and
+insights work only; none of it touches visa tracking.
+
 ## 1. Before merging
 
 - [ ] Owner test on `visaguy` finished: scenarios S01–S25
@@ -65,6 +81,48 @@ after the backend is live.
       jobs, status recomputes and alerts are not blocked by OCR.
 - [ ] Scheduler enabled (hourly status reconciliation sweep).
 - [ ] socket.io running (desk toasts, TASK-038).
+
+## 3b. Passport extraction queue (TASK-044, 2026-10-19)
+
+The pilot is already live, so this is an update of a running site. OCR moves
+from `long` to its own `passport_extraction` queue (2 workers, 1800 s).
+
+1. [ ] Check free memory first: each OCR job uses about 1–2 GB, so two
+       workers need up to 4 GB on top of today's use.
+2. [ ] Deploy `passport_extractor` (TASK-042 + TASK-043 + TASK-044) and
+       `the_visaguy` (TASK-044), then `bench --site <live> migrate`.
+3. [ ] Check that `sites/common_site_config.json` now has
+       `"workers": {..., "passport_extraction": {"timeout": 1800, "background_workers": 2}}`.
+       The migrate prints a line when it adds it. If the key was missing, add
+       it by hand with those values; an existing entry is never overwritten.
+4. [ ] Production (supervisor): `bench setup supervisor`, then
+       `sudo supervisorctl reread && sudo supervisorctl update`. Confirm
+       `sudo supervisorctl status` shows a `…-passport_extraction-worker`
+       group with two processes. (If the server uses a Procfile instead, add
+       `worker_passport_extraction: bench worker --queue passport_extraction`.)
+       Answer **no** if `bench setup supervisor` offers to overwrite custom
+       changes you want to keep, and compare the new file first.
+5. [ ] `bench build --app passport_extractor` (list view button), then
+       `bench restart`. The restart kills any OCR job that is running; step 7
+       picks those records up again.
+6. [ ] Visa Tracker Settings → Queues → **Extraction Queue** =
+       `passport_extraction`. Until a worker config exists, the code falls
+       back to `long`, so this order is safe.
+7. [ ] Passport Extraction list → **Requeue Pending Extractions** (System
+       Manager). It first shows a dry run: jobs to move from `long`, records to
+       restart (no running job), records running now (left alone). Confirm.
+       Without the desk: `bench --site <live> execute
+       passport_extractor.passport_extractor.extraction_queue.requeue_pending_extractions --kwargs "{'dry_run': 0}"`
+       (run it once with `'dry_run': 1` first). It must run as a System
+       Manager; with `bench execute` that is Administrator.
+8. [ ] Watch: RQ Job list filtered on queue `passport_extraction`; Passport
+       Extractions leave `Queued`; `long` no longer receives OCR jobs.
+9. [ ] Optional speed-up from the TASK-042 benchmark: site config
+       `passport_extractor_textline_orientation: 0` gave the same results on
+       all 36 pilot files and cut the average from 77.6 s to 46.1 s.
+
+Rollback: set Extraction Queue back to `long`. New uploads go to `long`;
+jobs already on `passport_extraction` finish there while its workers run.
 
 ## 4. Deploy the backend
 
