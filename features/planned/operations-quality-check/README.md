@@ -138,11 +138,12 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 | D5 | Sidebar attachments are included in the QC context. |
 | D6 | Code lives in `the_visaguy`, in a new module **Quality Check**. |
 | D7 | The Schengen operations team runs the pilot, in all three Schengen departments (`- T`, `- TQ`, `- TS`). |
-| D8 | No per-department on/off switch. The button is the same everywhere; only the agent prompt can differ. |
+| D8 | No per-department on/off switch. The button is the same everywhere; only the prompt differs. |
+| D8a | One huf agent for QC. Each department has its own huf **Agent Prompt** template, passed at run time (owner, 2026-10-19). |
 | D9 | The owner chooses the AI provider and model and configures the agent in huf. |
 | D10 | Team Leads see the per-associate report (R6) for their departments. |
-| D11 | No separate workspace. QC cards, charts and report links go into the existing Operation Associate, Operation Manager and Management workspaces. |
-| D12 | When a check leaves no open findings, the group's "Quality Check" action rows are marked Completed automatically. |
+| D11 | No separate Quality Check workspace. **Placement in the existing workspaces is pending owner clarification** (open question 3). |
+| D12 | When a check leaves no open findings, the group's QC action rows are marked Completed automatically. Which action is configured per department in settings, not hard-coded. |
 
 ## User value
 
@@ -166,8 +167,9 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 - One huf agent for QC, called with structured output.
 - A **Quality Check** tab with the latest report, finding resolution, history
   and recheck.
-- QC settings: default agent, optional agent per department, limits.
-- Automatic completion of the "Quality Check" action rows (D12).
+- QC settings: the QC agent, a default prompt template, and per department a
+  prompt template and the action to complete; limits.
+- Automatic completion of the configured QC action rows (D12).
 - Reports, number cards and charts for associates, team leads and
   management, placed in the existing workspaces.
 
@@ -187,9 +189,10 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 1. **Button.** A **Check QC** button shows on every process file for users
    with Operations Associate or Operations Team Lead. On a dependant file it
    runs QC for the whole group and stores the result on the primary.
-1a. **Agent choice.** The run uses the agent mapped to the primary file's
-   department in settings, or the default agent when there is no mapping.
-   The run records which agent and prompt version it used.
+1a. **Prompt choice.** The run uses the QC agent with the prompt template
+   mapped to the primary file's department in settings, or the default
+   template when the department has no row. The run records the template,
+   its version, and the huf prompt snapshot (see "Prompt templates").
 2. **No enforcement.** Running or not running QC does not change
    `workflow_state` or any workflow rule.
 3. **Background run.** The click creates a QC Run (Queued) and enqueues a job
@@ -221,13 +224,14 @@ supplies the agent setup, provider keys, OCR, run log and cost.
     the counts.
 11. **Alert.** The user who clicked gets a realtime alert when the run ends.
 11a. **Action completion (D12).** When the group has no Open findings (the
-    run verdict is Passed, or a user resolves the last Open finding), every
-    action row on the group's process files whose name is in the settings
-    list (default "Quality Check") is set to Completed with `db_set` on the
-    child row, and a comment records that QC completed it. Rows are never
-    set back to Pending automatically. "QUALITY CHECK (INTERNAL) &
-    SUBMISSION" is not in the default list, because it also covers
-    submission.
+    run verdict is Passed, or a user resolves the last Open finding), the
+    adapter reads the **QC action** set for the primary file's department in
+    settings (falling back to the default row). It sets every action row on
+    the group's process files whose `action` equals that `PF Process Action`
+    to Completed, with `db_set` on the child row, and adds a comment that QC
+    completed it. Nothing is hard-coded: a department with no QC action gets
+    no change. Rows are never set back to Pending automatically. See "Which
+    action is completed" below.
 12. **huf optional at import.** `the_visaguy` imports huf only inside the QC
     job. If huf is not installed, the button does not show and nothing else
     in `the_visaguy` changes.
@@ -274,7 +278,8 @@ build context for primary + dependants
   sidebar ───┘
         │
         ▼
-huf run_agent_sync(agent="Process File QC", prompt, files, response_format)
+huf run_agent_sync(agent, prompt_template=<department template>,
+                  prompt, files, response_format)
         │
         ▼
 save findings on the QC Run ──▶ db_set QC summary on process files ──▶ realtime alert
@@ -330,11 +335,19 @@ the visa tracking fields.
   `found`, `explanation`, `previous_finding`, `recheck_result` (Resolved /
   Still present / Cannot tell), `resolution` (Open / Fixed / Not an issue),
   `resolved_by`, `resolved_on`, `remark`.
-- `Process File QC Settings` (single): `default_agent` (Link Agent),
-  `department_agents` (table: department, agent), `complete_actions` (table
-  of action names, default "Quality Check"), `max_files`, `max_total_mb`,
-  `include_sidebar_attachments` (default on), `monthly_cost_alert`
-  (optional).
+- `Process File QC Settings` (single): `agent` (Link Agent),
+  `default_prompt_group` and `default_qc_action` (Link PF Process Action,
+  optional), `departments` (child table `Process File QC Department`, below),
+  `max_files`, `max_total_mb`, `include_sidebar_attachments` (default on),
+  `monthly_cost_alert` (optional).
+- `Process File QC Department` (child): `department` (Link Department,
+  unique), `prompt_group` (the huf template family; the latest active
+  version is used), `pinned_prompt` (Link Agent Prompt, optional: use this
+  exact version instead), `qc_action` (Link PF Process Action, optional).
+  The pilot needs three rows: `Operations - Schengen - T`, `- TQ`, `- TS`,
+  all pointing to the Schengen template.
+- `Process File QC Run` also stores `prompt_template` (Link Agent Prompt),
+  `prompt_version`, and `qc_action_completed` (Check).
 
 Results live in their own DocType, not in a child table on the process file.
 A process file save fires many hooks (tracking sync, visa centre sync,
@@ -343,7 +356,36 @@ row. A separate record keeps the full history and does not race with a user
 who edits the file. The copied `department`, `company` and `destination`
 fields keep reports fast and stable if the file moves later.
 
-### Agent instructions (draft, to refine with the Schengen team)
+### Prompt templates (huf Agent Prompt)
+
+huf keeps prompt templates in the `Agent Prompt` DocType: `title`, `category`,
+`prompt_body`, `version`, `is_latest`, `prompt_group` (all versions of one
+template), `previous_version`, `is_active`. `run_agent_sync` takes
+`prompt_template` (and optional `prompt_version`). When it is passed, huf
+uses that template as the agent's system prompt for this run only, without
+changing the agent. huf also saves the system prompt actually used in
+`Agent Run Prompt Snapshot`. (Source, commit `69d65d8`:
+`agent_integration.run_agent_sync`, lines around 1551 and 2070.)
+
+How the QC uses this:
+
+1. The owner creates one QC agent (provider, model, OCR, temperature) and
+   one template per department in huf, under a category such as "Process
+   File QC". Departments that share rules can share a template.
+2. Settings map each department to a template family (`prompt_group`). The
+   adapter resolves the latest active version at run time, so a prompt edit
+   in huf takes effect on the next run without a deploy. A department can
+   pin one exact version instead.
+3. The adapter builds the user message in code: the shared rules that must
+   not vary (use only the manifest labels, say "not readable", do not guess,
+   give a result for every previous finding on a recheck), the manifest, and
+   the form data. The JSON schema goes in `response_format`. So department
+   templates hold only the department's checking rules, and a template edit
+   cannot break the output format.
+4. Every QC Run stores the template name and version, so reports can compare
+   results before and after a prompt change.
+
+### Department template content (Schengen draft, to refine with the team)
 
 - Compare every applicant's form data with every document provided. Do not
   expect a fixed set of documents; check what is there.
@@ -356,8 +398,9 @@ fields keep reports fast and stable if the file moves later.
 - List document types that are usually expected but are not in the
   manifest as Clarify findings with category Missing document.
 - Give each finding one `topic_category` from the fixed list.
-- On a recheck, give a result for every previous finding.
-- Return only JSON that matches the schema.
+
+(The recheck and output rules are in the code-built message, not in the
+template.)
 
 ### Structured output (draft schema)
 
@@ -383,6 +426,28 @@ fields keep reports fast and stable if the file moves later.
   "unreadable_documents": ["string"]
 }
 ```
+
+### Which action is completed (D12)
+
+The action is **configured, not hard-coded**:
+
+- Each `Process File QC Department` row has an optional `qc_action` (Link
+  `PF Process Action`). `default_qc_action` covers departments without a row.
+  Empty means "complete nothing".
+- The adapter matches action rows by exact link value
+  (`PF Process File Action.action == qc_action`), on the primary and every
+  dependant process file.
+- Action names differ between templates today (2026 counts): "Quality Check"
+  in UK, US and Asia (about 3,400 rows); "QUALITY CHECK (INTERNAL) &
+  SUBMISSION" in Asia (about 600); "QUALITY CHECK (INTERNAL)" (2). The
+  combined QC-and-submission action should not be set as `qc_action`,
+  because QC does not do the submission.
+- Schengen templates have no QC action in 2026, so the Schengen rows start
+  with `qc_action` empty (open question 1).
+- The form-disable logic in `visaguy_crm` uses `TVG CRM Settings.action_name`
+  ("Application Preparation" on `visaguy`). The adapter rejects a
+  `qc_action` equal to that value, because `db_set` would skip the form-
+  disable hook that a normal save runs.
 
 ## Reports and dashboards
 
@@ -427,13 +492,16 @@ fields keep reports fast and stable if the file moves later.
 | Verdicts by week | Stacked bar | Team Lead, Management |
 | Findings by category | Bar chart | Team Lead, Management |
 
-### Placement in existing workspaces (D11)
+### Placement (pending owner clarification, D11)
 
-The reports, number cards and charts are standard records in `the_visaguy`
-(module Quality Check). They are added to the existing workspaces, which are
-standard workspace JSON files in `visaguy_crm` (module Visaguy Crm, synced on
-migrate). So the workspace change is a small edit in `visaguy_crm`; a change
-made only in the database would be lost on the next migrate.
+There is no separate Quality Check workspace. Where the cards, charts and
+report links appear is pending the owner (open question 3). Facts for that
+decision: the existing Operation Associate, Operation Manager and Management
+workspaces are standard workspace JSON files in `visaguy_crm` (module
+Visaguy Crm), synced on migrate, so adding QC items there is an edit in
+`visaguy_crm`; a database-only change is lost on the next migrate.
+
+A possible split by role, for discussion:
 
 | Workspace (role) | QC content |
 |---|---|
@@ -447,12 +515,12 @@ apply the Employee department rule.
 
 ## Tasks
 
-Draft only. No task can be `ready` until the ADR is accepted. The two open
-questions do not block the build.
+Draft only. No task can be `ready` until the ADR is accepted. The open
+questions do not block the build; task 9 waits for open question 3.
 
 1. ADR: huf on the same site as a lazy dependency of `the_visaguy`; QC
-   module boundary; data sent to the AI provider; the workspace edit in
-   `visaguy_crm`.
+   module boundary; data sent to the AI provider; one agent with
+   department prompt templates.
 2. Install huf on `visa-tracker-test.localhost`; check package conflicts,
    worker queues and scheduler load.
 3. Quality Check module: DocTypes, settings, custom fields, permissions and
@@ -462,10 +530,9 @@ questions do not block the build.
 5. Runner: huf call, schema check, save, `db_set` summary, realtime alert,
    one active run per group, recheck linkage.
 6. Check QC and Recheck buttons, Quality Check tab, finding resolution.
-7. Automatic completion of "Quality Check" action rows (D12).
+7. Automatic completion of the configured QC action rows (D12).
 8. Reports R1–R7.
-9. Number cards and charts, and their placement in the three `visaguy_crm`
-   workspaces.
+9. Number cards and charts. Placement waits for open question 3.
 10. Schengen pilot in `Operations - Schengen - T`, `- TQ` and `- TS`: run on
     real past files, compare with the manual QC answer, tune the prompt, and
     review the not-an-issue rate after two weeks.
@@ -486,12 +553,15 @@ questions do not block the build.
   Management Role user sees all; an Associate sees only files they can open.
 - R1 coverage for a test period matches a manual count.
 - No report or chart shows applicant personal values.
-- A department mapped to its own agent uses that agent; others use the
-  default agent.
-- When the last Open finding is resolved, the group's "Quality Check" action
-  rows become Completed, and no process file save hooks run.
-- The QC cards and links show in the three existing workspaces for their
-  roles.
+- A department with its own template row uses the latest version of that
+  template; a department without a row uses the default template; the QC
+  Run shows the template and version used.
+- Editing a template in huf changes the next run with no deploy, unless the
+  department pins a version.
+- When the last Open finding is resolved, the action set as `qc_action` for
+  the department becomes Completed on every file in the group, no other
+  action changes, and no process file save hooks run. A department with no
+  `qc_action` gets no action change.
 - With huf uninstalled, `the_visaguy` works and the button is hidden.
 
 ## Dependencies
@@ -528,8 +598,7 @@ questions do not block the build.
 - **Use outside the pilot.** Any operations user can click the button on any
   file, so non-Schengen files can be checked with the default prompt, and
   each click costs money and sends data to the provider. Tell other
-  departments not to use it yet, or map them to an agent with a suitable
-  prompt. R7 shows use by department.
+  departments not to use it yet, or give their department its own prompt template. R7 shows use by department.
 - **Low coverage outside Schengen.** Coverage is low by design for
   departments that do not use QC yet. Filter R1 by department when reading
   it.
@@ -547,5 +616,7 @@ questions do not block the build.
    decision.)
 2. How should operations attach prepared documents (D4)? Owner decision; QC
    reads every candidate source meanwhile.
+3. Where do the QC cards, charts and report links go? **Pending owner
+   clarification** (D11).
 
 ## Completion notes
