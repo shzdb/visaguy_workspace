@@ -5,6 +5,7 @@ status: planned
 priority: medium
 repositories:
   - the_visaguy
+  - visaguy_crm
   - processflo
   - fileflo
   - huf
@@ -37,8 +38,10 @@ or not, when, by whom, the result, and whether the file was rechecked after
 fixes) show in a **Quality Check** tab on the process file. Operations users
 do not open the huf UI.
 
-QC is optional. The button does not change the workflow state and does not
-block any transition, so departments can start using it when they are ready.
+QC is optional. The button is on every process file for operations users,
+but it does not change the workflow state and does not block any transition.
+Departments that are not ready simply do not click it. The only difference
+between departments is the prompt, which the owner sets on the huf agent.
 
 ## Current state (verified 2026-10-19)
 
@@ -134,7 +137,12 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 | D4 | How operations attach prepared documents (action row `custom_attach` or more RPA Documents options) is left to the owner. It is not part of this feature's tasks. |
 | D5 | Sidebar attachments are included in the QC context. |
 | D6 | Code lives in `the_visaguy`, in a new module **Quality Check**. |
-| D7 | The Schengen operations team runs the pilot. |
+| D7 | The Schengen operations team runs the pilot, in all three Schengen departments (`- T`, `- TQ`, `- TS`). |
+| D8 | No per-department on/off switch. The button is the same everywhere; only the agent prompt can differ. |
+| D9 | The owner chooses the AI provider and model and configures the agent in huf. |
+| D10 | Team Leads see the per-associate report (R6) for their departments. |
+| D11 | No separate workspace. QC cards, charts and report links go into the existing Operation Associate, Operation Manager and Management workspaces. |
+| D12 | When a check leaves no open findings, the group's "Quality Check" action rows are marked Completed automatically. |
 
 ## User value
 
@@ -158,9 +166,10 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 - One huf agent for QC, called with structured output.
 - A **Quality Check** tab with the latest report, finding resolution, history
   and recheck.
-- QC settings: on/off per department, limits.
-- Reports, number cards, charts and a **Quality Check** workspace for
-  associates, team leads and management.
+- QC settings: default agent, optional agent per department, limits.
+- Automatic completion of the "Quality Check" action rows (D12).
+- Reports, number cards and charts for associates, team leads and
+  management, placed in the existing workspaces.
 
 ### Excluded
 
@@ -175,10 +184,12 @@ supplies the agent setup, provider keys, OCR, run log and cost.
 
 ### QC run
 
-1. **Button.** A **Check QC** button shows on a process file when QC is
-   enabled for its department in settings and the user has Operations
-   Associate or Operations Team Lead. On a dependant file it runs QC for the
-   whole group and stores the result on the primary.
+1. **Button.** A **Check QC** button shows on every process file for users
+   with Operations Associate or Operations Team Lead. On a dependant file it
+   runs QC for the whole group and stores the result on the primary.
+1a. **Agent choice.** The run uses the agent mapped to the primary file's
+   department in settings, or the default agent when there is no mapping.
+   The run records which agent and prompt version it used.
 2. **No enforcement.** Running or not running QC does not change
    `workflow_state` or any workflow rule.
 3. **Background run.** The click creates a QC Run (Queued) and enqueues a job
@@ -209,6 +220,14 @@ supplies the agent setup, provider keys, OCR, run log and cost.
     still present, or cannot tell. The tab shows "Rechecked after fixes" with
     the counts.
 11. **Alert.** The user who clicked gets a realtime alert when the run ends.
+11a. **Action completion (D12).** When the group has no Open findings (the
+    run verdict is Passed, or a user resolves the last Open finding), every
+    action row on the group's process files whose name is in the settings
+    list (default "Quality Check") is set to Completed with `db_set` on the
+    child row, and a comment records that QC completed it. Rows are never
+    set back to Pending automatically. "QUALITY CHECK (INTERNAL) &
+    SUBMISSION" is not in the default list, because it also covers
+    submission.
 12. **huf optional at import.** `the_visaguy` imports huf only inside the QC
     job. If huf is not installed, the button does not show and nothing else
     in `the_visaguy` changes.
@@ -220,7 +239,8 @@ supplies the agent setup, provider keys, OCR, run log and cost.
     - Operations Associate: QC runs on files they can open; the "My QC"
       view shows runs they started.
     - Operations Team Lead: their `Employee.department` plus their
-      `Additional Operation Department` rows (the existing Insights rule).
+      `Additional Operation Department` rows (the existing Insights rule),
+      including R6 (QC by Associate) for those departments.
     - Management Role and System Manager: all departments and companies.
 15. Only Operations Associate and Operations Team Lead can run QC or change
     finding resolution. Only System Manager can change QC settings.
@@ -272,7 +292,7 @@ the_visaguy/quality_check/
   api.py          # whitelisted: start check, recheck, set resolution, tab data
   scope.py        # department scope used by permissions and reports
   report/…        # script reports
-  number_card/…, dashboard_chart/…, workspace/quality_check/
+  number_card/…, dashboard_chart/…   # placed in visaguy_crm workspaces
 public/js/pf_process_file_qc.js   # buttons and tab rendering
 ```
 
@@ -310,9 +330,11 @@ the visa tracking fields.
   `found`, `explanation`, `previous_finding`, `recheck_result` (Resolved /
   Still present / Cannot tell), `resolution` (Open / Fixed / Not an issue),
   `resolved_by`, `resolved_on`, `remark`.
-- `Process File QC Settings` (single): `departments` (table), `agent` (Link
-  Agent), `max_files`, `max_total_mb`, `include_sidebar_attachments`
-  (default on), `monthly_cost_alert` (optional).
+- `Process File QC Settings` (single): `default_agent` (Link Agent),
+  `department_agents` (table: department, agent), `complete_actions` (table
+  of action names, default "Quality Check"), `max_files`, `max_total_mb`,
+  `include_sidebar_attachments` (default on), `monthly_cost_alert`
+  (optional).
 
 Results live in their own DocType, not in a child table on the process file.
 A process file save fires many hooks (tracking sync, visa centre sync,
@@ -384,11 +406,11 @@ fields keep reports fast and stable if the file moves later.
 | # | Report | Audience | Content |
 |---|---|---|---|
 | R1 | **QC Coverage** | Team Lead, Management | One row per department (group by company or destination optional): delivered files, checked, not checked, coverage %, first-pass rate, issues per file. Chart: coverage % by week |
-| R2 | **Delivered Without QC** | Team Lead | List of delivered files with no QC run: process file, applicant count, department, designated user, delivered date. Shows nothing for departments where QC is off unless the "include disabled departments" filter is set |
+| R2 | **Delivered Without QC** | Team Lead | List of delivered files with no QC run: process file, applicant count, department, designated user, delivered date. Department filter defaults to the user's departments |
 | R3 | **QC Runs** | Associate, Team Lead | One row per run: process file, started by, started on, workflow state at run, verdict, errors / warnings / clarify, recheck of, documents sent / skipped, duration. "My QC" is this report filtered to the session user |
 | R4 | **Open QC Findings** | Associate, Team Lead | Open findings on latest runs, oldest first: process file, severity, category, applicant label, age, designated user, workflow state. Highlights files already delivered |
 | R5 | **QC Findings Analysis** | Team Lead, Management | Counts by category and severity per department and month; not-an-issue rate per category. Chart: top categories. No finding text |
-| R6 | **QC by Associate** | Team Lead, Management | Per user: files checked, first-pass rate, issues per file, recheck rate, time to clear. See open question 2 |
+| R6 | **QC by Associate** | Team Lead (own departments), Management | Per user: files checked, first-pass rate, issues per file, recheck rate, time to clear |
 | R7 | **QC Usage and Cost** | Management, System Manager | Per month and department: runs, failed runs by `error_code`, tokens, cost, cost per file, average duration. Chart: cost per month |
 
 ### Number cards and charts
@@ -405,13 +427,19 @@ fields keep reports fast and stable if the file moves later.
 | Verdicts by week | Stacked bar | Team Lead, Management |
 | Findings by category | Bar chart | Team Lead, Management |
 
-### Workspace
+### Placement in existing workspaces (D11)
 
-A new **Quality Check** workspace in `the_visaguy` holds the cards, charts and
-report links, with role-based visibility (Operations Associate, Operations
-Team Lead, Management Role, System Manager). Shortcuts to it are added to the
-existing Operation Associate, Operation Manager and Management workspaces
-only with the owner's approval, because those are `visaguy_crm` fixtures.
+The reports, number cards and charts are standard records in `the_visaguy`
+(module Quality Check). They are added to the existing workspaces, which are
+standard workspace JSON files in `visaguy_crm` (module Visaguy Crm, synced on
+migrate). So the workspace change is a small edit in `visaguy_crm`; a change
+made only in the database would be lost on the next migrate.
+
+| Workspace (role) | QC content |
+|---|---|
+| Operation Associate (Operations Associate) | Cards: QC runs today, my open Error findings. Links: R3 (My QC), R4 |
+| Operation Manager (Operations Team Lead) | Cards: coverage this month, delivered without QC, first-pass rate, open Error findings. Charts: coverage by week, verdicts by week, findings by category. Links: R1–R6 |
+| Management (Management Role) | Cards: coverage this month, first-pass rate, QC cost this month. Charts: coverage by week per department, findings by category. Links: R1, R5, R6, R7 |
 
 Number cards and charts that need department scope use Script Report
 sources or custom methods, because the standard Count / Group By cards do not
@@ -419,11 +447,12 @@ apply the Employee department rule.
 
 ## Tasks
 
-Draft only. No task can be `ready` until the open questions have answers and
-the ADR is accepted.
+Draft only. No task can be `ready` until the ADR is accepted. The two open
+questions do not block the build.
 
 1. ADR: huf on the same site as a lazy dependency of `the_visaguy`; QC
-   module boundary; data sent to the AI provider.
+   module boundary; data sent to the AI provider; the workspace edit in
+   `visaguy_crm`.
 2. Install huf on `visa-tracker-test.localhost`; check package conflicts,
    worker queues and scheduler load.
 3. Quality Check module: DocTypes, settings, custom fields, permissions and
@@ -433,11 +462,13 @@ the ADR is accepted.
 5. Runner: huf call, schema check, save, `db_set` summary, realtime alert,
    one active run per group, recheck linkage.
 6. Check QC and Recheck buttons, Quality Check tab, finding resolution.
-7. Reports R1–R7.
-8. Number cards, charts and the Quality Check workspace.
-9. Schengen pilot: enable `Operations - Schengen - T` (and TQ / TS per open
-   question 1), run on real past files, compare with the manual QC answer,
-   tune the prompt, and review the not-an-issue rate after two weeks.
+7. Automatic completion of "Quality Check" action rows (D12).
+8. Reports R1–R7.
+9. Number cards and charts, and their placement in the three `visaguy_crm`
+   workspaces.
+10. Schengen pilot in `Operations - Schengen - T`, `- TQ` and `- TS`: run on
+    real past files, compare with the manual QC answer, tune the prompt, and
+    review the not-an-issue rate after two weeks.
 
 ## Acceptance criteria
 
@@ -455,7 +486,12 @@ the ADR is accepted.
   Management Role user sees all; an Associate sees only files they can open.
 - R1 coverage for a test period matches a manual count.
 - No report or chart shows applicant personal values.
-- Departments not enabled in settings do not see the button.
+- A department mapped to its own agent uses that agent; others use the
+  default agent.
+- When the last Open finding is resolved, the group's "Quality Check" action
+  rows become Completed, and no process file save hooks run.
+- The QC cards and links show in the three existing workspaces for their
+  roles.
 - With huf uninstalled, `the_visaguy` works and the button is hidden.
 
 ## Dependencies
@@ -489,23 +525,27 @@ the ADR is accepted.
 - **Large groups.** Many applicants and scanned PDFs can exceed the model
   context or the job timeout. Enforce the file and size limits, and list
   what was not checked.
-- **Coverage before go-live.** Coverage is low by design while departments
-  are off. R1 and R2 show only enabled departments by default.
+- **Use outside the pilot.** Any operations user can click the button on any
+  file, so non-Schengen files can be checked with the default prompt, and
+  each click costs money and sends data to the provider. Tell other
+  departments not to use it yet, or map them to an agent with a suitable
+  prompt. R7 shows use by department.
+- **Low coverage outside Schengen.** Coverage is low by design for
+  departments that do not use QC yet. Filter R1 by department when reading
+  it.
+- **Schengen has no "Quality Check" action.** In 2026 the action exists in
+  UK, US and Asia templates (about 3,400 rows), but not in Schengen
+  templates. D12 does nothing for the pilot until the Schengen process
+  templates get the action.
 - **Missing files on `visaguy`.** The dev copy has no uploaded files on disk,
   so end-to-end tests there need files copied by hand.
 
 ## Open questions
 
-1. Does the pilot cover all Schengen departments (`- T`, `- TQ`, `- TS`) or
-   only `Operations - Schengen - T`? (Recommendation: `- T` first, which is
-   8,601 files in 2026, then TQ and TS after two weeks.)
-2. Should R6 (QC by Associate) be visible to Team Leads, or to Management
-   only? (Recommendation: Management only during the pilot.)
-3. Which provider and model, and what monthly cost limit?
-4. Should shortcuts to the Quality Check workspace be added to the existing
-   `visaguy_crm` workspaces?
-5. Should a "Quality Check" action row be marked Completed automatically when
-   a run ends with no open findings? (Recommendation: no; leave action status
-   to people.)
+1. Should the "Quality Check" action be added to the Schengen process
+   templates, so D12 works in the pilot? (Template data, owner or operations
+   decision.)
+2. How should operations attach prepared documents (D4)? Owner decision; QC
+   reads every candidate source meanwhile.
 
 ## Completion notes
