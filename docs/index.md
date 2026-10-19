@@ -29,6 +29,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 
 - [`operations/local-development.md`](operations/local-development.md) — safe local setup, build, lint, and test commands.
 - [`operations/bench-operations.md`](operations/bench-operations.md) — site inspection, migrate/build/restart/update/backup procedures.
+- [`operations/dev-bench-sync.md`](operations/dev-bench-sync.md) — start-of-session sync of the development bench: which apps to pull, checks, cleanup, and the current state of every app.
 - [`operations/deployment.md`](operations/deployment.md) — deployment topology, release sequence, rollback, and validation checkpoints.
 - [`operations/visa-tracking-runbook.md`](operations/visa-tracking-runbook.md) — FEAT-001 required config keys, deploy/restart procedure, post-deploy verification, and the diagnostic order for a tracking application that never appears.
 

@@ -38,8 +38,9 @@ UI.
 
 ## Current state (verified 2026-10-19)
 
-Evidence comes from source on the erpcode bench and from read-only queries on
-`visa-tracker-test.localhost`. The `visaguy` site was not queried (owner rule).
+Evidence comes from source on the erpcode bench and from read-only counts on
+the `visaguy` development site (a database copy of live, latest process file
+2026-10-05). Counts are production estimates, labelled **data-observed**.
 
 ### How the team does QC today (owner report, not verified in code)
 
@@ -66,16 +67,28 @@ what was fixed.
 | Applicant "additional documents" | FileFlo form uploads with `is_additional_documents` create extra `FF Document` rows (`file_type` Others) on the same file collection (`fileflo.data_collection.add_form_data`) | source-wired |
 | RPA application form | Button **Generate Application Form** → `visaguy_crm.server_scripts.rpa.generate_application_form`. It posts the `information` table as CSV (RPA) or JSON (PDF Filler), plus mapped files, to the URL in `TVG CRM Settings`, and saves the returned PDF in `PF Process File.custom_application_form` | source-wired |
 | Hotel bookings and flight tickets | `PF Process File.custom_rpa_documents` (`RPA Documents`: `document_name` Select = Flight Tickets / Hotel Bookings, `attachment`). They are also inputs to the RPA call | source-wired |
-| Itinerary and cover letter | **No dedicated field found in source.** Candidates: form sidebar attachments (`File` attached to the process file with no field), the `custom_attach` field on action rows (`PF Process File Action`), or extra `RPA Documents` options added on the live site only | unverified |
-| Task list | `PF Process File.action` (`PF Process File Action`: `action`, `status` Pending / Completed, `custom_attach`, `custom_appointment_date`). The owner reports that operations do not mark actions completed | present |
+| Itinerary and cover letter | **No dedicated field in source, and in 2026 almost none are in VisaGuy.** In 2025 they were sidebar attachments (by file name: 1,806 cover letters on 1,463 files, 1,248 itineraries on 1,065 files). In 2026, 5,921 files reached Documents Delivered or Completed, but the sidebar holds 1 cover letter and 1 itinerary, and `FF Document` holds none. Action row `custom_attach` is used 4 times in total. They are probably kept outside VisaGuy (an action named "Drive Upload" exists) | data-observed |
+| Task list | `PF Process File.action` (`PF Process File Action`: `action`, `status` Pending / Completed, `custom_attach`, `custom_appointment_date`). 19,557 of 196,821 rows are Completed, which matches the owner report. Templates already have a **Quality Check** action (5,109 rows, plus variants such as "QUALITY CHECK (INTERNAL) & SUBMISSION") | data-observed |
 | Workflow | `Process File Workflow` (fixture in `visaguy_crm`): Unassigned → Assigned → Inprogress → Documents Delivered → Completed, plus Hold and Rejected. No QC state | source-wired |
 
 Correction to the brief: the prepared documents are not in a field named
-"Additional documents". The hotel bookings and flight tickets are in the
-**RPA Documents** table, and the application form is in its own Attach
-field. "Additional documents" in FileFlo is the applicant's own extra upload.
-Where operations attach the itinerary and cover letter must be confirmed (see
-open question 1).
+"Additional documents". In 2026:
+
+- The application form is in `custom_application_form` (1,724 files). The
+  same PDF is also a sidebar attachment, because `save_file` attaches it to
+  the process file.
+- Hotel bookings and flight tickets are in the **RPA Documents** table (rows
+  on 1,092 process files; 1,095 Hotel Bookings and 1,084 Flight Tickets rows
+  in total).
+- The cover letter and itinerary are not stored on the process file at all.
+- "Additional Documents" is a FileFlo upload group for the applicant's own
+  extra files (23,247 in 2026). Schengen visa copies are in groups such as
+  "Copy of Schengen Visa" and "Copy of Previous Schengen Visa".
+
+So the QC cannot check the cover letter and itinerary until operations upload
+them into the process file. This is a prerequisite (see Requirement 0 and
+open question 1). Only about 1 in 5 delivered files in 2026 has RPA
+Documents, so the same applies to hotel and flight documents on most files.
 
 ### huf (commit `69d65d8`, 2026-10-10)
 
@@ -132,6 +145,12 @@ adapter must collect the context and call huf.
 
 ## Requirements
 
+0. Every prepared document has a named slot on the process file. Add
+   **Cover Letter**, **Itinerary** and **Travel Insurance** to the `RPA
+   Documents.document_name` options (or rename the table to Prepared
+   Documents). **Send to QC** is blocked until the application form, hotel
+   booking, flight reservation, itinerary and cover letter are present. The
+   list per destination is open question 1.
 1. An Operations Associate or Team Lead moves a primary process file from
    **Inprogress** to **Quality Check** with action **Send to QC**.
 2. The QC run starts after the transition commits, in the `long` queue. The
@@ -153,7 +172,8 @@ adapter must collect the context and call huf.
    **Open**, with an optional remark. The user and time are recorded.
 9. From QC Review the user can move to **Documents Delivered** or back to
    **Inprogress**, or start a new run. Each run is kept; the tab shows the
-   latest first.
+   latest first. Moving to Documents Delivered marks the existing **Quality
+   Check** action row Completed, if the template has one.
 10. Only one run per group can be Queued or Running at a time.
 11. Roles that can read the process file can read its QC results. Only
     Operations roles can run QC or change finding status.
@@ -262,8 +282,8 @@ Base the instructions on the operations prompt and make the rules explicit:
 Draft only. No task can be `ready` until the open questions below have
 answers and the proposed ADRs are accepted.
 
-1. Confirm where operations attach the itinerary and cover letter (read-only
-   counts on `visaguy`, with owner approval).
+1. Prepared document slots: new RPA Documents options and the Send to QC
+   precondition (Requirement 0), after open question 1 is answered.
 2. ADR: huf placement and the code home of the QC adapter.
 3. Install huf on `visa-tracker-test.localhost`; check dependency conflicts,
    worker queues and scheduler load.
@@ -294,7 +314,8 @@ answers and the proposed ADRs are accepted.
 - huf installed on the same site (recommended) or reachable by API.
 - An AI provider account with a model that reads images and PDFs, and an OCR
   model for scanned files.
-- Owner confirmation of the itinerary and cover letter source.
+- Operations agree to upload every prepared document into the process file
+  before QC (today the cover letter and itinerary are kept outside VisaGuy).
 
 ## Risks
 
@@ -326,10 +347,11 @@ answers and the proposed ADRs are accepted.
 
 ## Open questions
 
-1. Where do operations attach the itinerary and cover letter today: sidebar
-   attachments, action row `custom_attach`, or extra RPA Documents options on
-   live? (Recommendation: confirm with read-only counts on `visaguy`, then
-   add both to RPA Documents as named options so the context is explicit.)
+1. Where do operations keep the cover letter and itinerary in 2026 (Google
+   Drive?), and which prepared documents are mandatory per destination?
+   Counts show they are not on the process file. (Recommendation: add named
+   RPA Documents options, make the five core documents mandatory for Send to
+   QC, and let a destination add or remove items later.)
 2. Install huf on the same bench and site, or on a separate bench called by
    API? (Recommendation: same bench, same site. The adapter can then pass
    Frappe `File` records directly, and no file leaves the server except to
