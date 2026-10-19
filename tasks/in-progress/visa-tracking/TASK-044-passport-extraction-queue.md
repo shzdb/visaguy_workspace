@@ -92,6 +92,36 @@ See `features/ongoing/visa-tracking/08-go-live-checklist.md`, section
 - PRs: https://github.com/tridz-dev/passport_extractor/pull/5,
   https://github.com/tvgglobal/the_visaguy/pull/47
 
+### On the test site (owner-approved, 2026-10-19)
+
+Installed checkouts switched to the PR heads (`passport_extractor`
+`5209db4`, `the_visaguy` `fc7667a`), `visa-tracker-test.localhost` migrated,
+then switched back (`perf/passport-extraction-speed`, `main`). This bench's
+own redis cache and queue (13008, 11008) were not running and were started.
+
+- Migrate: `after_migrate` added
+  `passport_extraction: {timeout: 1800, background_workers: 2}` and kept
+  `capi`; a second call changed nothing. Settings field options include
+  `passport_extraction`; the stored value stayed `long`.
+- On-site suites: `passport_extractor` 182 OK (after `5209db4`, which pins the
+  queue in the old retry test that asserted `long`); `the_visaguy` 819 OK.
+- Routing: a new upload through the orchestrator and a Retry both enqueued on
+  `passport_extraction`; `resolve_queue` keeps `long`, replaces an unknown
+  queue.
+- Requeue dry run, with 20 pending records (15 test leftovers with lost
+  jobs, one test record waiting on `long`, and four made for the check):
+  moved 2 (waiting on `long`), restarted 16 (no job, incl. one stuck in
+  Processing), already on queue 2, nothing changed. Apply: all 20 waiting on
+  `passport_extraction`, `long` down by the 2 moved jobs, the stuck record
+  got its "Extraction restarted" comment.
+- Two `bench worker --queue passport_extraction` processes ran two jobs at a
+  time; a dry run during the run listed them as running and left them alone.
+  All 20 finished, RQ failed registry 0, worker logs clean. (The fixtures are
+  8×8 blank images, so `NO_MRZ_FOUND` is their correct result.)
+- One real pilot passport through the orchestrator → `passport_extraction`
+  worker → Extracted, confidence 97.93, 17 s. The test record and file copy
+  were deleted; the setting was set back to `long`; the workers stopped.
+
 ## Definition of done
 
 - Pure tests pass; PRs open; owner runs the on-site suites after merge,
