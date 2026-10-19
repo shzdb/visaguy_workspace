@@ -24,6 +24,44 @@ updated: 2026-10-19
 > "QC" in this document means the operations quality check that the team
 > calls "QZ".
 
+## Planning status (resume here)
+
+Last updated 2026-10-19. Status: **planned**, design agreed in principle, no
+task files created, no code written.
+
+**Settled:** decisions D1–D12 below (button, not workflow; all available
+documents; sidebar included; code in `the_visaguy` module Quality Check;
+Schengen pilot in all three departments; one huf agent with a prompt
+template per department; per-department QC action set in settings; Team
+Leads see R6).
+
+**Pending the owner:**
+
+- How operations attach prepared documents (D4, open question 2): action
+  row `custom_attach` (confirm one file per action is enough) or more RPA
+  Documents options.
+- Workspace placement of QC cards, charts and report links (D11, open
+  question 3).
+- Whether to add a "Quality Check" action to the Schengen process templates
+  (open question 1).
+- huf agent, provider, model and the Schengen prompt template (D9, D8a).
+  These are configured by the owner in huf.
+
+**Next steps when resuming:**
+
+1. Write the ADR (task 1): huf on the same site as a lazy dependency of
+   `the_visaguy`, the Quality Check module boundary, data sent to the AI
+   provider, one agent with department prompt templates.
+2. After the ADR is accepted, create task files TASK-046 onward from the
+   Tasks list under `tasks/ready/` (check the highest TASK number first; it
+   was TASK-045 on 2026-10-19).
+3. Fold in the owner's answers to the pending items above.
+
+**Evidence sources used:** bench source on `erpcode` (`processflo`,
+`fileflo`, `visaguy_crm`, `the_visaguy`), huf commit `69d65d8`, and
+read-only counts on the `visaguy` development site. Re-check counts before
+relying on them after a new database restore.
+
 ## Summary
 
 Before operations deliver a visa file, a person checks that the form data,
