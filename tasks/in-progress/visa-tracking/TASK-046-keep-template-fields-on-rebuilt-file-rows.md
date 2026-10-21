@@ -2,7 +2,7 @@
 id: TASK-046
 feature: FEAT-001
 title: Keep template fields on file rows that uploads and rejections rebuild, and repair existing rows
-status: ready
+status: in-progress
 repository: visaguy_crm
 app_path: /home/shahzad/bench/apps/visaguy_crm
 owners: []
@@ -13,9 +13,9 @@ related:
 expected_files:
   - visaguy_crm/data_collecting_form.py
   - visaguy_crm/rejection_document_email_sending.py
-  - visaguy_crm/patches/<version>/backfill_file_row_template_fields.py
+  - visaguy_crm/patches/backfill_file_row_template_fields.py
   - visaguy_crm/patches.txt
-  - visaguy_crm/tests/test_file_row_template_fields.py
+  - visaguy_crm/test_file_row_template_fields.py
 created: 2026-10-21
 updated: 2026-10-21
 ---
@@ -253,3 +253,57 @@ On `visa-tracker-test.localhost`
 ## Not in scope
 
 - Merging the forked upload logic with fileflo is TASK-013.
+
+## Implementation (2026-10-21)
+
+Branch `fix/file-row-template-fields` in `visaguy_crm`, cut from
+`upstream/main` (`daa863e`), commit `7dc785c`. One branch for both targets
+(owner decision: no separate stage history; owner resolves any conflicts).
+
+- PR to `main`: https://github.com/tridz-dev/visaguy_crm/pull/247
+- PR to `stage`: https://github.com/tridz-dev/visaguy_crm/pull/248
+
+Both PRs merge without conflicts.
+
+Files:
+
+- `visaguy_crm/file_row_template_fields.py` (new): `template_fields_of(row)`.
+- `visaguy_crm/data_collecting_form.py`: multi-upload rows and Additional
+  Documents rows take the values from the stored row. The request only fills
+  what the stored row lacks.
+- `visaguy_crm/rejection_document_email_sending.py`: the replacement row
+  keeps the five values.
+- `visaguy_crm/patches/backfill_file_row_template_fields.py` (new) with
+  `execute` and `dry_run`. Registered in `patches.txt` under
+  `[post_model_sync]`.
+- `visaguy_crm/test_file_row_template_fields.py` (new).
+
+`step` (multi-step forms) exists only on `stage`'s FileFlo, so it is not in
+this change.
+
+Evidence:
+
+- 23 pure tests pass. 5 of them fail on `main` without the fix.
+- The other pure tests in the app pass. `server_scripts.lead.test_lead_hooks`
+  fails to load on unchanged `main` as well.
+- The candidate SQL was run read-only on `visaguy`: 268,077 candidate rows of
+  269,338, 21 without a template.
+- GitHub CI "Server" fails at job setup because the workflow uses the
+  deprecated `actions/cache@v2`. All branches fail the same way since at
+  least 2026-10-09, so no tests ran in CI.
+
+Not run:
+
+- On-site tests: these need the installed checkout switched, which needs
+  owner go-ahead.
+- The patch or `dry_run` against a database.
+
+## What remains
+
+1. Owner: the read-only live check (step 0).
+2. Owner: run `dry_run` on live and record the counts here.
+3. Owner: merge, migrate and deploy.
+4. After the migrate, check one repaired collection per template type in the
+   customer form.
+5. Remove the bench worktree `/home/shahzad/sl-worktrees/visaguy_crm-task046`
+   after the merge.
