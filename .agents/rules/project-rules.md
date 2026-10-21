@@ -49,3 +49,13 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 - Do not invent product decisions or features not supported by accepted evidence.
 - Do not claim the consumer website calls `visaguy_business.create_process_file`; that join is unresolved.
 - Do not claim integrations are actively used unless runtime-verified.
+
+## Code comments in application repositories
+
+- Keep code clean. Write a comment only when the code cannot say why
+  something is done; do not narrate what the code does.
+- Do not put workspace references in application code, tests, patches or
+  PR descriptions: no task or feature IDs (`TASK-…`, `FEAT-…`), ADR numbers,
+  workspace paths or planning notes. Those belong in this workspace.
+- Describe a feature in code only when a reader needs it to use or change
+  that code.

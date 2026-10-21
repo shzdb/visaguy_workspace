@@ -15,7 +15,8 @@ expected_files:
   - visaguy_crm/rejection_document_email_sending.py
   - visaguy_crm/patches/backfill_file_row_template_fields.py
   - visaguy_crm/patches.txt
-  - visaguy_crm/test_file_row_template_fields.py
+  - visaguy_crm/test_file_collection_rows.py
+  - visaguy_crm/file_collection_rows.py
 created: 2026-10-21
 updated: 2026-10-21
 ---
@@ -265,9 +266,30 @@ Branch `fix/file-row-template-fields` in `visaguy_crm`, cut from
 
 Both PRs merge without conflicts.
 
+Follow-up commits on the same branch (2026-10-21):
+
+- `246e398`: `FileRowFactory` (`file_collection_rows.py`) is now the only
+  builder of rebuilt rows (`uploaded_row`, `slot_row`, `additional_row`,
+  `rejected_row`). Inherited values come from the stored row, then the
+  template row, then the request. The rejection replacement row takes
+  `file_name`, `mandatory`, `multiple` and `max_allowed` from the template
+  row (gap 1). The patch uses the same `TemplateIndex`. A guard test fails
+  if code appends a `file_collection_file` row from a dict literal outside
+  the factory. This replaces `file_row_template_fields.py`.
+- `867d767`: comments trimmed; no workspace references in code (owner rule,
+  now in `.agents/rules/project-rules.md`).
+
+Open owner decisions (not in this change):
+
+- After a multi-upload, no row in the group is mandatory, by design. A
+  rejection of the only upload does not force a re-upload. Dev data: 0
+  groups today.
+- 66,134 groups changed before 2026-06 have less capacity than the template
+  allows, because the old upload code dropped the slot row.
+
 Files:
 
-- `visaguy_crm/file_row_template_fields.py` (new): `template_fields_of(row)`.
+- `visaguy_crm/file_collection_rows.py` (new): `FileRowFactory`, `TemplateIndex`.
 - `visaguy_crm/data_collecting_form.py`: multi-upload rows and Additional
   Documents rows take the values from the stored row. The request only fills
   what the stored row lacks.
@@ -276,14 +298,15 @@ Files:
 - `visaguy_crm/patches/backfill_file_row_template_fields.py` (new) with
   `execute` and `dry_run`. Registered in `patches.txt` under
   `[post_model_sync]`.
-- `visaguy_crm/test_file_row_template_fields.py` (new).
+- `visaguy_crm/test_file_collection_rows.py` (new).
 
 `step` (multi-step forms) exists only on `stage`'s FileFlo, so it is not in
 this change.
 
 Evidence:
 
-- 23 pure tests pass. 5 of them fail on `main` without the fix.
+- 28 pure tests pass. 7 of them fail with the `main` versions of the two
+  changed files.
 - The other pure tests in the app pass. `server_scripts.lead.test_lead_hooks`
   fails to load on unchanged `main` as well.
 - The candidate SQL was run read-only on `visaguy`: 268,077 candidate rows of
