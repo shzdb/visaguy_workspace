@@ -91,8 +91,8 @@ Backend (`visaguy_crm.data_collecting_form.add_form_data`):
 
 ## Constraints
 
-- One branch per repository, cut from `main`. PRs: `fileflo` to `main`,
-  `visaguy_crm` to `main` and `stage`.
+- One branch per repository, cut from `main`. PRs: `fileflo` to `main`
+  and `develop-temp`, `visaguy_crm` to `main` and `stage`.
 - Do not commit the built bundle.
 - No change to which fields Submit requires.
 
@@ -118,7 +118,7 @@ Each branch is cut from `upstream/main`.
 
 | Repository | Branch | Commit | PRs |
 |---|---|---|---|
-| `fileflo` | `fix/form-save-without-required-checks` | `7336480` | https://github.com/tridz-dev/FileFlo/pull/65 (`main`) |
+| `fileflo` | `fix/form-save-without-required-checks` | `7336480` | https://github.com/tridz-dev/FileFlo/pull/65 (`main`), https://github.com/tridz-dev/FileFlo/pull/66 (`develop-temp`, staging) |
 | `visaguy_crm` | `fix/form-save-flag-without-reference-save` | `fadf9a0` | https://github.com/tridz-dev/visaguy_crm/pull/249 (`main`), https://github.com/tridz-dev/visaguy_crm/pull/250 (`stage`) |
 
 All three PRs merge without conflicts. The `visaguy_crm` branch and the
@@ -133,8 +133,10 @@ TASK-046 branch also merge cleanly together into both `main` and `stage`
 - New `serverMessage` shows the server's `messages` on errors.
 - Table row add and remove already marked the tab as edited, so
   `InfoForm.vue` is not changed.
-- `fileflo` has no `stage` branch. `develop` and `main` have diverged
-  (26 and 19 commits), so only `main` gets a PR.
+- `fileflo` staging runs `develop-temp` (owner, 2026-10-21). It is 7
+  commits ahead of `main` and 1 behind. The 1 is the merge commit of
+  FileFlo PR #63, which adds no file changes there, so PR #66 changes only
+  the form fix. `develop` is not used for staging.
 
 `visaguy_crm`: the first Save uses `frappe.db.set_value` for
 `custom_form_saved`. Submit is not changed.
