@@ -2,7 +2,7 @@
 id: TASK-047
 feature: FEAT-001
 title: Customer form Save works without required-field checks
-status: ready
+status: in-progress
 repository: fileflo, visaguy_crm
 owners: []
 depends_on: []
@@ -10,7 +10,6 @@ related:
   - TASK-046
 expected_files:
   - fileflo: form/src/components/DocForm.vue
-  - fileflo: form/src/components/InfoForm.vue
   - fileflo: form/src/utils/validationUtil.js
   - visaguy_crm: visaguy_crm/data_collecting_form.py
 created: 2026-10-21
@@ -80,8 +79,6 @@ Backend (`visaguy_crm.data_collecting_form.add_form_data`):
 - Ctrl+S runs Save when the Save button is enabled in settings. Otherwise
   it does nothing.
 - The Save button is enabled whenever no save, submit or upload is running.
-- Adding or removing a table row marks the tab as edited (for the
-  leave-page warning).
 - On an error, Save and Submit show the server's message. They fall back to
   the current text when there is no message.
 
@@ -114,3 +111,50 @@ Backend (`visaguy_crm.data_collecting_form.add_form_data`):
 
 Validation passes. Commit SHAs and PR links are recorded here. Deploy is
 owner-only.
+
+## Implementation (2026-10-21)
+
+Each branch is cut from `upstream/main`.
+
+| Repository | Branch | Commit | PRs |
+|---|---|---|---|
+| `fileflo` | `fix/form-save-without-required-checks` | `7336480` | https://github.com/tridz-dev/FileFlo/pull/65 (`main`) |
+| `visaguy_crm` | `fix/form-save-flag-without-reference-save` | `fadf9a0` | https://github.com/tridz-dev/visaguy_crm/pull/249 (`main`), https://github.com/tridz-dev/visaguy_crm/pull/250 (`stage`) |
+
+All three PRs merge without conflicts. The `visaguy_crm` branch and the
+TASK-046 branch also merge cleanly together into both `main` and `stage`
+(checked in a temporary worktree).
+
+`fileflo`:
+
+- `validateGuestFormData` takes `checkRequired` (default `true`). Save
+  passes `false`.
+- New `canSave` computed drives the Save button and Ctrl+S.
+- New `serverMessage` shows the server's `messages` on errors.
+- Table row add and remove already marked the tab as edited, so
+  `InfoForm.vue` is not changed.
+- `fileflo` has no `stage` branch. `develop` and `main` have diverged
+  (26 and 19 commits), so only `main` gets a PR.
+
+`visaguy_crm`: the first Save uses `frappe.db.set_value` for
+`custom_form_saved`. Submit is not changed.
+
+Evidence:
+
+- `vite build` succeeds with Node 18 (nvm on the bench; the system Node is
+  12).
+- `validateGuestFormData` was checked with Node: Submit mode returns the
+  Multi Select, row count and date errors; Save mode returns only the date
+  error.
+- `visaguy_crm` `test_form_save_flags`: 3 OK. The first-save test fails
+  without the change. `test_no_mid_request_commits` and
+  `test_allocated_to_process_file` pass.
+- Not run: a browser test and on-site tests. The real cause of the failing
+  saves on live is still unconfirmed.
+
+## What remains
+
+1. Owner: merge and deploy. `bench build` rebuilds the form bundle.
+2. Owner: the validation steps on `visaguy`.
+3. Remove the bench worktrees `/home/shahzad/sl-worktrees/fileflo-task047`
+   and `/home/shahzad/sl-worktrees/visaguy_crm-task047` after the merge.
