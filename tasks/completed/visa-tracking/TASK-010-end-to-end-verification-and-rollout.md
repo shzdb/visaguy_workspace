@@ -2,7 +2,7 @@
 id: TASK-010
 feature: FEAT-001
 title: End-to-end verification and rollout
-status: in-progress
+status: completed
 repositories:
   - visaguy_workspace
   - the_visaguy
@@ -27,7 +27,7 @@ expected_files:
   - ongoing/visa-tracking-implementation/10-task-010-planning.md
   - ongoing/visa-tracking-implementation/11-task-010-evidence.md
 created: 2026-07-21
-updated: 2026-09-02
+updated: 2026-10-23
 ---
 
 # TASK-010: End-to-end verification and rollout
@@ -474,3 +474,22 @@ and TASK-023 (duplicate dependant rows). Neither has on-site test evidence
    first-run concern about scanning every Process File does not apply.
 4. The open items in
    `ongoing/visa-tracking-implementation/16-session-2026-09-13-reconciliation.md` §8.
+
+## Completion (2026-10-23)
+
+Moved to `completed` by a workspace maintenance pass.
+
+- **Deployment evidence:** owner confirmation, 2026-10-23: everything merged
+  to `main` up to the 2026-10-20 go-live is deployed on live, including
+  tridz-dev/passport_extractor#5 and tvgglobal/the_visaguy#47, and the
+  `visa_tracker` frontend is live.
+- **Merge evidence (GitHub compare, 2026-10-23):** every commit listed in
+  this task is contained in `main` as of the go-live: `the_visaguy`
+  `4f3d063`, `passport_extractor` `a2f5a4a`, `visaguy_crm` `daa863e`,
+  `visa_tracker` `654b9f0`, `fileflo` `main`.
+- **Validation:** as recorded above in this task (pure and on-site suites on
+  `visa-tracker-test.localhost`).
+- **Known limitations:** owner checks other than deployment that are listed
+  under "What remains" (browser or desk checks, printed patch counts) were
+  not recorded in the workspace.
+- **Note:** Rollout: the visa tracking pilot runs on live, and the 2026-10-20 go-live shipped the passport extraction changes. The open items of the 2026-09-13 reconciliation (section 8) were all closed in that record.

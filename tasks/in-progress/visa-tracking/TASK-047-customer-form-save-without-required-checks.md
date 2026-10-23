@@ -13,7 +13,7 @@ expected_files:
   - fileflo: form/src/utils/validationUtil.js
   - visaguy_crm: visaguy_crm/data_collecting_form.py
 created: 2026-10-21
-updated: 2026-10-21
+updated: 2026-10-23
 ---
 
 # TASK-047: Customer form Save works without required-field checks
@@ -160,3 +160,8 @@ Evidence:
 2. Owner: the validation steps on `visaguy`.
 3. Remove the bench worktrees `/home/shahzad/sl-worktrees/fileflo-task047`
    and `/home/shahzad/sl-worktrees/visaguy_crm-task047` after the merge.
+
+## Status (2026-10-23)
+
+tridz-dev/FileFlo#65 and tridz-dev/visaguy_crm#249 are still open. Not
+merged, not deployed.

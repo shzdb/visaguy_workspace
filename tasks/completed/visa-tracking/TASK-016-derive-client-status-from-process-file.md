@@ -2,7 +2,7 @@
 id: TASK-016
 feature: FEAT-001
 title: Derive client-facing status automatically from Process File state
-status: in-progress
+status: completed
 repository: the_visaguy
 owners: []
 depends_on:
@@ -19,7 +19,7 @@ expected_files:
   - the_visaguy/the_visaguy/visa_tracking/tests/test_pf_process_file_status_trigger.py
   - the_visaguy/the_visaguy/visa_tracking/tests/test_reconciliation_status.py
 created: 2026-09-01
-updated: 2026-09-03
+updated: 2026-10-23
 ---
 
 # TASK-016: Derive client-facing status automatically from Process File state
@@ -530,3 +530,21 @@ addition).
 - Same day, owner decision: the sweep is scheduled hourly again
   (`the_visaguy` `6221926`, local). Older unlinked Process Files stay
   unlinked by design and the sweep never scans them. See TASK-022.
+
+## Completion (2026-10-23)
+
+Moved to `completed` by a workspace maintenance pass.
+
+- **Deployment evidence:** owner confirmation, 2026-10-23: everything merged
+  to `main` up to the 2026-10-20 go-live is deployed on live, including
+  tridz-dev/passport_extractor#5 and tvgglobal/the_visaguy#47, and the
+  `visa_tracker` frontend is live.
+- **Merge evidence (GitHub compare, 2026-10-23):** every commit listed in
+  this task is contained in `main` as of the go-live: `the_visaguy`
+  `4f3d063`, `passport_extractor` `a2f5a4a`, `visaguy_crm` `daa863e`,
+  `visa_tracker` `654b9f0`, `fileflo` `main`.
+- **Validation:** as recorded above in this task (pure and on-site suites on
+  `visa-tracker-test.localhost`).
+- **Known limitations:** owner checks other than deployment that are listed
+  under "What remains" (browser or desk checks, printed patch counts) were
+  not recorded in the workspace.

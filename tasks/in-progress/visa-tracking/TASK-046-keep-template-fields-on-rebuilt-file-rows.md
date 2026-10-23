@@ -18,7 +18,7 @@ expected_files:
   - visaguy_crm/test_file_collection_rows.py
   - visaguy_crm/file_collection_rows.py
 created: 2026-10-21
-updated: 2026-10-21
+updated: 2026-10-23
 ---
 
 # TASK-046: Keep template fields on file rows that uploads and rejections rebuild, and repair existing rows
@@ -330,3 +330,8 @@ Not run:
    customer form.
 5. Remove the bench worktree `/home/shahzad/sl-worktrees/visaguy_crm-task046`
    after the merge.
+
+## Status (2026-10-23)
+
+tridz-dev/visaguy_crm#247 (`main`, merged 2026-10-21) and #248 (`stage`,
+merged 2026-10-22). Not deployed on live (owner, 2026-10-23).

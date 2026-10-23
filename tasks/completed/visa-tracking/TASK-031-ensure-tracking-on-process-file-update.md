@@ -2,7 +2,7 @@
 id: TASK-031
 feature: FEAT-001
 title: Create tracking on Process File update, and a manual Generate action
-status: in-progress
+status: completed
 repository: the_visaguy
 app_path: /home/shahzad/bench/apps/the_visaguy
 owners: []
@@ -20,7 +20,7 @@ expected_files:
   - the_visaguy/fixtures/client_scripts.json
   - the_visaguy/visa_tracking/tests/test_ensure_service.py
 created: 2026-09-28
-updated: 2026-09-28
+updated: 2026-10-23
 ---
 
 # TASK-031: Create tracking on Process File update, and a manual Generate action
@@ -193,3 +193,21 @@ Evidence: 78 pure tests; smoke test S1–S13 on the test site (save enqueues, ex
 1. Owner migrates and tests `visaguy` (never run by Claude; see memory rule).
 2. Browser check of the desk UI.
 3. Deploy (owner). Pushed 2026-10-05.
+
+## Completion (2026-10-23)
+
+Moved to `completed` by a workspace maintenance pass.
+
+- **Deployment evidence:** owner confirmation, 2026-10-23: everything merged
+  to `main` up to the 2026-10-20 go-live is deployed on live, including
+  tridz-dev/passport_extractor#5 and tvgglobal/the_visaguy#47, and the
+  `visa_tracker` frontend is live.
+- **Merge evidence (GitHub compare, 2026-10-23):** every commit listed in
+  this task is contained in `main` as of the go-live: `the_visaguy`
+  `4f3d063`, `passport_extractor` `a2f5a4a`, `visaguy_crm` `daa863e`,
+  `visa_tracker` `654b9f0`, `fileflo` `main`.
+- **Validation:** as recorded above in this task (pure and on-site suites on
+  `visa-tracker-test.localhost`).
+- **Known limitations:** owner checks other than deployment that are listed
+  under "What remains" (browser or desk checks, printed patch counts) were
+  not recorded in the workspace.

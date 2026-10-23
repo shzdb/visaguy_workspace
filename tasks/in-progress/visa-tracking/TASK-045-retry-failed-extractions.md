@@ -14,7 +14,7 @@ expected_files:
   - passport_extractor/passport_extractor/doctype/passport_extraction/passport_extraction_list.js
   - passport_extractor/passport_extractor/tests/test_extraction_queue.py
 created: 2026-10-19
-updated: 2026-10-19
+updated: 2026-10-23
 ---
 
 # TASK-045: Retry failed extractions in bulk
@@ -66,3 +66,11 @@ Failed Extractions** (dry run, then confirm) and `bench execute`.
 
 - Tests pass; shipped in tridz-dev/passport_extractor#5; owner runs it on live
   after deploy (runbook step 7).
+
+## Status (2026-10-23)
+
+Shipped in tridz-dev/passport_extractor#5 and deployed on live (owner
+confirmation, 2026-10-23). Stays `in-progress` until the owner records the
+bulk retry run on live (runbook step 7 in
+`features/ongoing/visa-tracking/09-go-live-2026-10-20.md`): the dry-run
+count and the result.

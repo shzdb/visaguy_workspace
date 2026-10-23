@@ -25,7 +25,7 @@ expected_files:
   - the_visaguy/patches/
   - passport_extractor/passport_extractor/passport_extractor/doctype/passport_extraction/passport_extraction.json
 created: 2026-10-05
-updated: 2026-10-05
+updated: 2026-10-23
 ---
 
 # TASK-040: WhatsApp message on tracking status change, tracker URL in Whatsapp Default, tabbed settings and extraction forms
@@ -306,3 +306,12 @@ before the switch is turned on for any zone; that step is outside this task.
 - Merged on the bench by fast-forward; test site migrated. On-site: the_visaguy 778 OK, passport_extractor 103 OK.
 - Test-site checks done: schema and layout, patch ran, a real change queues one message, silent and same-status calls queue none, sender sends nothing with the switch off.
 - Still open before this task is `completed`: a real send on a test zone with an approved Meta template and the button suffix; the first-save-of-an-old-file case end to end; the layout viewed in the browser; the owner's deploy. See `ongoing/visa-tracking-soft-launch/10-task-040.md`.
+
+## Status (2026-10-23)
+
+Code is deployed on live (owner confirmation, 2026-10-23; all commits in
+`the_visaguy` `main` as of the 2026-10-20 go-live). Stays `in-progress`
+because the functional checks are not recorded: a real send on a test zone
+with an approved Meta template and the button suffix, the first save of an
+old file end to end, and the layout in the browser. Move to `completed`
+when the owner records them.

@@ -21,7 +21,7 @@ depends_on:
   - ADR-010
   - ADR-016
 created: 2026-07-20
-updated: 2026-10-05
+updated: 2026-10-23
 ---
 
 # Visa application tracking and passport extraction
@@ -315,7 +315,7 @@ Implementation must follow this order. A junior developer must not skip ahead wh
 7. [TASK-007](../../../tasks/completed/visa-tracking/TASK-007-public-api-and-security-controls.md) — completed secure public APIs.
 8. [TASK-008](../../../tasks/completed/visa-tracking/TASK-008-frontend-scaffold-and-design-parity.md) — completed local Vite design system and shared visual shell.
 9. [TASK-009](../../../tasks/completed/visa-tracking/TASK-009-frontend-tracking-flow.md) — completed form, verification, status, timeline, errors.
-10. [TASK-010](../../../tasks/in-progress/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
+10. [TASK-010](../../../tasks/completed/visa-tracking/TASK-010-end-to-end-verification-and-rollout.md) — migration, test matrix, security gate, and rollout evidence.
 
 ## Implementation reality (2026-07-23)
 
@@ -596,6 +596,23 @@ TASK-031 to TASK-040 are merged on `feat/visa-tracker` and pushed:
 (`219c9aa`), `visaguy_crm` (`df74c46`) and `visa_tracker` (`654b9f0`) were
 already pushed. Nothing is deployed. Steps from merge to pilot:
 [Go-live checklist](08-go-live-checklist.md).
+
+## Live status (2026-10-23)
+
+Owner confirmation, 2026-10-23: everything merged to `main` up to the
+2026-10-20 go-live is deployed on live, including
+tridz-dev/passport_extractor#5 and tvgglobal/the_visaguy#47, and the
+`visa_tracker` frontend is live. A GitHub compare confirmed that the commits
+of TASK-010 to TASK-045 are in `main` as of the go-live.
+
+- Moved to `completed` on 2026-10-23: TASK-010, TASK-011, TASK-012,
+  TASK-016, TASK-017, TASK-022 to TASK-027, TASK-031 to TASK-039, TASK-041 to
+  TASK-044.
+- Still `in-progress`: TASK-040 (real WhatsApp send and browser checks not
+  recorded), TASK-045 (bulk retry run on live not recorded), TASK-046
+  (merged, not deployed), TASK-047 (PRs open).
+- The feature stays `ongoing` until those close and the acceptance criteria
+  below are evaluated.
 
 ## Supporting specifications
 
