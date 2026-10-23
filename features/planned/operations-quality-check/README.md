@@ -28,8 +28,6 @@ owner on 2026-10-23 (simple flow below). No ADR, no task files, no code yet.
 
 **Pending the owner:**
 
-- Confirm the file sources for Phase 1 (open question 1; the owner's
-  message on 2026-10-23 was cut off at "all the files in the …").
 - Where prepared documents (cover letter, itinerary) get attached (D4).
 - Workspace placement of the Phase 2 reports (D11).
 
@@ -79,6 +77,7 @@ optional and does not touch the workflow.
 | D15 | 2026-10-23 | On a primary file, the user chooses **this file only** or **primary and all dependants**. On a dependant file, QC runs for that file only. |
 | D16 | 2026-10-23 | Phase 1 flow: click → status Processing → huf agent checks the data and files against the prompt → output saved on the process file. |
 | D17 | 2026-10-23 | No "Quality Check" action is added to the Schengen templates. Automatic action completion (old D12) moves to Phase 2. |
+| D18 | 2026-10-23 | Phase 1 reads all sources: the process file collection and the **lead file collection** (data and uploads), the application form, RPA Documents, action attachments and sidebar attachments. |
 
 ## Phase 1 — simple QC run
 
@@ -120,10 +119,11 @@ Process file (any workflow state)
    form-disable logic).
 5. **Inputs.** For each included file, labelled by applicant name:
    - form data: the `information` rows of the process file's file collection
-     (and the lead file collection, see open question 1) as `label: value`;
+     and of the lead file collection (`custom_lead_file_collection`) as
+     `label: value`, each labelled with its collection (D18);
    - file collection uploads: every `FF File Collection File` row with an
-     `FF Document` file (applicant uploads, including the applicant's
-     Additional Documents);
+     `FF Document` file, in both collections (applicant uploads, including
+     the applicant's Additional Documents);
    - the application form (`custom_application_form`);
    - RPA Documents rows (`custom_rpa_documents`);
    - action row attachments (`PF Process File Action.custom_attach`);
@@ -344,11 +344,7 @@ huf is **not installed** on the bench.
 
 ## Open questions
 
-1. Which file sources go into Phase 1? The plan takes all of them (process
-   file collection data and uploads, lead file collection data and uploads,
-   application form, RPA Documents, action attachments, sidebar). Confirm,
-   especially the lead file collection.
-2. Prepared documents route (D4): owner decision.
-3. Phase 2 report placement (D11): owner clarification.
+1. Prepared documents route (D4): owner decision.
+2. Phase 2 report placement (D11): owner clarification.
 
 ## Completion notes
