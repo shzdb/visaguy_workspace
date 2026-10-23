@@ -26,21 +26,32 @@ updated: 2026-10-23
 Last updated 2026-10-23. Status: **planned**. Phase 1 design agreed with the
 owner on 2026-10-23 (simple flow below). No ADR, no task files, no code yet.
 
-**Pending the owner:** nothing open for Phase 1 (all open questions closed
-on 2026-10-23).
+**huf:** pinned to **`v1.0.0-beta.4`** (D19). Installed by the owner on the
+dev bench and site `visaguy` on 2026-10-23; not yet on
+`visa-tracker-test.localhost`. See "huf version and installation".
+
+**Pending the owner:**
+
+- Pin huf on the dev bench (it tracks `develop` today) and on live, and
+  install it on `visa-tracker-test.localhost` (owner-run commands in "huf
+  version and installation").
+- Decide on the Python package drift found on the dev bench on 2026-10-23
+  (see Risks).
 
 **Next steps when resuming:**
 
-1. Write the ADR: huf on the same site as a lazy dependency of
-   `the_visaguy`; the Quality Check module; data sent to the AI provider;
-   prompt template per destination.
+1. Write the ADR: huf `v1.0.0-beta.4` pinned on the same site as a lazy
+   dependency of `the_visaguy`; the Quality Check module; data sent to the AI
+   provider; prompt template per destination; the required QC agent
+   settings.
 2. After the ADR is accepted, create Phase 1 task files from the "Phase 1
    tasks" list (check the highest TASK number first; it was TASK-047 on
    2026-10-23).
 3. The owner configures the huf agent and the Schengen prompt template.
 
 **Evidence sources:** bench source on `erpcode` (`processflo`, `fileflo`,
-`visaguy_crm`, `the_visaguy`), huf commit `69d65d8`, and read-only counts on
+`visaguy_crm`, `the_visaguy`), huf `v1.0.0-beta.4` (`c82da78`, the installed
+checkout on the dev bench), and read-only counts on
 the `visaguy` development site (a database copy of live). Re-check counts
 after a new database restore.
 
@@ -75,6 +86,7 @@ optional and does not touch the workflow.
 | D15 | 2026-10-23 | On a primary file, the user chooses **this file only** or **primary and all dependants**. On a dependant file, QC runs for that file only. |
 | D16 | 2026-10-23 | Phase 1 flow: click → status Processing → huf agent checks the data and files against the prompt → output saved on the process file. |
 | D17 | 2026-10-23 | No "Quality Check" action is added to the Schengen templates. Automatic action completion (old D12) moves to Phase 2. |
+| D19 | 2026-10-23 | huf is pinned to **`v1.0.0-beta.4`** on every site, including live, because later huf releases may break the integration. Upgrades are a deliberate, tested change, never a side effect of `bench update`. |
 | D18 | 2026-10-23 | Phase 1 reads all sources: the process file collection and the **lead file collection** (data and uploads), the application form, RPA Documents, action attachments and sidebar attachments. |
 
 ## Phase 1 — simple QC run
@@ -130,10 +142,21 @@ Process file (any workflow state)
    in the sidebar) are sent once. Files missing on disk or over the limits in
    settings are skipped and listed in the output.
 6. **huf call.** The job calls `run_agent_sync` with the agent from Visaguy
-   AI Settings, `prompt_template` from the destination, the files, and a
-   small `response_format` (below). The user message, built in code, holds
-   the shared rules (use the given labels, say "not readable", do not
-   guess), the list of files, and the form data.
+   AI Settings, `prompt_template` from the destination, the files, a small
+   `response_format` (below), and **`now=1`**. In `v1.0.0-beta.4`, the call
+   queues by default: it returns `queued: True` and runs later in the
+   `default` queue with a 600-second timeout. With `now=1` it runs inside the
+   QC job (long queue) and returns the response. The user message, built in
+   code, holds the shared rules (use the given labels, say "not readable",
+   do not guess), the list of files, and the form data. The job reads the
+   huf version at start and refuses to run, with a clear error, if it is not
+   the pinned version.
+6a. **Required agent settings.** The QC agent must have **Persist
+    Conversation off**. With it on, `run_agent_sync` reuses one conversation
+    for every call, so each QC run would carry earlier files' personal data
+    in its history. With it off, every call starts a new conversation. The
+    job checks this setting and refuses to run if it is on. **Run
+    immediately** stays off (the job passes `now=1` itself).
 7. **Output (D16).** On success, every included file gets the result, the
    report, the time, the user, the scope, and links to the huf Agent Run and
    the prompt template. `custom_qc_check_count` goes up by one. On failure
@@ -227,7 +250,8 @@ fixtures: custom fields on PF Process File and Destination
 ### Phase 1 tasks
 
 1. ADR (see Planning status).
-2. Install huf on `visa-tracker-test.localhost`; check package conflicts,
+2. Owner: pin huf to `v1.0.0-beta.4` and install it on
+   `visa-tracker-test.localhost`; resolve the package drift (Risks); check
    worker queues and scheduler load.
 3. Visaguy AI Settings, Destination AI tab field, PF Quality Check fields.
 4. Context builder with tests: scope (this file / group), every source,
@@ -308,18 +332,44 @@ Netherlands, Germany, Spain, Denmark, Norway, Greece, Belgium, Turkey,
 Italy, Malta. Turkey is not in the Schengen area but is handled by these
 departments; it needs its own template or no template.
 
-### huf (commit `69d65d8`, 2026-10-10)
+### huf version and installation (verified 2026-10-23)
 
-huf is **not installed** on the bench.
+| Check | Result | Label |
+|---|---|---|
+| Checkout | `apps/huf` at `c82da78` (2026-10-22, "Merge pull request #833"), which is tag `v1.0.0-beta.4`; `__version__ = "1.0.0-beta.4"`; pip `huf 1.0.0b4` | runtime-verified |
+| Branch | `develop`, tracking `upstream/develop`. **Not pinned**: a `bench update` would move it past the tag | runtime-verified |
+| Sites | Installed on `visaguy` (`list-apps`: `huf 1.0.0-beta.4 develop`, 109 huf DocTypes). **Not** installed on `visa-tracker-test.localhost` | runtime-verified |
+| Imports | `frappe.ping` OK on the test site; all bench apps' `hooks` import; `huf.ai.agent_integration`, `huf.ai.ocr_engine`, `litellm` import | runtime-verified |
+| Key dependencies | litellm 1.83.0, openai-agents 0.24.0 | runtime-verified |
+| Workers | Dev bench Procfile runs one `bench worker` for all queues. huf runs use the `default` queue unless called with `now=1` | source-wired |
+
+Pinning, for the owner to run (dev bench and live):
+
+```bash
+cd ~/bench/apps/huf && git fetch upstream --tags && git checkout v1.0.0-beta.4
+```
+
+```bash
+cd ~/bench && bench exclude-app huf
+```
+
+`bench exclude-app` (bench 5.29.0 has it) keeps `bench update` from pulling
+huf. On live, install from the tag (`bench get-app --branch v1.0.0-beta.4
+<huf repo>`), then `bench exclude-app huf`. To upgrade later: `bench
+include-app huf`, check out the new tag on the test site, run the QC tests,
+then repeat on live.
+
+### huf APIs used (checked at `v1.0.0-beta.4`)
 
 | Capability | Evidence | Use |
 |---|---|---|
-| Agent with provider, model, OCR, temperature | `Agent` | Set in Visaguy AI Settings |
-| Prompt templates with versions | `Agent Prompt` (`prompt_body`, `prompt_group`, `version`, `is_latest`, `is_active`) | Linked on Destination |
-| Run with files, template and structured output | `huf.ai.agent_integration.run_agent_sync(agent_name, prompt, files=…, prompt_template=…, response_format=…)`; a passed template replaces the agent's instructions for that run only | Called by the QC job |
-| Run log with tokens, cost and prompt snapshot | `Agent Run`, `Agent Run Prompt Snapshot` | Linked from the process file |
-| Files | Images go to the model as images; PDFs and other files go through text or vision OCR | Scanned documents need the OCR model set on the agent |
-| No-code Doc Event trigger | Reads Attach fields on the firing document only | Not enough: files sit behind links and on other files, so `the_visaguy` builds the context |
+| Agent with provider, model, OCR, temperature, `persist_conversation`, `run_immediately` | `Agent` | Set in Visaguy AI Settings; Persist Conversation must be off (Requirement 6a) |
+| Prompt templates with versions | `Agent Prompt`: `title`, `category`, `prompt_body`, `version`, `is_latest`, `prompt_group`, `previous_version`, `is_active` | Linked on Destination |
+| Run with files, template and structured output | `run_agent_sync(agent_name, prompt, files=…, prompt_template=…, prompt_version=…, response_format=…, now=…)`, `@frappe.whitelist(allow_guest=True)` and `@rate_limit(20 per 60 s)`; the rate limit applies only to web requests, not to a call from a background job | Called by the QC job with `now=1` |
+| Queue-first default | Without `now` or `Agent.run_immediately`, the run is enqueued on `default` with `timeout=600` and the call returns `queued: True` | Avoided with `now=1` |
+| Run log | `Agent Run` (`response`, `total_tokens`, `cost`, `reference_doctype`, `reference_name`), `Agent Run Prompt Snapshot` | Linked from the process file |
+| Files | `providers/litellm._file_dict_to_data_image_url` embeds images; `ocr_engine.extract_document` reads PDFs and other files | Scanned documents need the OCR model set on the agent |
+| No-code Doc Event trigger | Reads Attach fields on the firing document only | Not enough; `the_visaguy` builds the context |
 | Compatibility | `frappe >= 15`, `requires-python >= 3.10` | Matches the bench |
 
 ## Risks
@@ -339,7 +389,24 @@ huf is **not installed** on the bench.
   report is advisory.
 - **huf footprint.** `doc_events["*"]` hooks on every DocType (cached
   lookup), about 18 scheduler jobs, and large dependencies (litellm,
-  chromadb, faiss, llama-index). Check on the test site first.
+  chromadb, faiss, llama-index).
+- **Python package drift on the dev bench (found 2026-10-23).** Between
+  09:14 and 09:48 on 2026-10-23, before the huf package itself was
+  registered (10:47), many packages in the bench env were upgraded past the
+  versions other apps pin. `pip check` reports 37 conflicts, for example
+  cryptography 50.0.2 (Frappe pins `~=46.0.3`), click 8.5.0, pydantic
+  2.14.1, oauthlib 4.0.0, python-dateutil 3.0.0, pycryptodome 4.1.0
+  (`payments` and `india_compliance` pin 3.x), beautifulsoup4 4.15.0. One
+  breakage is confirmed: `import OpenSSL` fails (pyOpenSSL 26 needs
+  cryptography < 47). Bench commands still work. The 09:48 batch includes
+  huf's dependencies (litellm, chromadb, llama-index-core); huf itself asks
+  only for `cryptography>=41`, so the cause is probably the install command,
+  not huf's requirements. **On live, take a `pip freeze` before installing
+  huf, install it without upgrading what is already there, run `pip check`
+  after, and compare.**
+- **huf drift.** Without the pin (D19), a routine `bench update` moves huf
+  to `develop` and can break QC. The job's version check (Requirement 6)
+  makes that visible instead of silent.
 - **Large groups.** Many applicants and scanned PDFs can exceed the model
   context or job time. The limits in settings apply; the output lists what
   was skipped.
