@@ -26,10 +26,8 @@ updated: 2026-10-23
 Last updated 2026-10-23. Status: **planned**. Phase 1 design agreed with the
 owner on 2026-10-23 (simple flow below). No ADR, no task files, no code yet.
 
-**Pending the owner:**
-
-- Where prepared documents (cover letter, itinerary) get attached (D4).
-- Workspace placement of the Phase 2 reports (D11).
+**Pending the owner:** nothing open for Phase 1 (all open questions closed
+on 2026-10-23).
 
 **Next steps when resuming:**
 
@@ -66,12 +64,12 @@ optional and does not touch the workflow.
 | D1 | 2026-10-19 | QC is an optional **Check QC** button, not a workflow state. It never blocks a transition. |
 | D2 | 2026-10-19 | Documents vary by file and client. A run takes every document available at check time; nothing is mandatory. |
 | D3 | 2026-10-19 | The FileFlo "Additional Documents" upload is client-facing and is not used for operations documents. |
-| D4 | 2026-10-19 | How operations attach prepared documents is the owner's decision, outside this feature. |
+| D4 | 2026-10-23 | Prepared documents (cover letter, itinerary, bookings and others) are read from whatever is in the sidebar attachments. No new attachment field or route is added. |
 | D5 | 2026-10-19 | Sidebar attachments are included. |
 | D6 | 2026-10-19 | Code lives in `the_visaguy`, in a new module **Quality Check**. |
 | D7 | 2026-10-19 | The Schengen operations team runs the pilot. |
 | D9 | 2026-10-19 | The owner chooses the provider and model and configures huf. |
-| D11 | 2026-10-19 | No separate workspace; placement of reports is pending the owner. |
+| D11 | 2026-10-23 | QC reports go in a **separate Quality Check workspace** for Operations Team Leads and Management (replaces the 2026-10-19 "no separate workspace" decision). |
 | D13 | 2026-10-23 | A new single DocType **Visaguy AI Settings** in `the_visaguy` holds the huf agent used for QC. |
 | D14 | 2026-10-23 | The prompt template is set **per destination**: a custom tab on `Destination` (added from `the_visaguy`) links the huf prompt template. This replaces the per-department template idea (old D8a). |
 | D15 | 2026-10-23 | On a primary file, the user chooses **this file only** or **primary and all dependants**. On a dependant file, QC runs for that file only. |
@@ -267,12 +265,16 @@ Recorded so they are not lost. Each needs a short owner review before work:
   only the latest output on the file, plus the huf Agent Run history.
 - **Automatic action completion (old D12):** complete a configured action
   when no issues are open. Not needed for Schengen (D17).
-- **Reports and dashboards** for Operations Associates, Team Leads (their
-  departments, including the per-associate report) and Management: QC
+- **Reports and dashboards** in a new **Quality Check** workspace (D11),
+  owned by `the_visaguy` (module Quality Check), visible to Operations Team
+  Lead and Management Role (System Manager for setup). Content: QC
   coverage, delivered without QC, first-pass rate, issues by category,
-  open issues, per-associate figures, usage and cost. Placement pending the
-  owner (D11). Department scope uses the existing rule: `Employee.department`
-  plus `Additional Operation Department`.
+  open issues, per-associate figures (Team Leads see their departments), and
+  usage and cost (Management). Department scope uses the existing rule:
+  `Employee.department` plus `Additional Operation Department`; Management
+  sees all departments. Because the workspace is new and owned by
+  `the_visaguy`, no `visaguy_crm` workspace file changes. Operations
+  Associates see QC only in the process file tab.
 
 ## Current state (verified 2026-10-19 and 2026-10-23)
 
@@ -328,9 +330,11 @@ huf is **not installed** on the bench.
   it in the ADR.
 - **Public application forms.** The RPA output is saved with `is_private=0`.
   Outside this feature; recommend a separate fix.
-- **Incomplete documents.** Cover letters and itineraries are mostly outside
-  VisaGuy in 2026. A Passed result covers only the files listed in the
-  output; the tab shows the file count next to the result.
+- **Incomplete documents.** Prepared documents come only from the sidebar
+  (D4). Cover letters and itineraries were rarely attached there in 2026, so
+  the team must attach them before clicking **Check QC**. A Passed result
+  covers only the files listed in the output; the tab shows the file count
+  next to the result.
 - **AI errors.** The agent can miss mistakes or report false ones. The
   report is advisory.
 - **huf footprint.** `doc_events["*"]` hooks on every DocType (cached
@@ -344,7 +348,7 @@ huf is **not installed** on the bench.
 
 ## Open questions
 
-1. Prepared documents route (D4): owner decision.
-2. Phase 2 report placement (D11): owner clarification.
+None for Phase 1. For Phase 2, the owner reviews the list in "Phase 2 —
+later" before work starts.
 
 ## Completion notes
