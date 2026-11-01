@@ -67,6 +67,8 @@ visa_tracker -> FileFlo, ProcessFlo, Lead, Customer APIs
 - `the_visaguy` becomes the central orchestrator and must coordinate changes across multiple repositories.
 - Event-based boundaries require queue reliability and idempotency discipline.
 
+**Note (2026-11-02):** "custom fields and client scripts shipped as fixtures" in the table above is out of date for custom fields. The project rule now places them in the module `custom/` folder. The ownership does not change: `the_visaguy` still ships them.
+
 ## Alternatives considered
 
 - Build the entire feature inside `the_visaguy`. Rejected because it would couple extraction logic to VisaGuy and prevent reuse.

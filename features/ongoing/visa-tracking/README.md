@@ -614,6 +614,27 @@ of TASK-010 to TASK-045 are in `main` as of the go-live.
 - The feature stays `ongoing` until those close and the acceptance criteria
   below are evaluated.
 
+## Custom fields moved to module custom files (2026-11-02)
+
+The 12 visa tracking custom fields and 3 hidden property setters move from
+`the_visaguy` `fixtures/` to `the_visa_guy/custom/`, one file per DocType, in
+[the_visaguy#54](https://github.com/tvgglobal/the_visaguy/pull/54) (`main`) and [#55](https://github.com/tvgglobal/the_visaguy/pull/55) (`develop`). Both are open, not merged. #54 merges cleanly. #55 conflicts on
+`hooks.py` and `fixtures/custom_html_block.json`, and plain `main` conflicts on
+the same files, so the move did not cause this.
+
+- **Evidence:** 33 tests in the two changed test files pass. A sync from the
+  new files ran on `visa-tracker-test.localhost` in a rolled-back transaction
+  and all 15 rows matched. **Not done:** the full app suite, and `bench
+  migrate` with this branch.
+- **Behaviour:** migrate now overwrites these rows from the files. Do not edit
+  them on a site.
+- **Deviation from TASK-005:** the task placed these fields in fixtures. The
+  project rule on custom fields replaced that.
+- **Unchanged:** Custom DocPerm, roles, client scripts and statuses stay in
+  fixtures. A `custom_perms` sync deletes and rewrites a DocType's permissions.
+
+See risks 29, 39 and 50, and the ADR-010 correction.
+
 ## Supporting specifications
 
 - [Soft launch plan](07-soft-launch-plan.md)

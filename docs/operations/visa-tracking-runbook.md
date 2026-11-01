@@ -160,10 +160,10 @@ to repeat.
 > **Rule: a file in `fixtures/` syncs on migrate, whether or not `hooks.py`
 > names its DocType. A DocType in `hooks.py` with no file syncs nothing.**
 >
-> Two records depend on the old rule and must be read again: the ADR-010
-> "Amendment (2026-09-03) — Why the six statuses never reached `visaguy`",
-> and the revised reading of risk 25. The missing rows have some other cause.
-> That cause is not established here.
+> ADR-010 has a "Correction (2026-11-02)" for the amendment that used the old
+> rule. Risk 25 itself does not use it. The 2026-09-03 text here said migrate
+> cannot restore the deleted fields; this is withdrawn, because the fixture
+> files did sync. The cause of the missing statuses is not established.
 
 `bench migrate` syncs DocType schema, runs patches, syncs fixtures, then syncs
 module custom files, in that order.

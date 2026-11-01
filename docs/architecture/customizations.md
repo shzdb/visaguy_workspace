@@ -68,7 +68,9 @@ Key event wiring by app:
 
 ## Fixtures
 
-Apps shipping fixtures must run `bench --site visaguy migrate` or `bench --site visaguy export-fixtures` after configuration changes.
+`bench migrate` imports every `.json` file in an app's `fixtures/` folder. The `fixtures` list in `hooks.py` drives `bench export-fixtures` only, so the table below shows what can be exported, not what syncs. Check the folder for what syncs.
+
+After fixtures, migrate syncs `<app>/<module>/custom/*.json` files that have `sync_on_migrate: 1`, in installed-app order. These overwrite the site on every migrate.
 
 | App | Fixture target DocTypes |
 |---|---|
@@ -76,7 +78,7 @@ Apps shipping fixtures must run `bench --site visaguy migrate` or `bench --site 
 | `visaguy_hrms` | Workflow, Workflow State, Notification, Appointment Letter Template, Interview Type, Email Template, Server Script, Client Script, Role, Designation, Insights Query/Chart/Dashboard, Print Format, Custom HTML Block, Leave Type, Salary Component |
 | `visaguy_crm` | Workflow, Workflow State, Workflow Action Master, Client Script, Insights Dashboard/Query/Chart, Role, Print Format, Custom HTML Block, Workspace |
 | `visaguy_helpdesk` | Role |
-| `the_visaguy` | Custom Field, Workspace, Custom HTML Block, Insights Query, Insights Chart |
+| `the_visaguy` | Visa Tracking Status, Custom Field, Workspace, Number Card, Dashboard Chart, Custom HTML Block, Insights Query, Insights Chart (`main` only), Role |
 | `visaguy_frappe_crm` | CRM Fields Layout, CRM Global Settings, Property Setter, Custom DocPerm |
 | `frappe_notifier` | Role, Custom DocPerm |
 | `visaguy_website` | Custom Field, Role |

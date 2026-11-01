@@ -112,7 +112,7 @@ Owns:
 - preferred extraction Links on business records,
 - `Visa Tracking Application`, `Visa Tracking Status`, and `Visa Tracking Status Log`,
 - Lead/Customer/PF Process File lifecycle,
-- custom fields and client scripts shipped as fixtures,
+- custom fields in module `custom/` files, and client scripts shipped as fixtures,
 - public verification and status APIs,
 - abuse controls and audit events,
 - reconciliation jobs and reports.

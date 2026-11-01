@@ -13,7 +13,8 @@ more on 2026-09-03 — see "The public message snapshot follows the status"
 (the `current_public_message` snapshot is now refreshed by the DocType
 controller when `current_status` changes) and "Why the six statuses never
 reached `visaguy`" (`Visa Tracking Status` was missing from the `fixtures`
-hook, so `bench migrate` never synced the seed records).
+hook, so `bench migrate` never synced the seed records). That cause was
+withdrawn on 2026-11-02 — see "Correction (2026-11-02)" below.
 
 Supersedes the parts of `features/ongoing/visa-tracking/README.md`
 "Status ownership rules" that describe `PF Process File.custom_client_status`
@@ -541,6 +542,25 @@ unrelated timer and quality-feedback fields. The runbook's claim that these
 and is the likely reason `PF Process File-custom_client_status` is missing on
 `visaguy`. Correcting that is out of scope here because docperm and property
 -setter fixtures change permissions site-wide and need their own review.
+
+## Correction (2026-11-02) — The `fixtures` hook does not control import
+
+The cause and the "wider drift" in the amendment above are wrong. They are
+kept as written for the record. `import_fixtures` in
+`frappe/utils/fixtures.py` imports every `.json` file in an app's `fixtures/`
+folder on migrate. The `fixtures` list in `hooks.py` drives `bench
+export-fixtures` only. Adding `Visa Tracking Status` to the hook did not make
+the file sync, and the other files in `fixtures/` were not excluded from
+migrate.
+
+The real cause of the missing statuses is not established. The amendment
+records that `tabVisa Tracking Status` had no `public_title` column, so the
+TASK-016 schema had not reached `visaguy` either. This suggests that the code
+was not migrated on that site at that time. This is an inference, not
+verified evidence.
+
+The decisions in this ADR do not change. The two consequences listed above
+still apply: fixtures insert and do not delete.
 
 ## Revisit when
 
