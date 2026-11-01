@@ -59,3 +59,10 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
   workspace paths or planning notes. Those belong in this workspace.
 - Describe a feature in code only when a reader needs it to use or change
   that code.
+
+## Custom fields and fixtures in application repositories
+
+- Add custom fields through **Export Customizations**: they live in
+  `<app>/<module>/custom/<doctype>.json` with `sync_on_migrate: 1`, in the
+  module that owns them. Do not put them in `fixtures/`.
+- Ask the owner before adding anything to `fixtures/`, of any data type.

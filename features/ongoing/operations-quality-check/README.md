@@ -1,7 +1,7 @@
 ---
 id: FEAT-006
 title: AI quality check for process files (huf)
-status: planned
+status: ongoing
 priority: medium
 repositories:
   - the_visaguy
@@ -23,37 +23,32 @@ updated: 2026-10-23
 
 ## Planning status (resume here)
 
-Last updated 2026-10-23. Status: **planned**. Phase 1 design agreed with the
-owner on 2026-10-23 (simple flow below). No ADR, no task files, no code yet.
+Last updated 2026-10-23. Status: **ongoing**. Phase 1 is built on
+`the_visaguy` branch `feat/process-file-qc`, pushed, with PRs to `main`
+(tvgglobal/the_visaguy#51) and `develop` (#52, conflicts). Record:
+[TASK-048](../../../tasks/in-progress/operations-quality-check/TASK-048-process-file-qc-phase-1.md).
+Decision: [ADR-017](../../../decisions/ADR-017-process-file-quality-check-with-pinned-huf.md)
+(proposed).
 
-**huf:** pinned to **`v1.0.0-beta.4`** (D19). Installed by the owner on the
-dev bench and site `visaguy` on 2026-10-23; not yet on
-`visa-tracker-test.localhost`. See "huf version and installation".
-
-**Pending the owner:**
-
-- Pin huf on the dev bench (it tracks `develop` today) and on live, and
-  install it on `visa-tracker-test.localhost` (owner-run commands in "huf
-  version and installation").
-- Decide on the Python package drift found on the dev bench on 2026-10-23
-  (see Risks).
+**huf:** `v1.0.0-beta.4` (D19), installed on `visaguy` (owner) and on
+`visa-tracker-test.localhost` (2026-10-23). The checkout still tracks
+`develop`; pin it before live.
 
 **Next steps when resuming:**
 
-1. Write the ADR: huf `v1.0.0-beta.4` pinned on the same site as a lazy
-   dependency of `the_visaguy`; the Quality Check module; data sent to the AI
-   provider; prompt template per destination; the required QC agent
-   settings.
-2. After the ADR is accepted, create Phase 1 task files from the "Phase 1
-   tasks" list (check the highest TASK number first; it was TASK-047 on
-   2026-10-23).
-3. The owner configures the huf agent and the Schengen prompt template.
+1. Owner: set the agent's Allowed Roles (`Operations Associate`, `Operations
+   Team Lead`) and run a real check as an operations user (TASK-048 "What
+   remains").
+2. Owner: merge the PRs, resolve the `develop` conflicts, accept ADR-017.
+3. Browser check of the button, dialog and tab.
+4. Before live: pin huf and fix the Python package drift (Risks).
+   Follow-ups (dedicated queue, OCR cache) are listed under "Phase 1
+   follow-ups".
+5. Then the Schengen pilot; Phase 2 after the pilot.
 
 **Evidence sources:** bench source on `erpcode` (`processflo`, `fileflo`,
-`visaguy_crm`, `the_visaguy`), huf `v1.0.0-beta.4` (`c82da78`, the installed
-checkout on the dev bench), and read-only counts on
-the `visaguy` development site (a database copy of live). Re-check counts
-after a new database restore.
+`visaguy_crm`, `the_visaguy`), huf `v1.0.0-beta.4` (`c82da78`), read-only
+counts on the `visaguy` development site, and TASK-048's test results.
 
 ## Summary
 
@@ -143,7 +138,9 @@ Process file (any workflow state)
    settings are skipped and listed in the output.
 6. **huf call.** The job calls `run_agent_sync` with the agent from Visaguy
    AI Settings, `prompt_template` from the destination, the files, a small
-   `response_format` (below), and **`now=1`**. In `v1.0.0-beta.4`, the call
+   `response_format` (below), and **`now=1`**. `run_agent_sync` sends only
+   image files to the model, so the job reads every other document first
+   with huf's `extract_document` and puts the text in the message (ADR-017). In `v1.0.0-beta.4`, the call
    queues by default: it returns `queued: True` and runs later in the
    `default` queue with a 600-second timeout. With `now=1` it runs inside the
    QC job (long queue) and returns the response. The user message, built in
@@ -244,7 +241,7 @@ the_visaguy/quality_check/
   runner.py    # enqueue, huf call, schema check, db_set output, realtime
   api.py       # whitelisted: can_run, start (scope), status
 public/js/pf_process_file_qc.js   # button, scope dialog, tab rendering
-fixtures: custom fields on PF Process File and Destination
+quality_check/custom/: custom fields on PF Process File and Destination
 ```
 
 ### Phase 1 tasks
@@ -277,6 +274,26 @@ fixtures: custom fields on PF Process File and Destination
 - `workflow_state` and the process file's `modified` time do not change.
 - The output links to the huf Agent Run and the template version used.
 - With huf uninstalled, `the_visaguy` works and the button is hidden.
+
+## Phase 1 follow-ups (agreed 2026-10-23, after the pilot)
+
+1. **Dedicated queue.** A check takes about a minute (about 55 s OCR, 5–15 s
+   model) and today runs on the shared `long` queue, so it can delay other
+   long jobs and wait behind them (seen on the dev bench on 2026-10-23). Move
+   it to its own queue `process_file_qc` with its own worker (Procfile /
+   supervisor), the same pattern as `passport_extraction` (TASK-044). The
+   number of workers sets how many checks run at once.
+2. **OCR cache.** Store each document's extracted text by file content hash,
+   so a recheck after fixes reads only new or changed files and takes about
+   as long as the model call.
+
+Considered and not chosen (owner discussion, 2026-10-23): let the huf agent
+write the result through a tool and call the agent from the request. A web
+request cannot wait about a minute (gunicorn timeout 120 s), huf queues runs
+by default anyway (`default` queue, 600 s), a model-driven write tool can be
+steered by text inside documents, and a missed tool call leaves the file in
+Processing. Current design kept: VisaGuy collects, the model answers as JSON,
+VisaGuy saves.
 
 ## Phase 2 — later (agreed earlier, not in Phase 1)
 
@@ -338,7 +355,7 @@ departments; it needs its own template or no template.
 |---|---|---|
 | Checkout | `apps/huf` at `c82da78` (2026-10-22, "Merge pull request #833"), which is tag `v1.0.0-beta.4`; `__version__ = "1.0.0-beta.4"`; pip `huf 1.0.0b4` | runtime-verified |
 | Branch | `develop`, tracking `upstream/develop`. **Not pinned**: a `bench update` would move it past the tag | runtime-verified |
-| Sites | Installed on `visaguy` (`list-apps`: `huf 1.0.0-beta.4 develop`, 109 huf DocTypes). **Not** installed on `visa-tracker-test.localhost` | runtime-verified |
+| Sites | Installed on `visaguy` (`list-apps`: `huf 1.0.0-beta.4 develop`, 109 huf DocTypes) and, from 2026-10-23, on `visa-tracker-test.localhost` (TASK-048) | runtime-verified |
 | Imports | `frappe.ping` OK on the test site; all bench apps' `hooks` import; `huf.ai.agent_integration`, `huf.ai.ocr_engine`, `litellm` import | runtime-verified |
 | Key dependencies | litellm 1.83.0, openai-agents 0.24.0 | runtime-verified |
 | Workers | Dev bench Procfile runs one `bench worker` for all queues. huf runs use the `default` queue unless called with `now=1` | source-wired |
