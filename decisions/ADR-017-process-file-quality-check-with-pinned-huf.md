@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed (2026-10-23). Implementation: TASK-048 (FEAT-006 Phase 1), built on
-`the_visaguy` branch `feat/process-file-qc`, not committed.
+Accepted (2026-11-02). Implementation: TASK-048 (FEAT-006 Phase 1),
+`the_visaguy` branch `feat/process-file-qc`.
 
 ## Context
 

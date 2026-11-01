@@ -33,7 +33,7 @@ Owner (2026-10-23): implement FEAT-006 Phase 1 on a new branch, without
 committing. A **Check QC** button on PF Process File runs a huf agent in the
 background on the file's data and documents, and saves the report on the
 process file. Design: FEAT-006 "Phase 1 — simple QC run"; decision: ADR-017
-(proposed).
+(accepted).
 
 ## Context
 
@@ -312,7 +312,7 @@ Log with Frappe's traceback variables, which can include applicant data.
 2. **Browser check:** button, scope dialog, tab layout, realtime refresh and
    alert, on the test site or `visaguy` after migrate.
 3. **Owner review and merge** of PRs 51 and 52; resolve the `develop` conflicts.
-4. Owner decision on ADR-017 (proposed → accepted).
+4. ~~Owner decision on ADR-017.~~ Accepted 2026-11-02.
 5. Before live: pin huf (`git checkout v1.0.0-beta.4`, `bench exclude-app
    huf`) and resolve the Python package drift (FEAT-006 risks; it also stops
    Frappe's S3 backup jobs loading on the dev bench).

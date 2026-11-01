@@ -28,7 +28,7 @@ Last updated 2026-10-23. Status: **ongoing**. Phase 1 is built on
 (tvgglobal/the_visaguy#51) and `develop` (#52, conflicts). Record:
 [TASK-048](../../../tasks/in-progress/operations-quality-check/TASK-048-process-file-qc-phase-1.md).
 Decision: [ADR-017](../../../decisions/ADR-017-process-file-quality-check-with-pinned-huf.md)
-(proposed).
+(accepted 2026-11-02).
 
 **huf:** `v1.0.0-beta.4` (D19), installed on `visaguy` (owner) and on
 `visa-tracker-test.localhost` (2026-10-23). The checkout still tracks
@@ -39,7 +39,7 @@ Decision: [ADR-017](../../../decisions/ADR-017-process-file-quality-check-with-p
 1. Owner: set the agent's Allowed Roles (`Operations Associate`, `Operations
    Team Lead`) and run a real check as an operations user (TASK-048 "What
    remains").
-2. Owner: merge the PRs, resolve the `develop` conflicts, accept ADR-017.
+2. Owner: merge the PRs and resolve the `develop` conflicts.
 3. Browser check of the button, dialog and tab.
 4. Before live: pin huf and fix the Python package drift (Risks).
    Follow-ups (dedicated queue, OCR cache) are listed under "Phase 1
