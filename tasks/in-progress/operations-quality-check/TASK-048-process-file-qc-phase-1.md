@@ -300,6 +300,18 @@ primaries (risk 28), so a group check can send another family's data to the
 provider and overwrite their QC fields. Unexpected job errors go to the Error
 Log with Frappe's traceback variables, which can include applicant data.
 
+## Change (2026-11-02): site setup patch
+
+`quality_check/setup.py` and patch `setup_process_file_qc` create the agent
+Operation QC and template Schengen QC (`schengen_qc_prompt.md`, copied from
+`visaguy`), link the template on the 29 Schengen countries plus destination
+Schengen, and fill Visaguy AI Settings. Only missing values are added; a
+failure is logged and does not stop the migrate. The provider key stays manual.
+Verified on the test site: created once, second run changed nothing, Spain
+linked, Turkey left blank; 863 tests OK. A first version stopped the migrate
+(`get_value` on `Singles`); mocks had hidden it, so it was found only by
+running it. Checklist: `features/ongoing/operations-quality-check/go-live.md`.
+
 ## What remains
 
 0. **Run a real check as an operations user** (not yet done; only as
