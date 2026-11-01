@@ -494,9 +494,12 @@ The first may safely enqueue inspection after deduplication. The second should r
 
 ## Migration and fixture ownership
 
+`the_visaguy` owns these in `the_visa_guy/custom/`, one file per DocType:
+
+- custom fields and their property setters on Lead, CRM Lead, Customer, PF Process File, and Applicant Information.
+
 `the_visaguy` fixtures own:
 
-- custom fields on Lead, Customer, and PF Process File,
 - client script/query behavior where required,
 - roles and custom permissions where required,
 - initial Visa Tracking Status records if fixture strategy is chosen.
