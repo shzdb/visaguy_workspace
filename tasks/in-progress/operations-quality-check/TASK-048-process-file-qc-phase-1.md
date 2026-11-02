@@ -22,7 +22,7 @@ expected_files:
   - the_visaguy/hooks.py
   - the_visaguy/modules.txt
 created: 2026-10-23
-updated: 2026-10-23
+updated: 2026-11-02
 ---
 
 # TASK-048: Process file quality check, Phase 1
@@ -329,6 +329,30 @@ Code fix: the patch calls `sync_customizations("the_visaguy")` first. Branch
 Reproduced on the test site with the field and column removed: the old patch
 gave the live error, the fixed patch created the field, agent, roles,
 template, settings and link. Suite OK.
+
+## Change (2026-11-02): process deliverable attachments (D20)
+
+Missed in the first pass: operations attach prepared documents to the PF
+Process Deliverables (65,868 files in 2026), so they had to attach them to the
+process file again for QC. `context.py` now adds the linked deliverable's
+attachments (source "Process deliverable") before the sidebar, so the content
+hash dedupe keeps that label. A dependant also reads its primary's deliverable
+(source "Process deliverable (primary file)", labelled with the primary
+applicant); a group check reads each deliverable once. No schema, setting,
+prompt or UI change.
+
+- 5 new tests in `test_context.py`; app suite on the test site **868 tests
+  OK**. Under plain `python -m unittest`, 3 `TestStartCheck` tests in
+  `test_runner.py` error (mock `assert_can_run`) with or without this change;
+  they pass under `bench run-tests`.
+- Dry run of `build_context` on `visaguy` (read-only): a dependant-only check
+  got its primary's 17 deliverable files; a group of 6 files got them once.
+- Commit `67d3e4e` on `feat/process-file-qc`, pushed. New PR to `main`:
+  https://github.com/tvgglobal/the_visaguy/pull/58. PR #52 (`develop`)
+  description updated; it still has conflicts.
+- Not done: a real model run that includes deliverable documents. The dev
+  bench checkout was returned to `fix/qc-setup-before-custom-fields`, so the
+  test site does not run this change until that branch and this one meet.
 
 ## What remains
 

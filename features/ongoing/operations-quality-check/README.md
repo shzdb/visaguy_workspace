@@ -9,7 +9,7 @@ repositories:
 owners: []
 depends_on: []
 created: 2026-10-19
-updated: 2026-10-23
+updated: 2026-11-02
 ---
 
 # AI quality check for process files (huf)
@@ -29,6 +29,9 @@ Last updated 2026-10-23. Status: **ongoing**. Phase 1 is built on
 [TASK-048](../../../tasks/in-progress/operations-quality-check/TASK-048-process-file-qc-phase-1.md).
 Decision: [ADR-017](../../../decisions/ADR-017-process-file-quality-check-with-pinned-huf.md)
 (accepted 2026-11-02).
+
+**2026-11-02:** QC also reads Process Deliverables attachments (D20),
+commit `67d3e4e`, PR to `main` tvgglobal/the_visaguy#58; #52 updated.
 
 **huf:** `v1.0.0-beta.4` (D19), installed on `visaguy` (owner) and on
 `visa-tracker-test.localhost` (2026-10-23). The checkout still tracks
@@ -83,6 +86,7 @@ optional and does not touch the workflow.
 | D17 | 2026-10-23 | No "Quality Check" action is added to the Schengen templates. Automatic action completion (old D12) moves to Phase 2. |
 | D19 | 2026-10-23 | huf is pinned to **`v1.0.0-beta.4`** on every site, including live, because later huf releases may break the integration. Upgrades are a deliberate, tested change, never a side effect of `bench update`. |
 | D18 | 2026-10-23 | Phase 1 reads all sources: the process file collection and the **lead file collection** (data and uploads), the application form, RPA Documents, action attachments and sidebar attachments. |
+| D20 | 2026-11-02 | QC also reads the attachments of the linked **PF Process Deliverables**, where operations keep prepared documents. A dependant's check also reads its primary's deliverable. Extends D4 and D18. |
 
 ## Phase 1 — simple QC run
 
@@ -132,6 +136,11 @@ Process file (any workflow state)
    - the application form (`custom_application_form`);
    - RPA Documents rows (`custom_rpa_documents`);
    - action row attachments (`PF Process File Action.custom_attach`);
+   - Process Deliverables attachments (`File` attached to the
+     `process_deliverables` record), before the sidebar so a file in both
+     places keeps the deliverable label. A dependant also gets its primary's
+     deliverable (`custom_primary_process_file`), labelled with the primary
+     applicant; a group check reads each deliverable once (D20);
    - sidebar attachments (`File` attached to the process file with no field).
    Duplicate files (same content hash, such as the RPA form in its field and
    in the sidebar) are sent once. Files missing on disk or over the limits in
@@ -339,7 +348,8 @@ There is no record of the check in VisaGuy.
 | RPA Documents | `custom_rpa_documents` (Flight Tickets / Hotel Bookings); rows on 1,092 files in 2026; section shown only for RPA-enabled destinations and zones | source-wired, data-observed |
 | Action rows | `PF Process File Action` with `custom_attach` (4 attachments ever); about 10% of rows Completed | data-observed |
 | Sidebar attachments | Main place for cover letters and itineraries in 2025 (16,007 files); 1,930 in 2026, mostly the RPA form | data-observed |
-| Cover letters and itineraries in 2026 | Almost none in VisaGuy (1 of each); probably kept outside VisaGuy | data-observed |
+| Process Deliverables | `PF Process File.process_deliverables` → `PF Process Deliverables` (fields `process_file`, `applicant_name` only). Files are sidebar attachments on the deliverable: 65,868 in 2026 (50k PDF, 15k DOCX; about 10 per deliverable, up to 96). On 5,815 of 11,403 primaries and about 340 dependants; every 2026 dependant links to its primary | source-wired, data-observed |
+| Cover letters and itineraries in 2026 | On the Process Deliverables, not on the process file (corrected 2026-11-02; the 2026-10-19 count looked only at the process file) | data-observed |
 
 ### Schengen scope
 
@@ -397,9 +407,9 @@ then repeat on live.
   it in the ADR.
 - **Public application forms.** The RPA output is saved with `is_private=0`.
   Outside this feature; recommend a separate fix.
-- **Incomplete documents.** Prepared documents come only from the sidebar
-  (D4). Cover letters and itineraries were rarely attached there in 2026, so
-  the team must attach them before clicking **Check QC**. A Passed result
+- **Incomplete documents.** Prepared documents come from the Process
+  Deliverables and the sidebar (D4, D20), so the team no longer attaches them
+  twice. Documents kept outside VisaGuy are not checked. A Passed result
   covers only the files listed in the output; the tab shows the file count
   next to the result.
 - **AI errors.** The agent can miss mistakes or report false ones. The
@@ -424,6 +434,9 @@ then repeat on live.
 - **huf drift.** Without the pin (D19), a routine `bench update` moves huf
   to `develop` and can break QC. The job's version check (Requirement 6)
   makes that visible instead of silent.
+- **File limit with deliverables.** A deliverable has about 10 files and up
+  to 96, so a group can reach `qc_max_files` (60). Skipped files are listed in
+  the output; review the limit in the pilot.
 - **Large groups.** Many applicants and scanned PDFs can exceed the model
   context or job time. The limits in settings apply; the output lists what
   was skipped.
