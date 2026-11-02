@@ -312,6 +312,24 @@ linked, Turkey left blank; 863 tests OK. A first version stopped the migrate
 (`get_value` on `Singles`); mocks had hidden it, so it was found only by
 running it. Checklist: `features/ongoing/operations-quality-check/go-live.md`.
 
+## Incident (2026-11-02): setup patch failed on live
+
+Error Log on live: `Unknown column 'custom_qc_prompt_template'` in
+`setup_process_file_qc`. Cause: Frappe's migrate runs `post_model_sync`
+patches before `sync_customizations()`, so on a first migrate the Destination
+custom field did not exist yet. The test site already had the fields from
+earlier runs, so it was not caught. The patch caught the error and rolled
+back: on live the custom fields and the Huf User role exist, but the agent,
+template, settings and destination links do not, and the patch is marked
+done. Owner fix on live: `bench --site <site> execute
+the_visaguy.quality_check.setup.setup_process_file_qc`.
+
+Code fix: the patch calls `sync_customizations("the_visaguy")` first. Branch
+`fix/qc-setup-before-custom-fields` from `main` (after PR #51), commit local.
+Reproduced on the test site with the field and column removed: the old patch
+gave the live error, the fixed patch created the field, agent, roles,
+template, settings and link. Suite OK.
+
 ## What remains
 
 0. **Run a real check as an operations user** (not yet done; only as

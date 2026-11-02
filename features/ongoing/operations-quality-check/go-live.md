@@ -71,6 +71,10 @@ only once, and they skip if huf is missing.
       ```bash
       bench --site <site> execute the_visaguy.quality_check.setup.setup_process_file_qc
       ```
+      If PR #51 went live without the fix branch
+      `fix/qc-setup-before-custom-fields`, the setup patch fails on the first
+      migrate with `Unknown column 'custom_qc_prompt_template'`. Run the
+      command above once after the migrate.
 - [ ] Restart:
       ```bash
       bench restart
