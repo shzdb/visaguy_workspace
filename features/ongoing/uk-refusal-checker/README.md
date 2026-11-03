@@ -106,9 +106,9 @@ stages follow `visa_eligibility_checker`. Image sources and licences are in
 | TASK-028 | Initial build: design system port, question set, risk model, result screens | completed |
 | TASK-029 | Caseworker's file redesign, landing and footer fixes | completed |
 | TASK-030 | Question set revision and refusal letter upload | completed |
-| TASK-049 | Start the check button before the grounds list at every width | in-progress |
-| TASK-050 | Back navigation and saved answers in the checker | in-progress |
-| TASK-051 | Branded PDF download of the check result | in-progress |
+| TASK-049 | Start the check button before the grounds list at every width | completed |
+| TASK-050 | Back navigation and saved answers in the checker | completed |
+| TASK-051 | Branded PDF download of the check result | completed |
 
 ## Acceptance criteria
 

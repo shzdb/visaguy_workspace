@@ -2,7 +2,7 @@
 id: TASK-049
 feature: FEAT-005
 title: Start the check button before the grounds list at every width
-status: in-progress
+status: completed
 repository: visa_refusal_checker
 owners: []
 depends_on:
@@ -59,6 +59,8 @@ order, earlier) and `49aad7c` (button before the list at every width). Not
 pushed or deployed.
 
 ## Deviations and limitations
+
+- Marked completed at the owner's request on 2026-11-03, before push, deploy and the device checks below.
 
 - Desktop macOS Safari was not checked directly (screen capture was not
   available). The reporter's Safari version and screen size were not supplied.

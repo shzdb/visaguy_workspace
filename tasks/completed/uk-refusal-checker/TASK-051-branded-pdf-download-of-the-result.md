@@ -2,7 +2,7 @@
 id: TASK-051
 feature: FEAT-005
 title: Branded PDF download of the check result
-status: in-progress
+status: completed
 repository: visa_refusal_checker
 owners: []
 depends_on:
@@ -66,6 +66,8 @@ PDF.
 pushed or deployed.
 
 ## Deviations and limitations
+
+- Marked completed at the owner's request on 2026-11-03, before push, deploy and the device checks below.
 
 - The download itself was not tried on iOS Safari or desktop Safari, and the
   logo was checked as an image, not inside a rendered page.

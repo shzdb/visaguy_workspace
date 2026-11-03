@@ -2,7 +2,7 @@
 id: TASK-050
 feature: FEAT-005
 title: Back navigation and saved answers in the checker
-status: in-progress
+status: completed
 repository: visa_refusal_checker
 owners: []
 depends_on:
@@ -69,6 +69,8 @@ a reload keeps their progress within the tab.
 pushed or deployed.
 
 ## Deviations and limitations
+
+- Marked completed at the owner's request on 2026-11-03, before push, deploy and the device checks below.
 
 - iOS swipe-back was not tested separately; it uses the same `popstate` path.
 - Not runtime-verified.
