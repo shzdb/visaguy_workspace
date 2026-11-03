@@ -8,7 +8,7 @@ repositories:
 owners: []
 depends_on: []
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-11-03
 ---
 
 # UK visa refusal risk checker
@@ -54,6 +54,9 @@ applicant is likely to qualify) and shares the VisaGuy visual family with
 - Result: risk band stamp, 0–100 risk score dial, hard and compound flags,
   per-ground breakdown, "What to fix" list, travel-timing note, consultation
   offer, WhatsApp hand-off.
+- Back button and browser Back and Forward between questions; answers and step
+  kept in `sessionStorage` for the tab (TASK-050).
+- Download PDF of the result, built in the browser (TASK-051).
 
 ### Excluded
 
@@ -103,6 +106,9 @@ stages follow `visa_eligibility_checker`. Image sources and licences are in
 | TASK-028 | Initial build: design system port, question set, risk model, result screens | completed |
 | TASK-029 | Caseworker's file redesign, landing and footer fixes | completed |
 | TASK-030 | Question set revision and refusal letter upload | completed |
+| TASK-049 | Start the check button before the grounds list at every width | in-progress |
+| TASK-050 | Back navigation and saved answers in the checker | in-progress |
+| TASK-051 | Branded PDF download of the check result | in-progress |
 
 ## Acceptance criteria
 
@@ -152,6 +158,9 @@ not ADRs, because none changes platform architecture.
 - 2026-09-14: merge the bank statement questions and the form and evidence
   questions; remove the length-of-stay question; offer the refusal letter
   upload to every applicant, not only to those who declare a refusal.
+- 2026-11-03: a reload during the processing screen opens the result;
+  browser Back and Forward use the History API on one URL, not a page per
+  question (TASK-050).
 - 2026-09-14: remove the "UK Standard Visitor visa" pill from the landing
   screen; the footer shows only the copyright line.
 
@@ -166,3 +175,8 @@ criteria above). Implementation evidence:
   `origin/main` was at `4e4648e` on 2026-09-14 (not re-fetched); `bbbcb4f` is
   local only and has no upstream configured.
 - No automated test suite exists in the repository.
+- 2026-11-03: TASK-049 to TASK-051 (Start button placement, back navigation
+  with saved answers, PDF download) are implemented in local commits `49aad7c`,
+  `e2a7025`, `6277de0` and `3edbd51` on top of `0f581c8`. They are not pushed or
+  deployed, and Safari checks on a real iPhone and desktop are open. The live
+  site was last built 2026-09-14.

@@ -28,6 +28,8 @@ Browser-verified locally on 2026-09-14; not deployed, so none of these is runtim
 | Browser-side risk scoring, bands, hard and compound flags | source-wired | `scoring.ts`, `SCORING.md` reference profiles |
 | Result report with per-ground breakdown and fixes | source-wired | `result-screen.tsx` |
 | Consultation offer and WhatsApp hand-off | source-wired | `consult-modal.tsx`, `wa.me` deep link |
+| Back and Forward between questions, answers kept for the tab | present | `checker-session.ts`, `checker-history.ts`; local commits, not deployed |
+| Download PDF of the result | present | `report-pdf.ts` (jsPDF, loaded on click); local commit, not deployed |
 | Refusal letter upload | present | `refusal-letter-upload.tsx`; simulated, no transmission |
 | Lead capture | not built | Name and mobile held in React state only |
 
