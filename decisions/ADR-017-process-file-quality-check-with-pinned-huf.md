@@ -5,6 +5,10 @@
 Accepted (2026-11-02). Implementation: TASK-048 (FEAT-006 Phase 1),
 `the_visaguy` branch `feat/process-file-qc`.
 
+Document-selection amendment (2026-11-04): [ADR-018](ADR-018-qc-document-selection.md)
+refines decision 4: discover all eligible sources, then apply saved selections
+before document reads, OCR and limits. The HUF adapter and pin remain unchanged.
+
 ## Context
 
 Operations check each visa file by hand before delivery: they download the

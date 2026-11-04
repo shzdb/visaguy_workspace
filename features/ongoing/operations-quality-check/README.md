@@ -6,10 +6,11 @@ priority: medium
 repositories:
   - the_visaguy
   - huf
+  - visaguy_crm
 owners: []
 depends_on: []
 created: 2026-10-19
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # AI quality check for process files (huf)
@@ -22,6 +23,17 @@ updated: 2026-11-02
 > calls "QZ".
 
 ## Planning status (resume here)
+
+**2026-11-04 — accepted extension, not implemented:** document selection now
+replaces unconditional inclusion of available files. See the complete
+[document-selection plan](document-selection.md),
+[ADR-018](../../../decisions/ADR-018-qc-document-selection.md), and
+[ready TASK-049](../../../tasks/ready/operations-quality-check/TASK-049-qc-document-selection.md).
+All new schema belongs to `the_visaguy`. The launcher is a Button field in the QC
+tab, applicant tabs show shared badges, and the raw child table uses admin-only
+JavaScript visibility. Phase 1 descriptions below record the earlier baseline;
+ADR-018 and the extension plan govern selection behaviour. Earlier PR and runtime
+notes remain dated evidence, not a current deployment claim.
 
 Last updated 2026-10-23. Status: **ongoing**. Phase 1 is built on
 `the_visaguy` branch `feat/process-file-qc`, pushed, with PRs to `main`
@@ -71,7 +83,7 @@ optional and does not touch the workflow.
 | # | Date | Decision |
 |---|---|---|
 | D1 | 2026-10-19 | QC is an optional **Check QC** button, not a workflow state. It never blocks a transition. |
-| D2 | 2026-10-19 | Documents vary by file and client. A run takes every document available at check time; nothing is mandatory. |
+| D2 | 2026-10-19 | Documents vary by file and client; nothing is mandatory. Unconditional file inclusion is superseded by D21 / ADR-018 (2026-11-04). |
 | D3 | 2026-10-19 | The FileFlo "Additional Documents" upload is client-facing and is not used for operations documents. |
 | D4 | 2026-10-23 | Prepared documents (cover letter, itinerary, bookings and others) are read from whatever is in the sidebar attachments. No new attachment field or route is added. |
 | D5 | 2026-10-19 | Sidebar attachments are included. |
@@ -87,6 +99,8 @@ optional and does not touch the workflow.
 | D19 | 2026-10-23 | huf is pinned to **`v1.0.0-beta.4`** on every site, including live, because later huf releases may break the integration. Upgrades are a deliberate, tested change, never a side effect of `bench update`. |
 | D18 | 2026-10-23 | Phase 1 reads all sources: the process file collection and the **lead file collection** (data and uploads), the application form, RPA Documents, action attachments and sidebar attachments. |
 | D20 | 2026-11-02 | QC also reads the attachments of the linked **PF Process Deliverables**, where operations keep prepared documents. A dependant's check also reads its primary's deliverable. Extends D4 and D18. |
+
+| D21 | 2026-11-04 | Accept document selection with template defaults, saved source-row choices and applicant-scoped choices for other files. All new schema in `the_visaguy`; Button field in QC tab, applicant tabs, shared badges and admin-only JS table visibility. Full rules: ADR-018 and document-selection plan. Refines D5/D18/D20; form answers remain included. |
 
 ## Phase 1 — simple QC run
 
@@ -444,6 +458,9 @@ then repeat on live.
   disk; end-to-end tests there need files copied by hand.
 
 ## Open questions
+
+No product decisions remain for the accepted document-selection extension. Trace
+the exact initial-copy seam during implementation; see TASK-049.
 
 None for Phase 1. For Phase 2, the owner reviews the list in "Phase 2 —
 later" before work starts.
