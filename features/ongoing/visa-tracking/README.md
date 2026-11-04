@@ -609,9 +609,10 @@ of TASK-010 to TASK-045 are in `main` as of the go-live.
   TASK-016, TASK-017, TASK-022 to TASK-027, TASK-031 to TASK-039, TASK-041 to
   TASK-044.
 - Still `in-progress`: TASK-040 (real WhatsApp send and browser checks not
-  recorded), TASK-045 (bulk retry run on live not recorded).
-- Moved to `completed` on 2026-11-04 on merge evidence: TASK-046, TASK-047
-  (deployment not confirmed).
+  recorded).
+- Moved to `completed` on 2026-11-04: TASK-045 (owner confirmed the bulk
+  retry works on live), TASK-046 and TASK-047 (merge evidence, deployment not
+  confirmed).
 - The feature stays `ongoing` until those close and the acceptance criteria
   below are evaluated.
 

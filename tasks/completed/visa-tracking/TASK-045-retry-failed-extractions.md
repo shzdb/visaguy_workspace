@@ -2,7 +2,7 @@
 id: TASK-045
 feature: FEAT-001
 title: Retry failed extractions in bulk after the MRZ fix
-status: in-progress
+status: completed
 repository: passport_extractor
 app_path: /home/shahzad/bench/apps/passport_extractor
 owners: []
@@ -14,7 +14,7 @@ expected_files:
   - passport_extractor/passport_extractor/doctype/passport_extraction/passport_extraction_list.js
   - passport_extractor/passport_extractor/tests/test_extraction_queue.py
 created: 2026-10-19
-updated: 2026-10-23
+updated: 2026-11-04
 ---
 
 # TASK-045: Retry failed extractions in bulk
@@ -82,3 +82,8 @@ Code check: `retry_failed_extractions` is in `passport_extractor` `main`
 Extractions** is in `passport_extraction_list.js`. PR #5 is merged to `main`
 (2026-10-19). **source-wired**. The status above is unchanged: the live run
 (runbook step 7) is not recorded.
+
+## Completion (2026-11-04)
+
+Moved to `completed`: the owner confirmed on 2026-11-04 that the bulk retry
+works on live. The dry-run count and the result were not recorded.
