@@ -610,7 +610,8 @@ of TASK-010 to TASK-045 are in `main` as of the go-live.
   TASK-044.
 - Still `in-progress`: TASK-040 (real WhatsApp send and browser checks not
   recorded), TASK-045 (bulk retry run on live not recorded), TASK-046
-  (merged, not deployed), TASK-047 (PRs open).
+  (merged to `main` and `stage`, deployment not confirmed), TASK-047 (merged
+  to `main` 2026-10-27, deployment not confirmed). Checked 2026-11-04.
 - The feature stays `ongoing` until those close and the acceptance criteria
   below are evaluated.
 

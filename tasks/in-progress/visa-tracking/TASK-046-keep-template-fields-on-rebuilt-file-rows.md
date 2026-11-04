@@ -335,3 +335,12 @@ Not run:
 
 tridz-dev/visaguy_crm#247 (`main`, merged 2026-10-21) and #248 (`stage`,
 merged 2026-10-22). Not deployed on live (owner, 2026-10-23).
+
+## Verification (2026-11-04)
+
+GitHub: tridz-dev/visaguy_crm#247 merged to `main` on 2026-10-21 and #248
+(`stage`) on 2026-10-22. The bench checkout of `visaguy_crm` `main` was
+stale (no fetch possible), so the code was checked on the fix branch
+`fix/file-row-template-fields` (`7dc785c`, `246e398`), not on `main`.
+Deployment on live is still not confirmed, and the live `dry_run` counts are
+not recorded. Stays `in-progress` until the owner confirms both.

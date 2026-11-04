@@ -165,3 +165,12 @@ Evidence:
 
 tridz-dev/FileFlo#65 and tridz-dev/visaguy_crm#249 are still open. Not
 merged, not deployed.
+
+## Verification (2026-11-04)
+
+Both pull requests are now merged (GitHub): tridz-dev/FileFlo#65 to `main` on
+2026-10-27 and tridz-dev/visaguy_crm#249 to `main` on 2026-10-27; their
+`develop-temp` (FileFlo#66) and `stage` (visaguy_crm#250) counterparts merged
+on 2026-10-21. The earlier status line ("still open") is out of date.
+Deployment is not confirmed. Stays `in-progress` until the owner confirms the
+deploy and the Save check on live.

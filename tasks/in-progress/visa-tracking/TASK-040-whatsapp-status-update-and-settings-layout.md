@@ -315,3 +315,13 @@ because the functional checks are not recorded: a real send on a test zone
 with an approved Meta template and the button suffix, the first save of an
 old file end to end, and the layout in the browser. Move to `completed`
 when the owner records them.
+
+## Verification (2026-11-04)
+
+Code check against the bench checkouts: `the_visaguy` `main` contains the
+WhatsApp send on status change (`status_service.py`, `CLIENT_MESSAGE_METHOD`
+-> `handlers/whatsapp_message._send_visa_tracking_update`), the
+`notify_visa_tracking_updates` field on `Whatsapp Default`, and no
+`tracking_url` (removed, as amended 2026-10-06); TASK-040 is in PR #43 (merged).
+This is **source-wired**. The status above is unchanged: the functional checks
+are still the owner's (**not runtime-verified**).

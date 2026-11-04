@@ -74,3 +74,11 @@ confirmation, 2026-10-23). Stays `in-progress` until the owner records the
 bulk retry run on live (runbook step 7 in
 `features/ongoing/visa-tracking/09-go-live-2026-10-20.md`): the dry-run
 count and the result.
+
+## Verification (2026-11-04)
+
+Code check: `retry_failed_extractions` is in `passport_extractor` `main`
+(`extraction_queue.py`), and the list view menu item **Retry Failed
+Extractions** is in `passport_extraction_list.js`. PR #5 is merged to `main`
+(2026-10-19). **source-wired**. The status above is unchanged: the live run
+(runbook step 7) is not recorded.

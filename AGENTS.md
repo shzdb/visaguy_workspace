@@ -27,6 +27,14 @@ This repository is a project workspace, not an application-code repository.
 - Features: `features/README.md`
 - Tasks: `tasks/README.md`
 
+## Tasklane
+
+The Tasklane project "Visa Guy" (`.tasklane.json`) is the shared record of work.
+
+- Decision: keep tasks current in Tasklane as work progresses (status, subtasks, commits via `tasklane task commit`, a session note before stopping).
+- Decision: write specs and dev docs in Tasklane docs, and record settled choices as Tasklane decisions, so the next session or teammate can resume from them.
+- Existing parent tasks are reused: refusal checker work goes under `TASK-2026-01149` (Visa refusal checker for uk).
+
 ## Verification labels
 
 Use these labels consistently when reporting evidence:
