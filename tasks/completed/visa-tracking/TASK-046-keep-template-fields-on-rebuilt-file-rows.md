@@ -2,7 +2,7 @@
 id: TASK-046
 feature: FEAT-001
 title: Keep template fields on file rows that uploads and rejections rebuild, and repair existing rows
-status: in-progress
+status: completed
 repository: visaguy_crm
 app_path: /home/shahzad/bench/apps/visaguy_crm
 owners: []
@@ -18,7 +18,7 @@ expected_files:
   - visaguy_crm/test_file_collection_rows.py
   - visaguy_crm/file_collection_rows.py
 created: 2026-10-21
-updated: 2026-10-23
+updated: 2026-11-04
 ---
 
 # TASK-046: Keep template fields on file rows that uploads and rejections rebuild, and repair existing rows
@@ -344,3 +344,9 @@ stale (no fetch possible), so the code was checked on the fix branch
 `fix/file-row-template-fields` (`7dc785c`, `246e398`), not on `main`.
 Deployment on live is still not confirmed, and the live `dry_run` counts are
 not recorded. Stays `in-progress` until the owner confirms both.
+
+## Completion (2026-11-04)
+
+Moved to `completed` on the owner's instruction, on merge evidence (GitHub,
+see the verification note above). Deployment on live and the owner's live
+checks are not recorded here.

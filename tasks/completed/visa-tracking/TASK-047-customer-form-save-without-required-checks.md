@@ -2,7 +2,7 @@
 id: TASK-047
 feature: FEAT-001
 title: Customer form Save works without required-field checks
-status: in-progress
+status: completed
 repository: fileflo, visaguy_crm
 owners: []
 depends_on: []
@@ -13,7 +13,7 @@ expected_files:
   - fileflo: form/src/utils/validationUtil.js
   - visaguy_crm: visaguy_crm/data_collecting_form.py
 created: 2026-10-21
-updated: 2026-10-23
+updated: 2026-11-04
 ---
 
 # TASK-047: Customer form Save works without required-field checks
@@ -174,3 +174,9 @@ Both pull requests are now merged (GitHub): tridz-dev/FileFlo#65 to `main` on
 on 2026-10-21. The earlier status line ("still open") is out of date.
 Deployment is not confirmed. Stays `in-progress` until the owner confirms the
 deploy and the Save check on live.
+
+## Completion (2026-11-04)
+
+Moved to `completed` on the owner's instruction, on merge evidence (GitHub,
+see the verification note above). Deployment on live and the owner's live
+checks are not recorded here.
