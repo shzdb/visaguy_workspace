@@ -18,3 +18,7 @@ This directory contains implementation-ready task documents.
 ## Status alignment
 
 The document metadata `status` must match the folder it lives in. When a task moves between states, move the file to the corresponding folder and update its `updated` date.
+
+## Ready QC work
+
+- [TASK-049: QC document selection](ready/operations-quality-check/TASK-049-qc-document-selection.md) — accepted plan in ADR-018; implementation has not started.
