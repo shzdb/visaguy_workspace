@@ -71,5 +71,6 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 - Agents must not run `git commit`, `git add`, `git stash`, `git reset`, `git checkout -b`, `git merge`, `git push`, or any other git command that changes history or the index.
 - Agents must not create, edit, move or delete files in this workspace or in any application repository under `/home/fasil/fasil-bench2/apps/`.
 - Agents may read files and run read-only git commands (`status`, `log`, `diff`, `show`).
-- When a change is needed, describe it and list the files. The owner reviews the working tree and makes the commit.
+- When a change is needed, describe it and list the files. The owner reviews the working tree.
+- When the owner asks to commit and push, the commit goes only to the `fasil` branch of `visaguy_workspace` and is pushed to `origin/fasil`. Never commit or push to `main`, a feature branch, or an application repository, and do not create branches.
 - This applies to every repository in the bench, not only this workspace, which is the main record of the project.
