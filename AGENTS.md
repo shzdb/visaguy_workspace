@@ -12,7 +12,7 @@ This repository is a project workspace, not an application-code repository.
 6. Load the applicable workflow under `.agents/skills/` when present.
 7. For `visaguy_frappe_crm/frontend` work, read `.agents/rules/frappe-crm-frontend-overrides.md` and `docs/architecture/frappe-crm-frontend-overrides.md`. Update the log in the same task.
 8. For questions about libraries, frameworks, API references, or CLI commands, use the available Context7 integration first. If it is unavailable or returns no relevant documentation, state that and fall back to the product's official primary documentation or installed CLI help. Use `.agents/` for this workspace's canonical rules, skills, and templates.
-9. Write and verify application code only on the SSH bench in `docs/operations/environment.md` (`ssh -p 2203 fasil@code.tridz.in`, `/home/fasil/fasil-bench2`, site `visaguy`). Do not read or edit a local bench, including `/home/fasil/Tridz/bench_v15`.
+9. Write and verify application code only on the bench in `docs/operations/environment.md` (`/home/fasil/fasil-bench2` on `code.tridz.in`, site `visaguy`). This workspace sits inside that bench folder, so work in `/home/fasil/fasil-bench2/apps/` directly; from another machine, connect with `ssh -p 2203 fasil@code.tridz.in`. Do not read or edit the old local bench `/home/fasil/Tridz/bench_v15`.
 
 ## Authority model
 

@@ -10,8 +10,8 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 
 ## Current implementation snapshot
 
-- **Runtime baseline**: Frappe 15.113.0, ERPNext 15.106.0, HRMS 15.45.2, Payments 0.0.1, Python 3.10.12.
-- **Bench**: 33 app repositories available; 29 installed on site `visaguy-hrms`; 5 apps bench-only (`huf`, `gada_electronics`, `library_management`, `rehbar_crm`, `huf` ).
+- **Runtime baseline** (bench `fasil-bench2`, checked 2026-11-12): Frappe 15.124.0, ERPNext 15.124.1, HRMS 15.64.6, Payments 0.0.1, Python 3.11.17.
+- **Bench**: 32 app directories in `apps/`; 29 installed on site `visaguy`; 3 bench-only (`agentflo`, `frappe_messenger`, `seller`).
 - **Ownership**: 18 internally maintained repositories under `tridz-dev` or `tvgglobal`; 11 external/upstream repositories.
 - **Frontends**: 3 independent web frontends:
   1. Public visa eligibility checker (React 19 + Vite 7 + FastAPI/OpenAI companion).
@@ -29,7 +29,7 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 
 ## Repository boundaries
 
-- Workspace: `/home/fasil/Tridz/visaguy_workspace/`
-- Working bench (SSH only): `/home/fasil/fasil-bench2` on `code.tridz.in:2203` (user: `fasil`, site: `visaguy`)
+- Workspace: `/home/fasil/fasil-bench2/visaguy_workspace/`, inside the bench folder on `code.tridz.in`. It moved here from `/home/fasil/Tridz/visaguy_workspace/`.
+- Working bench: `/home/fasil/fasil-bench2` on `code.tridz.in` (SSH: `ssh -p 2203 fasil@code.tridz.in`; user `fasil`; site `visaguy`). App code is in `/home/fasil/fasil-bench2/apps/`.
 
-Do not write application code, secrets, or production data into this workspace. Do not implement on a local bench such as `/home/fasil/Tridz/bench_v15`.
+Do not write application code, secrets, or production data into this workspace. The old local bench `/home/fasil/Tridz/bench_v15` is not the working site.

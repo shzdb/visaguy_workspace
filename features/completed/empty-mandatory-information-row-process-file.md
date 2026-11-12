@@ -47,7 +47,7 @@ In `visaguy_crm.allocated_to_process_file.check_lead_verification`, after fetchi
 
 ## Tasks
 
-- [x] [TASK-fix-empty-mandatory-information-row-crash](file:///home/fasil/Tridz/visaguy_workspace/tasks/completed/fix-empty-mandatory-information-row-crash.md)
+- [x] [TASK-fix-empty-mandatory-information-row-crash](../../tasks/completed/fix-empty-mandatory-information-row-crash.md)
 
 ## Acceptance criteria
 

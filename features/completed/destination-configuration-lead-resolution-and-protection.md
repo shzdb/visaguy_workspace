@@ -30,7 +30,7 @@ Provides dynamic, hierarchical resolution of File Templates and Process Template
 
 ### Included
 
-1. **Template Resolution Engine** ([`visaguy_crm.server_scripts.template_resolver`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_crm/visaguy_crm/server_scripts/template_resolver.py)):
+1. **Template Resolution Engine** ([`visaguy_crm.server_scripts.template_resolver`](file:///home/fasil/fasil-bench2/apps/visaguy_crm/visaguy_crm/server_scripts/template_resolver.py)):
    - Dynamic resolution of File Templates (`resolve_lead_file_templates`) and Process Templates (`resolve_lead_process_templates`).
    - Resolution hierarchy:
      1. `Zone + Visa Category + Visa Type`
@@ -43,7 +43,7 @@ Provides dynamic, hierarchical resolution of File Templates and Process Template
 
 2. **Dynamic Visa Options & Applicant Types Filtering**:
    - `get_allowed_visa_options`, `get_allowed_visa_types`, and `get_allowed_applicant_types` whitelisted endpoints.
-   - Client scripts filtering dropdown options in Frappe Desk ([`crm_lead_doctype.js`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_crm/visaguy_crm/public/js/doctype_js/crm_lead_doctype.js), [`lead_doctype.js`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_crm/visaguy_crm/public/js/doctype_js/lead_doctype.js)).
+   - Client scripts filtering dropdown options in Frappe Desk ([`crm_lead_doctype.js`](file:///home/fasil/fasil-bench2/apps/visaguy_crm/visaguy_crm/public/js/doctype_js/crm_lead_doctype.js), [`lead_doctype.js`](file:///home/fasil/fasil-bench2/apps/visaguy_crm/visaguy_crm/public/js/doctype_js/lead_doctype.js)).
 
 3. **Destination Change Protection & Confirmation Dialog**:
    - Backend `check_if_templates_are_same` endpoint comparing old vs new template resolutions.
@@ -51,8 +51,8 @@ Provides dynamic, hierarchical resolution of File Templates and Process Template
    - If template is missing for any applicant type: blocks save, reverts fields, and shows error notification.
    - If templates differ: prompts user confirmation warning that existing File Collection and Process Files will be deleted.
    - Reverts dropdowns/inputs if user cancels or closes dialog; executes save and regeneration on user confirmation.
-   - Frappe CRM Data Tab support ([`DataFields.vue`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_frappe_crm/frontend/src/components/Activities/DataFields.vue)) via `handleDocumentConfigurationSave`.
-   - Frappe CRM Side Panel support ([`Lead.vue`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_frappe_crm/frontend/src/pages/Lead.vue), [`MobileLead.vue`](file:///home/fasil/Tridz/bench_v15/frappe-bench/apps/visaguy_frappe_crm/frontend/src/pages/MobileLead.vue)) via `handleConfigurationChange` with `lastConfig` baseline tracking.
+   - Frappe CRM Data Tab support ([`DataFields.vue`](file:///home/fasil/fasil-bench2/apps/visaguy_frappe_crm/frontend/src/components/Activities/DataFields.vue)) via `handleDocumentConfigurationSave`.
+   - Frappe CRM Side Panel support ([`Lead.vue`](file:///home/fasil/fasil-bench2/apps/visaguy_frappe_crm/frontend/src/pages/Lead.vue), [`MobileLead.vue`](file:///home/fasil/fasil-bench2/apps/visaguy_frappe_crm/frontend/src/pages/MobileLead.vue)) via `handleConfigurationChange` with `lastConfig` baseline tracking.
    - Frappe Desk support via `before_save` (`frappe.validated = false`), `frappe.confirm`, and `after_save` state refreshes.
 
 4. **Regeneration & Form Link Preservation**:
@@ -65,7 +65,7 @@ Provides dynamic, hierarchical resolution of File Templates and Process Template
 
 ## Tasks
 
-- [x] [TASK-implement-destination-configuration-resolution-and-protection](file:///home/fasil/Tridz/visaguy_workspace/tasks/completed/implement-destination-configuration-resolution-and-protection.md)
+- [x] [TASK-implement-destination-configuration-resolution-and-protection](../../tasks/completed/implement-destination-configuration-resolution-and-protection.md)
 
 ## Acceptance Criteria
 

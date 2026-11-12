@@ -35,7 +35,7 @@ HR occasionally marks employees as Inactive before processing all their pending 
 
 ## Decision reference
 
-[ADR-003](file:///home/fasil/Tridz/visaguy_workspace/decisions/ADR-003-employee-deactivation-guard.md)
+[ADR-003](../../decisions/ADR-003-employee-deactivation-guard.md)
 
 ## Dependencies
 

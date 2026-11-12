@@ -9,9 +9,9 @@
 
 ## Bench evidence and execution
 
-- Build application code only on the SSH bench: `ssh -p 2203 fasil@code.tridz.in`, bench `/home/fasil/fasil-bench2`, site `visaguy`. See `docs/operations/environment.md`.
-- Do not read or edit application code on a local bench, including `/home/fasil/Tridz/bench_v15`. That tree is not the working site.
-- Apply and verify changes over SSH (`bench`, `git`, site commands) on `fasil-bench2`.
+- Build application code only on the bench `/home/fasil/fasil-bench2` on `code.tridz.in`, site `visaguy`. See `docs/operations/environment.md`.
+- This workspace is at `/home/fasil/fasil-bench2/visaguy_workspace`, inside that bench folder. Run `bench`, `git` and site commands there directly; use `ssh -p 2203 fasil@code.tridz.in` only from another machine.
+- Do not read or edit application code on the old local bench `/home/fasil/Tridz/bench_v15`. That tree is not the working site.
 - Prefer workspace files and already-accepted reconnaissance reports over repeated extraction.
 
 ## No secrets, data, or generated artifacts
@@ -65,3 +65,11 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 - Do not invent product decisions or features not supported by accepted evidence.
 - Do not claim the consumer website calls `visaguy_business.create_process_file`; that join is unresolved.
 - Do not claim integrations are actively used unless runtime-verified.
+
+## No commits or edits by agents without owner review
+
+- Agents must not run `git commit`, `git add`, `git stash`, `git reset`, `git checkout -b`, `git merge`, `git push`, or any other git command that changes history or the index.
+- Agents must not create, edit, move or delete files in this workspace or in any application repository under `/home/fasil/fasil-bench2/apps/`.
+- Agents may read files and run read-only git commands (`status`, `log`, `diff`, `show`).
+- When a change is needed, describe it and list the files. The owner reviews the working tree and makes the commit.
+- This applies to every repository in the bench, not only this workspace, which is the main record of the project.

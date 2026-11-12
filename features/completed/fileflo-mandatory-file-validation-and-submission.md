@@ -63,7 +63,7 @@ Applicants filling out visa document collection forms (`/form/<link_id>`) receiv
 
 ## Tasks
 
-- [x] [TASK-fix-fileflo-mandatory-file-validation-and-submit-hang](file:///home/fasil/Tridz/visaguy_workspace/tasks/completed/fix-fileflo-mandatory-file-validation-and-submit-hang.md)
+- [x] [TASK-fix-fileflo-mandatory-file-validation-and-submit-hang](../../tasks/completed/fix-fileflo-mandatory-file-validation-and-submit-hang.md)
 
 ## Acceptance criteria
 

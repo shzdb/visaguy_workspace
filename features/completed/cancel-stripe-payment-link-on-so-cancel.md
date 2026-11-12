@@ -46,7 +46,7 @@ Previously, when a `Payment Request` or `Sales Order` was cancelled, the Stripe 
 
 ## Tasks
 
-- [x] [TASK-cancel-stripe-payment-link-on-so-cancel](file:///home/fasil/Tridz/visaguy_workspace/tasks/completed/cancel-stripe-payment-link-on-so-cancel.md)
+- [x] [TASK-cancel-stripe-payment-link-on-so-cancel](../../tasks/completed/cancel-stripe-payment-link-on-so-cancel.md)
 
 ## Acceptance criteria
 

@@ -6,11 +6,11 @@ ready
 
 ## Feature
 
-[employee-deactivation-guard](file:///home/fasil/Tridz/visaguy_workspace/features/planned/employee-deactivation-guard.md)
+[employee-deactivation-guard](../../features/planned/employee-deactivation-guard.md)
 
 ## Decision
 
-[ADR-003](file:///home/fasil/Tridz/visaguy_workspace/decisions/ADR-003-employee-deactivation-guard.md)
+[ADR-003](../../decisions/ADR-003-employee-deactivation-guard.md)
 
 ## Objective
 

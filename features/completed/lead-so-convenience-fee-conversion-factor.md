@@ -47,7 +47,7 @@ ERPNext `Sales Order Item.conversion_factor` is `reqd`. `set_missing_values()` f
 
 ## Tasks
 
-- [x] [TASK-fix-lead-so-convenience-fee-conversion-factor](file:///home/fasil/Tridz/visaguy_workspace/tasks/completed/fix-lead-so-convenience-fee-conversion-factor.md)
+- [x] [TASK-fix-lead-so-convenience-fee-conversion-factor](../../tasks/completed/fix-lead-so-convenience-fee-conversion-factor.md)
 
 ## Acceptance criteria
 
