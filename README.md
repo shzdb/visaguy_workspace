@@ -30,6 +30,6 @@ This repository is the canonical project workspace for **VisaGuy**, a Frappe v15
 ## Repository boundaries
 
 - Workspace: `/home/fasil/Tridz/visaguy_workspace/`
-- Local bench: `/home/fasil/Tridz/bench_v15/`
+- Working bench (SSH only): `/home/fasil/fasil-bench2` on `code.tridz.in:2203` (user: `fasil`, site: `visaguy`)
 
-Do not write application code, secrets, or production data into this workspace.
+Do not write application code, secrets, or production data into this workspace. Do not implement on a local bench such as `/home/fasil/Tridz/bench_v15`.

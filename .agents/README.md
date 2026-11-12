@@ -5,6 +5,7 @@ This directory contains canonical resources for agents working on the VisaGuy wo
 ## Rules
 
 - `rules/project-rules.md` — mandatory boundaries, authority model, verification labels, and safety rules.
+- `rules/frappe-crm-frontend-overrides.md` — keep `docs/architecture/frappe-crm-frontend-overrides.md` in sync with `visaguy_frappe_crm/frontend` changes.
 
 ## Skills
 

@@ -52,12 +52,19 @@
 |---|---|---|
 | Process workflow engine | source-wired | `processflo` PF Process File actions/deliverables |
 | Document collection and zip download | source-wired | `fileflo` form generation, data collection, download |
+| Guest document collection forms & validation | runtime-verified | `fileflo` (`DocForm.vue` Vue 3 / FormKit SPA, mandatory file validation, modal alerts, partial save, `add_form_data` submission) |
 | Legacy CRM lead/customer lifecycle | source-wired | `visaguy_crm` hooks and server scripts |
+| Generate Sales Order from Lead (convenience fee UOM) | source-wired | `visaguy_crm` `prepare_and_create_sales_order` + Sales Order `before_save` `add_convenience_fee_item` sets `conversion_factor` (live missing-factor traceback **runtime-verified**; post-fix click not re-run). The Lead button and the process-file button use `frappe.call` freeze. The fee item comes from TVG CRM Settings `default_convenience_fee_item`. |
+| Insurance Sales Order from PF Process File | source-wired | `visaguy_crm` `create_insurance_sales_order`. Role Operations Invoice - TVG. Sales person is `custom_designated_to`. Item is TVG CRM Settings `default_insurance_item` (live value Travel Insurance fee 7 days, **runtime-verified** 2026-11-12). Insert and process-file save use the session user's permissions. A live successful insert was not run. |
 | Modern CRM lead/deal pipeline | source-wired | `crm` fork |
 | Frappe CRM migration bridge | source-wired | `visaguy_frappe_crm` hooks |
-| Helpdesk tickets and KB | source-wired | `helpdesk` fork + `visaguy_helpdesk` override |
+| Helpdesk tickets and KB | source-wired | `helpdesk` fork + `visaguy_helpdesk` (`_resolve_sender_email`, agent group hooks); site Assignment Rules Based on Field `raised_by` |
+| Department mailbox on User Emails | source-wired | `visaguy_helpdesk` `reconcile_user` / `reconcile_all`; `visaguy_crm` Employee and User hooks enqueue after commit. Tests on site `visaguy`: 11 helpdesk, 10 CRM. Backfill patch registered, migrate not run. Live form save not runtime-verified. |
 | HRMS customizations | source-wired | `visaguy_hrms` class/method overrides |
+| Sales Team membership from Invoice Company | source-wired | `visaguy_hrms` Employee `on_update` queues `sync_sales_team_groups` after commit. Active employees with Invoice Company and Zoho Sales Person ID are added to every matching Sales Team. Empty Invoice Company or a non-Active status removes them. Requester confirmed; rolled-back site script checked the rules. Live form save after bench restart not separately runtime-verified. |
 | Raven notifications | source-wired | `visaguy_raven` doc_event handlers |
+| Marketing dashboard data tracking | source-wired | `the_visaguy` (Lead Source Group, Spend Details) + Insights scripts |
+| Destination configuration template resolution & change protection | runtime-verified | `visaguy_crm` (`template_resolver.py`, `lead_hooks.py`, test suite) + `visaguy_frappe_crm` (`DataFields.vue`, `Lead.vue`, `leadDestinationChange.js`) |
 
 ## Integrations
 
@@ -68,6 +75,7 @@
 | FCM push notifications | source-wired | `frappe_notifier` |
 | Meta / Google Conversions API | source-wired | `frappe_conversions_api` |
 | TotalPay / MyFatoorah payments | source-wired | `payment_integrations` |
+| Stripe Payment Link lifecycle | source-wired | `visaguy_crm` (Payment Link creation, deactivation on PR/SO cancel, webhook handlers) |
 | Upstream payment gateways | present | `payments` settings DocTypes |
 | Twilio / Exotel calls | source-wired | `crm` settings and integration modules |
 | OTP gateway | source-wired | `otp_authentication` |

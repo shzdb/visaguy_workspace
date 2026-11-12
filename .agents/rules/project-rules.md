@@ -7,11 +7,12 @@
 - Treat application repositories as authoritative for implementation, tests, generated schemas, builds, and releases.
 - VisaGuy maintained organizations are `tridz-dev` and `tvgglobal`. Repositories owned by these organizations are internally maintained; `crm` and `helpdesk` are maintained forks. All other owners are external.
 
-## Local bench evidence
+## Bench evidence and execution
 
-- The local bench and application repositories are sources of evidence and implementation.
-- You may execute local commands (`bench`, `git`) in the workspace and application repositories to read state or apply changes when authorized by a task.
-- Prefer local workspace files and already-accepted reconnaissance reports over repeated extraction.
+- Build application code only on the SSH bench: `ssh -p 2203 fasil@code.tridz.in`, bench `/home/fasil/fasil-bench2`, site `visaguy`. See `docs/operations/environment.md`.
+- Do not read or edit application code on a local bench, including `/home/fasil/Tridz/bench_v15`. That tree is not the working site.
+- Apply and verify changes over SSH (`bench`, `git`, site commands) on `fasil-bench2`.
+- Prefer workspace files and already-accepted reconnaissance reports over repeated extraction.
 
 ## No secrets, data, or generated artifacts
 
@@ -43,6 +44,7 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 
 - **Do not use fixtures for standard DocType customizations.** This includes Custom Fields, Property Setters, and Custom DocPerms.
 - Always use the **Export Customizations** action from the Customize Form view (which generates JSON files in the app's `custom/` directory) for any modifications or permission changes to standard DocTypes.
+- **Frappe CRM Vue overlay:** any add, edit, delete, or re-apply under `visaguy_frappe_crm/frontend` (except `node_modules` / `dist`) must follow [`.agents/rules/frappe-crm-frontend-overrides.md`](frappe-crm-frontend-overrides.md) and update [`docs/architecture/frappe-crm-frontend-overrides.md`](../../docs/architecture/frappe-crm-frontend-overrides.md) in the same task.
 
 ## Decision and planning discipline
 

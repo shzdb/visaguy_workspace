@@ -23,6 +23,7 @@ Canonical map and reading paths for the VisaGuy workspace.
 - [`architecture/frappe-apps.md`](architecture/frappe-apps.md) — maintained Frappe app responsibilities and external app roles.
 - [`architecture/frontends.md`](architecture/frontends.md) — frontend architecture, auth models, and API contracts.
 - [`architecture/customizations.md`](architecture/customizations.md) — customization precedence, hooks, overrides, fixtures, schedulers, patches, and upgrade gates.
+- [`architecture/frappe-crm-frontend-overrides.md`](architecture/frappe-crm-frontend-overrides.md) — living `visaguy_frappe_crm/frontend` overlay log (restore after copying `crm/frontend`).
 - [`architecture/integrations.md`](architecture/integrations.md) — integration matrix using the four-level verification model.
 
 ### Operations

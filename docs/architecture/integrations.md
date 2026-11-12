@@ -22,8 +22,8 @@ This audit runtime-verified SSH access, installed apps, versions, and CLI help; 
 | **Raven** | source-wired | Base `raven` installed; `visaguy_raven` doc_event handlers for CRM/HR/business/accounts | No whitelisted APIs listed; runtime delivery not tested. |
 | **FCM push** | source-wired | `frappe_notifier_settings`; `frappe_notifier/api/token.py`, `topic.py`, `send_notification.py`; `employee_self_service` FCM keyword | Service-account placement and relay URL not inspected. |
 | **Meta / Google Conversions API** | source-wired | `frappe_conversions_api/api/meta/webhook.py`; keyword hits `meta`, `google` | Provider tokens and event forwarding not tested. |
-| **MyFatoorah / TotalPay** | source-wired | `payment_integrations` settings DocTypes; webhook handlers; `Payment Request` `on_update_after_submit` hook | Gateway credentials and live webhooks not tested. |
-| **Upstream Payments gateways** | present | `payments` app settings: PayPal, Razorpay, PayTM, Braintree, GoCardless, Stripe, M-Pesa; checkout templates | No evidence of active configuration. |
+| **Stripe Payments & Payment Links** | source-wired | `visaguy_crm` server scripts (`payment_request_hooks.py`, `sales_order_hooks.py`, `stripe_payment_webhook.py`); `Stripe Settings`; custom field `custom_stripe_payment_link_id` | Payment Link creation on PR submit, link deactivation / session expiration on PR/SO cancel, webhook for charge completion. |
+| **Upstream Payments gateways** | present | `payments` app settings: PayPal, Razorpay, PayTM, Braintree, GoCardless, M-Pesa; checkout templates | No evidence of active configuration for other gateways. |
 | **Zoho (legacy CRM)** | source-wired | `visaguy_crm` server scripts reference Zoho integration and payment-from-lead flows | No settings DocType observed. |
 | **Twilio / Exotel** | source-wired | `crm_twilio_settings`, `crm_exotel_settings`; `crm/integrations/twilio/api.py`, `integrations/exotel/handler.py` | Provider credentials and call flows not tested. |
 | **Insights** | source-wired | `insights_settings`; fixtures shipped by `visaguy_crm`, `visaguy_hrms`, `the_visaguy` | Data-source connectivity not tested. |

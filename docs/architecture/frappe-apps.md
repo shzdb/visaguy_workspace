@@ -8,7 +8,7 @@ This document describes the 18 internally maintained Frappe apps installed on si
 
 | App | Responsibility | Key DocTypes / Entities | Key Interfaces | Verification |
 |---|---|---|---|---|
-| `the_visaguy` | Core VisaGuy domain: raw leads, destinations, WhatsApp feedback, quality feedback | Raw Lead, Destination Configuration, Quality Feedback, WhatsApp Defaults/Templates | `convert_to_crm_lead`, `get_visa_types`, `get_visa_price`, `get_invoice_items` | source-wired |
+| `the_visaguy` | Core VisaGuy domain: raw leads, destinations, WhatsApp feedback, quality feedback | Raw Lead, Destination Configuration, Quality Feedback, WhatsApp Defaults/Templates | `convert_to_crm_lead`, `get_visa_types`, `get_lead_destination_config_options`, `get_visa_price`, `get_invoice_items` | source-wired |
 | `waflo` | WhatsApp conversational flow engine and retry handling | WF Account Settings, WF Settings, WF Active Chat Flow | `retry_message`, `process_incoming_whatsapp_message` | source-wired |
 
 ### CRM layers
@@ -16,8 +16,8 @@ This document describes the 18 internally maintained Frappe apps installed on si
 | App | Responsibility | Key DocTypes / Entities | Key Interfaces | Verification |
 |---|---|---|---|---|
 | `crm` | Modern CRM UI, lead/deal pipeline, call/WhatsApp/ERPNext integration | CRM Lead, CRM Deal, CRM Organization, Contact, Address, CRM Call Log | `get_lead`, `convert_to_deal`, `get_deal`, `api/views`, `api/contact`, `api/whatsapp`, Twilio/Exotel integrations | source-wired |
-| `visaguy_crm` | Legacy operational CRM around ERPNext Lead, process files, payments, Zoho integration, lead allocation | Lead (ERPNext), Customer, ToDo, FF File Collection, PF Process File | `customer_creation`, `lead_functions`, `create_process_file`, `update_applicant_details` | source-wired |
-| `visaguy_frappe_crm` | Customize and migrate to Frappe CRM; zone, customer, validations, duplicate checks | CRM Lead, ToDo (via `crm`), CRM Migration Settings | `handle_lead_send_form`, `get_zone_details`, `check_duplicate_lead`, `get_details_of_session_user` | source-wired |
+| `visaguy_crm` | Legacy operational CRM around ERPNext Lead, process files, payments, Zoho integration, lead allocation, template resolution & destination protection | Lead (ERPNext), Customer, ToDo, FF File Collection, PF Process File, Destination Configuration | `customer_creation`, `lead_functions`, `create_process_file`, `template_resolver`, `reset_and_regenerate_on_destination_change`, `prepare_and_create_sales_order` | runtime-verified |
+| `visaguy_frappe_crm` | Customize and migrate to Frappe CRM; zone, customer, validations, duplicate checks, permission & assignment overrides | CRM Lead, ToDo (via `crm`), CRM Migration Settings | `handle_lead_send_form`, `get_zone_details`, `check_duplicate_lead`, `CustomCRMLead`, `lead_restrictions`, `has_crm_lead_permission`, `update_designated_to` | runtime-verified |
 
 ### Business and consumer surfaces
 
@@ -30,7 +30,7 @@ This document describes the 18 internally maintained Frappe apps installed on si
 
 | App | Responsibility | Key DocTypes / Entities | Key Interfaces | Verification |
 |---|---|---|---|---|
-| `fileflo` | Document forms, file collection, data collection, zip downloads | Fileflo Settings, FF File Collection | `generate_form`, `fetch_form_data`, `add_form_data`, `document_fetch`, `download_files_as_zip` | source-wired |
+| `fileflo` | Document forms, file collection, data collection, zip downloads; embedded Vue 3 SPA frontend (`DocForm.vue`, FormKit) | Fileflo Settings, FF File Collection | `generate_form`, `fetch_form_data`, `add_form_data`, `document_fetch`, `download_files_as_zip`, `/form/<id>` | runtime-verified |
 | `processflo` | Process workflow engine and deliverables for visa cases | PF Process File, PF Process Action, PF Process Deliverables | `generate_file_collection_process_file`, `fetch_actions`, `create_process_deliverables` | source-wired |
 
 ### HR, helpdesk, and Raven
@@ -38,8 +38,8 @@ This document describes the 18 internally maintained Frappe apps installed on si
 | App | Responsibility | Key DocTypes / Entities | Key Interfaces | Verification |
 |---|---|---|---|---|
 | `visaguy_hrms` | HRMS customizations: leave, timesheet, interviews, appointment letters, expense claims | Interview, Expense Claim, Employee, Leave Application | `get_leave_types`, class overrides for Interview/Expense Claim/Employee | source-wired |
-| `visaguy_helpdesk` | Customization layer over Frappe Helpdesk; agent group assignment, ticket override, permissions | HD Ticket (from `helpdesk`) | `assign_agent`, `get_last_communication`, `new_comment`, `reply_via_agent`, `mark_seen` | source-wired |
-| `visaguy_raven` | Raven notification orchestration for CRM, HR, business, accounts events | Raven Bot/User/Document Notification | `send_form_submission`, `send_assignment`, `send_comment`, `send_leave_request`, `send_business`, `send_sales_order`, `send_credit_note`, `send_refund`, `send_timesheet_reminders` | source-wired |
+| `visaguy_helpdesk` | Customization layer over Frappe Helpdesk; agent group assignment, ticket override, permissions, department mailbox sync | HD Ticket (from `helpdesk`); TVG HD Settings (`Email and HD Team.department`); site Assignment Rules Based on Field `raised_by` | `assign_agent`, `_resolve_sender_email`, `reconcile_user` / `reconcile_all` | source-wired |
+| `visaguy_raven` | Raven notification orchestration for CRM, HR, business, accounts events | Raven Bot/User/Document Notification | `send_form_submission`, `send_assignment`, `send_comment`, `send_leave_request`, `send_business`, `send_sales_order`, `send_credit_note`, `send_refund`, `send_payment_received`, `send_timesheet_reminders` | source-wired |
 
 ### Messaging, notifications, payments, and utilities
 
